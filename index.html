@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lifetrenz Local Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        color: var(--ink, #191919);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background-color: var(--bg, #fbfbfa);
+        transition:
+          background-color 0.18s ease,
+          color 0.18s ease;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+
+      /* Custom global styling overrides to prevent React DOM inline style warnings */
+      .mantine-Tabs-tab {
+        transition: all 0.15s ease !important;
+      }
+      .mantine-Tabs-tab:hover {
+        background-color: var(--mantine-color-default) !important;
+        color: var(--mantine-color-text) !important;
+      }
+      .mantine-Tabs-tab[data-active] {
+        background-color: var(--mantine-color-body) !important;
+        color: var(--mantine-color-text) !important;
+        border-color: var(--mantine-color-default-border) !important;
+        box-shadow: var(--mantine-shadow-xs) !important;
+      }
+
+      /* Premium Sonner Toast Style Rules */
+      .mantine-Notification-root {
+        position: relative !important;
+        overflow: hidden !important;
+        transition:
+          transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.25s ease !important;
+      }
+      .mantine-Notification-root::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 3px !important;
+        background-color: var(--toast-accent-color, var(--mantine-color-blue-6)) !important;
+        border-top-left-radius: var(--mantine-radius-default, 4px) !important;
+        border-bottom-left-radius: var(--mantine-radius-default, 4px) !important;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-ChJrl8ES.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-Bh1tDfsg.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-core-DmFOOWB7.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-helpers-7biqLiK5.js">
+    <link rel="stylesheet" crossorigin href="./assets/vendor-helpers-CBH1pQVa.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
