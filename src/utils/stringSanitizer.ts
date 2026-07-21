@@ -1,4 +1,4 @@
-import { normalizeEncounterValue } from '../../../shared/utils/helpers.ts'
+import { normalizeEncounterValue } from '../../shared/utils/helpers.ts'
 
 /**
  * Utility to split, trim, sanitize and normalize raw copy-paste data

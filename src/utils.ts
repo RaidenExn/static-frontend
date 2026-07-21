@@ -17,7 +17,7 @@ import {
   calculateRcmFinances,
   applyRowAction,
   normalizeEncounterValue
-} from '../../shared/utils/helpers.ts'
+} from '../shared/utils/helpers.ts'
 
 export { rcmNumVal, parseDateLikeJs, currentServiceDate, serviceDateMonthsAgo, currentUsDate, usDateMonthsAgo, activityRaStatus, isSpecialRepeatTrackerRow, rowHasRepeatTrackerMarker, remarkText, resubmissionReason, activityRaStatusClass, isoDate, calculateRcmFinances, applyRowAction, normalizeEncounterValue }
 
