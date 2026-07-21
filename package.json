@@ -1,0 +1,39 @@
+{
+  "name": "static-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@eslint/js": "latest",
+    "@mantine/core": "latest",
+    "@mantine/dates": "^9.4.1",
+    "@mantine/form": "latest",
+    "@mantine/hooks": "latest",
+    "@mantine/notifications": "latest",
+    "@tanstack/react-query": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "clsx": "latest",
+    "dayjs": "latest",
+    "eslint": "latest",
+    "eslint-plugin-react-hooks": "latest",
+    "eslint-plugin-react-refresh": "latest",
+    "globals": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "sonner": "latest",
+    "tailwind-merge": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest",
+    "vite": "latest"
+  }
+}
