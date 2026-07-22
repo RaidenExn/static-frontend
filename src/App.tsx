@@ -37,6 +37,7 @@ import ResubmissionLimitAlert from './components/ResubmissionLimitAlert'
 import RemarksAndResubmissionsPanel from './components/activity/RemarksAndResubmissionsPanel'
 import ResubmissionPreviewCard from './components/activity/ResubmissionPreviewCard'
 import { useEncounterSync } from './hooks/useEncounterSync'
+import { FRONTEND_VERSION } from './version'
 
 import BackendConnectionScreen from './components/BackendConnectionScreen'
 
@@ -394,12 +395,8 @@ function AppInner() {
   }, [resolvedEncounter, loading])
 
   useEffect(() => {
-    const loadedEncounter = patientHeader?.resolvedEncounter
-    if (loadedEncounter) {
-      document.title = loadedEncounter
-    } else {
-      document.title = 'Lifetrenz Local Portal'
-    }
+    document.title = `lt-portal v${FRONTEND_VERSION}`
+
 
     // Dynamic browser tab favicon using Lucide Activity SVG styled in neutral monochrome gray
     const svgString = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#8e8e8e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>`
