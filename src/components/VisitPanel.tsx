@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { Card, Table, Badge, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton } from '@mantine/core'
-import { Eye, Clock, Archive, BookOpen, Download } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Card, Table, Badge, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton, Tooltip, ActionIcon } from '@mantine/core'
+import { Eye, Clock, Archive, BookOpen, Download, Copy, Check, FileSpreadsheet, ShieldCheck, AlertCircle } from 'lucide-react'
 import { RcmVisit, PatientHistoricFile } from '../types'
 import { rcmStrVal } from '../utils'
 import { customFetch as fetch } from '../config/backend'
@@ -28,26 +28,54 @@ export default function VisitPanel({
 }: VisitPanelProps) {
   const [selectedEncounter, setSelectedEncounter] = useState<string | null>(null)
   const [modalLoading, setModalLoading] = useState<boolean>(false)
-  const [activities, setActivities] = useState<any[]>([])
+  const [encounterData, setEncounterData] = useState<any | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState<boolean>(false)
+
+  // In-memory cache for ultra-fast instant 0ms prewarming & modal popups
+  const visitActivityCache = useRef<Map<string, any>>(new Map())
+
+  const handlePrewarmActivities = async (encNo: string) => {
+    if (!encNo) return
+    const clean = encNo.trim().toUpperCase()
+    if (visitActivityCache.current.has(clean)) return
+
+    try {
+      const res = await fetch(`/api/encounter/visit-activities?encounter=${encodeURIComponent(clean)}`)
+      if (res.ok) {
+        const data = await res.json()
+        visitActivityCache.current.set(clean, data)
+      }
+    } catch (_) {
+      // Background prewarm fail is silent
+    }
+  }
 
   const handleViewActivities = async (encNo: string) => {
-    setSelectedEncounter(encNo)
-    setModalLoading(true)
+    const clean = encNo.trim().toUpperCase()
+    setSelectedEncounter(clean)
     setError(null)
-    setActivities([])
+    setCopied(false)
+
+    // Check prewarmed / cached data first for instant 0ms load
+    if (visitActivityCache.current.has(clean)) {
+      setEncounterData(visitActivityCache.current.get(clean))
+      setModalLoading(false)
+      return
+    }
+
+    setModalLoading(true)
+    setEncounterData(null)
+
     try {
-      const res = await fetch('/api/encounter/rcm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encounter: encNo })
-      })
+      const res = await fetch(`/api/encounter/visit-activities?encounter=${encodeURIComponent(clean)}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
       const data = await res.json()
-      setActivities(data?.rcm?.flattened?.activity || [])
+      visitActivityCache.current.set(clean, data)
+      setEncounterData(data)
     } catch (err: any) {
-      console.error('[VisitPanel] Error loading activities:', err)
+      console.error('[VisitPanel] Error loading visit activities:', err)
       setError(err.message || 'Failed to fetch activity details')
     } finally {
       setModalLoading(false)
@@ -56,8 +84,85 @@ export default function VisitPanel({
 
   const handleCloseModal = () => {
     setSelectedEncounter(null)
-    setActivities([])
+    setEncounterData(null)
     setError(null)
+    setCopied(false)
+  }
+
+  const handleCopySummary = () => {
+    if (!encounterData) return
+    const acts = encounterData.activities || []
+    const summaryLines = [
+      `Encounter: ${encounterData.encounter}`,
+      `Patient: ${encounterData.patientName} (${encounterData.patientId})`,
+      `Doctor: ${encounterData.doctorName}`,
+      `Date: ${encounterData.encounterDate}`,
+      `Payer: ${encounterData.payerType}`,
+      `Total Claim: ${encounterData.totalClaimPayer} | Total RA: ${encounterData.totalRaPayable} | Rejection: ${encounterData.totalRejection}`,
+      '--------------------------------------------------',
+      ...acts.map(
+        (a: any, i: number) =>
+          `${i + 1}. [${a.code}] ${a.order_name} | Qty: ${a.qty} | Auth: ${a.prior_auth_number} (${a.prior_auth_status}) | Claim: ${a.claim_payer_pay} | RA: ${a.ra_net_payable} | Rej: ${a.total_rej_amount}${
+            a.claim_denial_code ? ` | Denial: [${a.claim_denial_code}] ${a.claim_denial_desc}` : ''
+          }`
+      )
+    ].join('\n')
+
+    navigator.clipboard.writeText(summaryLines)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleExportCsv = () => {
+    if (!encounterData) return
+    const acts = encounterData.activities || []
+    const headers = [
+      'Code',
+      'Order Name',
+      'RA Status',
+      'Approval Code',
+      'Auth Status',
+      'Qty',
+      'Service Date',
+      'Claim Payer',
+      'Patient Pay',
+      'RA Payer Net',
+      'Rejection Amount',
+      'Payment Ref / RA ID',
+      'Denial Code',
+      'Denial Remark'
+    ]
+
+    const csvRows = [
+      headers.join(','),
+      ...acts.map((a: any) =>
+        [
+          `"${a.code}"`,
+          `"${a.order_name.replace(/"/g, '""')}"`,
+          `"${a.status}"`,
+          `"${a.prior_auth_number}"`,
+          `"${a.prior_auth_status}"`,
+          `"${a.qty}"`,
+          `"${a.activity_start_date_time}"`,
+          `"${a.claim_payer_pay}"`,
+          `"${a.claim_patient_pay}"`,
+          `"${a.ra_net_payable}"`,
+          `"${a.total_rej_amount}"`,
+          `"${a.ra_id_payer}"`,
+          `"${a.claim_denial_code}"`,
+          `"${a.claim_denial_desc.replace(/"/g, '""')}"`
+        ].join(',')
+      )
+    ]
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `visit_activities_${encounterData.encounter}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   if (!active) return null
@@ -85,6 +190,8 @@ export default function VisitPanel({
     paddingBottom: '3px',
     lineHeight: '1.2'
   }
+
+  const activities = encounterData?.activities || []
 
   return (
     <Stack gap="md" style={{ margin: '8px 10px' }}>
@@ -146,7 +253,6 @@ export default function VisitPanel({
                     row.display_encounter && row.display_encounter.trim().toUpperCase() === cleanCurrentEnc
                   const isSelfPay = (row.payer_type || '').trim().toLowerCase() === 'self pay'
 
-                  // Prioritize highlighting Self Pay rows, fall back to active encounter color mapping
                   const rowBgColor = isSelfPay
                     ? 'var(--mantine-color-red-light)'
                     : isCurrent
@@ -202,6 +308,7 @@ export default function VisitPanel({
                           size="xs"
                           variant="subtle"
                           leftSection={<Eye style={{ width: 11, height: 11 }} />}
+                          onMouseEnter={() => handlePrewarmActivities(row.display_encounter || '')}
                           onClick={() => handleViewActivities(row.display_encounter || '')}
                           style={{ height: '18px', padding: '0 6px', fontSize: '10px' }}
                         >
@@ -298,19 +405,9 @@ export default function VisitPanel({
                     <Table.Td style={{ ...tdStyle, textAlign: 'center' }}>
                       <Button
                         size="xs"
-                        variant="subtle"
+                        variant="light"
                         leftSection={<Download style={{ width: 11, height: 11 }} />}
-                        component="a"
-                        href={row.downloadUrl || '#'}
-                        target="_blank"
-                        rel="noreferrer"
-                        download={row.name || ''}
-                        onClick={(e) => {
-                          if (row.downloadUrl) {
-                            e.preventDefault()
-                            onOpenPdf(row.downloadUrl, row.name || '')
-                          }
-                        }}
+                        onClick={() => onOpenPdf(row.downloadUrl || '', row.name || '')}
                         style={{ height: '18px', padding: '0 6px', fontSize: '10px' }}
                       >
                         Open PDF
@@ -324,7 +421,7 @@ export default function VisitPanel({
         </Box>
       </Card>
 
-      {/* Activity Details Popup Modal */}
+      {/* Upgraded Visit Activity Details Popup Modal */}
       <Modal
         opened={!!selectedEncounter}
         onClose={handleCloseModal}
@@ -332,13 +429,13 @@ export default function VisitPanel({
           <Group gap="xs">
             <BookOpen style={{ width: 14, height: 14, color: 'var(--mantine-color-text)' }} />
             <Text style={{ fontWeight: 800, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Encounter Activity Details
+              Detailed Visit Activity Breakdown
             </Text>
           </Group>
         }
-        size="xl"
+        size="90%"
         centered
-        overlayProps={{ backgroundOpacity: 0.55, blur: 4 }}
+        overlayProps={{ backgroundOpacity: 0.65, blur: 6 }}
         styles={{
           header: {
             backgroundColor: 'var(--mantine-color-body)',
@@ -348,36 +445,83 @@ export default function VisitPanel({
             backgroundColor: 'var(--mantine-color-body)',
             border: '1px solid var(--line, rgba(255, 255, 255, 0.08))',
             borderRadius: 'var(--mantine-radius-sm)',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.35)'
+            boxShadow: '0 20px 50px rgba(0,0,0,0.45)'
           },
-          body: { padding: '20px' }
+          body: { padding: '16px' }
         }}
       >
-        <Stack gap="md">
-          <Group
-            justify="space-between"
-            align="center"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.02)',
-              padding: '8px 12px',
-              borderRadius: 'var(--mantine-radius-sm)',
-              border: '1px solid var(--line, rgba(255, 255, 255, 0.05))'
-            }}
-          >
-            <Text size="xs" color="dimmed" style={{ fontWeight: 600 }}>
-              Encounter Number:
-            </Text>
-            <Badge size="sm" variant="filled">
-              {selectedEncounter}
-            </Badge>
-          </Group>
+        <Stack gap="sm">
+          {/* Telemetry Summary Bar */}
+          {encounterData && (
+            <Box
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                padding: '10px 14px',
+                borderRadius: 'var(--mantine-radius-sm)',
+                border: '1px solid var(--line, rgba(255, 255, 255, 0.08))'
+              }}
+            >
+              <Group justify="space-between" wrap="wrap" gap="xs">
+                <Group gap="md">
+                  <Box>
+                    <Text size="10px" color="dimmed" style={{ textTransform: 'uppercase', fontWeight: 700 }}>
+                      Encounter
+                    </Text>
+                    <Text size="xs" style={{ fontWeight: 800 }}>
+                      {encounterData.encounter}
+                    </Text>
+                  </Box>
+                  <Box style={{ borderLeft: '1px solid var(--line)', paddingLeft: '12px' }}>
+                    <Text size="10px" color="dimmed" style={{ textTransform: 'uppercase', fontWeight: 700 }}>
+                      Patient
+                    </Text>
+                    <Text size="xs" style={{ fontWeight: 700 }}>
+                      {encounterData.patientName} ({encounterData.patientId})
+                    </Text>
+                  </Box>
+                  <Box style={{ borderLeft: '1px solid var(--line)', paddingLeft: '12px' }}>
+                    <Text size="10px" color="dimmed" style={{ textTransform: 'uppercase', fontWeight: 700 }}>
+                      Doctor
+                    </Text>
+                    <Text size="xs" style={{ fontWeight: 700 }}>
+                      {encounterData.doctorName}
+                    </Text>
+                  </Box>
+                  <Box style={{ borderLeft: '1px solid var(--line)', paddingLeft: '12px' }}>
+                    <Text size="10px" color="dimmed" style={{ textTransform: 'uppercase', fontWeight: 700 }}>
+                      Visit Date
+                    </Text>
+                    <Text size="xs" style={{ fontWeight: 600 }}>
+                      {encounterData.encounterDate}
+                    </Text>
+                  </Box>
+                </Group>
+
+                <Group gap="sm">
+                  <Badge variant="light" color="blue" size="sm">
+                    Claim: AED {encounterData.totalClaimPayer}
+                  </Badge>
+                  <Badge variant="light" color="green" size="sm">
+                    RA: AED {encounterData.totalRaPayable}
+                  </Badge>
+                  <Badge
+                    variant="light"
+                    color={Number(encounterData.totalRejection) > 0 ? 'red' : 'gray'}
+                    size="sm"
+                  >
+                    Rej: AED {encounterData.totalRejection}
+                  </Badge>
+                </Group>
+              </Group>
+            </Box>
+          )}
 
           {modalLoading ? (
-            <Group justify="center" align="center" style={{ minHeight: '150px' }}>
+            <Group justify="center" align="center" style={{ minHeight: '180px' }}>
               <Stack align="center" gap="xs">
                 <Loader size="sm" />
                 <Text size="xs" color="dimmed">
-                  Fetching activity records from database...
+                  Fetching rich activity details from SQLite database...
                 </Text>
               </Stack>
             </Group>
@@ -388,7 +532,7 @@ export default function VisitPanel({
               style={{ borderColor: 'var(--bad, #e03131)', backgroundColor: 'rgba(224, 49, 49, 0.05)' }}
             >
               <Text size="xs" style={{ fontWeight: 700, color: 'var(--bad, #e03131)' }}>
-                Failed to load details
+                Failed to load activity details
               </Text>
               <Text size="xs" color="dimmed">
                 {error}
@@ -399,19 +543,32 @@ export default function VisitPanel({
               No activity rows recorded for this visit.
             </Text>
           ) : (
-            <Box style={{ overflowX: 'auto' }}>
-              <Table verticalSpacing={2} style={{ fontSize: '11px' }}>
-                <Table.Thead>
+            <Box style={{ overflowX: 'auto', maxHeight: '420px' }}>
+              <Table verticalSpacing={3} style={{ fontSize: '11px', minWidth: '950px' }} highlightOnHover>
+                <Table.Thead style={{ stickyHeader: true, top: 0, zIndex: 1, backgroundColor: 'var(--mantine-color-body)' }}>
                   <Table.Tr style={{ borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.08))' }}>
-                    {['Code', 'Order', 'RA Status', 'Qty', 'Claim Gross', 'RA Gross', 'Denial'].map((h) => (
+                    {[
+                      'Code',
+                      'Order Description',
+                      'RA Status',
+                      'Approval Code',
+                      'Auth Status',
+                      'Qty',
+                      'Claim Payer',
+                      'Patient Pay',
+                      'RA Payer Net',
+                      'Rejection',
+                      'Payment Ref / RA ID',
+                      'Denial Reason & Code'
+                    ].map((h) => (
                       <Table.Th
                         key={h}
                         style={{
                           textTransform: 'uppercase',
                           fontSize: '9.5px',
                           color: 'var(--muted)',
-                          paddingTop: '4px',
-                          paddingBottom: '4px'
+                          paddingTop: '6px',
+                          paddingBottom: '6px'
                         }}
                       >
                         {h}
@@ -420,45 +577,100 @@ export default function VisitPanel({
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {activities.map((act, i) => (
-                    <Table.Tr key={i}>
-                      <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.code || '-'}</Table.Td>
-                      <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.order_name || '-'}</Table.Td>
-                      <Table.Td style={tdStyle}>
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color={
-                            Number(act.activity_status_id) === 9
-                              ? 'red'
-                              : Number(act.activity_status_id) === 3
+                  {activities.map((act: any, i: number) => {
+                    const hasAuth = act.prior_auth_number && act.prior_auth_number !== '-'
+                    const hasRejection = Number(act.total_rej_amount) > 0
+
+                    return (
+                      <Table.Tr key={i}>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 700, fontFamily: 'monospace' }}>{act.code}</Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.order_name}</Table.Td>
+                        <Table.Td style={tdStyle}>
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            color={
+                              act.status === 'Full Remittance' || act.status === 'Full RA'
                                 ? 'green'
-                                : 'gray'
-                          }
-                          style={{ height: '14px', fontSize: '8px' }}
-                        >
-                          {act.activity_status || 'Open'}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td style={tdStyle}>{act.qty || '1'}</Table.Td>
-                      <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>
-                        {rcmStrVal(act.claim_gross_amount) || '-'}
-                      </Table.Td>
-                      <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>
-                        {rcmStrVal(act.ra_gross_amount) || '-'}
-                      </Table.Td>
-                      <Table.Td style={{ ...tdStyle, color: 'var(--bad, #e03131)', fontWeight: 500 }}>
-                        {act.claim_denial_code ? `[${act.claim_denial_code}] ` : ''}
-                        {act.claim_denial_remark || '-'}
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
+                                : act.status === 'Partial Remittance' || act.status === 'Partial RA'
+                                  ? 'orange'
+                                  : act.status === 'Denied'
+                                    ? 'red'
+                                    : act.status === 'Submitted'
+                                      ? 'cyan'
+                                      : 'gray'
+                            }
+                            style={{ height: '16px', fontSize: '8.5px' }}
+                          >
+                            {act.status}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 700, fontFamily: 'monospace' }}>
+                          <Group gap="4px" wrap="nowrap">
+                            {hasAuth && <ShieldCheck style={{ width: 11, height: 11, color: 'var(--mantine-color-teal-4)' }} />}
+                            <Text size="xs" style={{ fontWeight: 700, fontFamily: 'monospace' }}>
+                              {act.prior_auth_number}
+                            </Text>
+                          </Group>
+                        </Table.Td>
+                        <Table.Td style={tdStyle}>
+                          <Badge
+                            size="xs"
+                            variant="dot"
+                            color={hasAuth ? 'teal' : 'gray'}
+                            style={{ height: '16px', fontSize: '8.5px' }}
+                          >
+                            {act.prior_auth_status}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td style={{ ...tdStyle, textAlign: 'center' }}>{act.qty}</Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.claim_payer_pay}</Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.claim_patient_pay}</Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 700, color: 'var(--good, #2b8a3e)' }}>
+                          {act.ra_net_payable}
+                        </Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontWeight: 700, color: hasRejection ? 'var(--bad, #e03131)' : 'var(--muted)' }}>
+                          {act.total_rej_amount}
+                        </Table.Td>
+                        <Table.Td style={{ ...tdStyle, fontSize: '10px', color: 'var(--muted)', fontFamily: 'monospace' }}>
+                          {act.ra_id_payer}
+                        </Table.Td>
+                        <Table.Td style={{ ...tdStyle, color: hasRejection ? 'var(--bad, #e03131)' : 'inherit', fontSize: '10.5px' }}>
+                          {act.claim_denial_code ? `[${act.claim_denial_code}] ` : ''}
+                          {act.claim_denial_desc || '-'}
+                        </Table.Td>
+                      </Table.Tr>
+                    )
+                  })}
                 </Table.Tbody>
               </Table>
             </Box>
           )}
 
-          <Group justify="flex-end" style={{ marginTop: '8px' }}>
+          {/* Modal Action Bar */}
+          <Group justify="space-between" align="center" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--line, rgba(255, 255, 255, 0.08))' }}>
+            <Group gap="xs">
+              <Button
+                size="xs"
+                variant="light"
+                leftSection={copied ? <Check style={{ width: 12, height: 12 }} /> : <Copy style={{ width: 12, height: 12 }} />}
+                onClick={handleCopySummary}
+                disabled={!encounterData || activities.length === 0}
+              >
+                {copied ? 'Copied Summary' : 'Copy Summary'}
+              </Button>
+              <Button
+                size="xs"
+                variant="light"
+                color="green"
+                leftSection={<FileSpreadsheet style={{ width: 12, height: 12 }} />}
+                onClick={handleExportCsv}
+                disabled={!encounterData || activities.length === 0}
+              >
+                Export CSV
+              </Button>
+            </Group>
+
             <Button size="xs" variant="outline" onClick={handleCloseModal}>
               Close Window
             </Button>

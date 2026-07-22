@@ -36,9 +36,11 @@ interface ActivityTableProps {
 
 const mapStatusDisplayName = (status: string): string => {
   const normalized = (status || '').trim().toLowerCase()
-  if (['full remittance', 'full', 'remitted', 'paid', 'remittance'].includes(normalized)) return 'Full RA'
-  if (['partial remittance', 'partial'].includes(normalized)) return 'Partial RA'
-  return status
+  if (['full remittance', 'full', 'remitted', 'paid', 'remittance', 'full ra'].includes(normalized)) return 'Full RA'
+  if (['partial remittance', 'partial', 'partial ra'].includes(normalized)) return 'Partial RA'
+  if (['submitted', 'claim submitted', 'subm'].includes(normalized)) return 'Submitted'
+  if (['billed', 'newly billed', 'ready for submission', 'unsubmitted'].includes(normalized)) return 'Billed'
+  return status || 'Billed'
 }
 
 const CellText = ({ text, maxChars, style }: { text: string; maxChars?: number; style?: React.CSSProperties }) => {
@@ -459,26 +461,32 @@ function ActivityTable({
                             textTransform: 'none',
                             borderRadius: '4px',
                             backgroundColor: ['Denied', 'Rejected'].includes(mappedStatus)
-                              ? 'var(--badge-error-bg)'
+                              ? 'var(--badge-error-bg, rgba(239, 68, 68, 0.15))'
                               : mappedStatus === 'Full RA'
-                                ? 'var(--badge-success-bg)'
+                                ? 'var(--badge-success-bg, rgba(16, 185, 129, 0.15))'
                                 : mappedStatus === 'Partial RA'
-                                  ? 'var(--badge-warning-bg)'
-                                  : 'var(--badge-neutral-bg)',
+                                  ? 'var(--badge-warning-bg, rgba(245, 158, 11, 0.15))'
+                                  : mappedStatus === 'Submitted'
+                                    ? 'rgba(2, 132, 199, 0.15)'
+                                    : 'var(--badge-neutral-bg, rgba(148, 163, 184, 0.12))',
                             border: ['Denied', 'Rejected'].includes(mappedStatus)
-                              ? '1px solid var(--badge-error-border)'
+                              ? '1px solid var(--badge-error-border, rgba(239, 68, 68, 0.3))'
                               : mappedStatus === 'Full RA'
-                                ? '1px solid var(--badge-success-border)'
+                                ? '1px solid var(--badge-success-border, rgba(16, 185, 129, 0.3))'
                                 : mappedStatus === 'Partial RA'
-                                  ? '1px solid var(--badge-warning-border)'
-                                  : '1px solid var(--badge-neutral-border)',
+                                  ? '1px solid var(--badge-warning-border, rgba(245, 158, 11, 0.3))'
+                                  : mappedStatus === 'Submitted'
+                                    ? '1px solid rgba(2, 132, 199, 0.3)'
+                                    : '1px solid var(--badge-neutral-border, rgba(148, 163, 184, 0.25))',
                             color: ['Denied', 'Rejected'].includes(mappedStatus)
-                              ? 'var(--badge-error-text)'
+                              ? 'var(--badge-error-text, #ef4444)'
                               : mappedStatus === 'Full RA'
-                                ? 'var(--badge-success-text)'
+                                ? 'var(--badge-success-text, #10b981)'
                                 : mappedStatus === 'Partial RA'
-                                  ? 'var(--badge-warning-text)'
-                                  : 'var(--badge-neutral-text)',
+                                  ? 'var(--badge-warning-text, #f59e0b)'
+                                  : mappedStatus === 'Submitted'
+                                    ? '#38bdf8'
+                                    : 'var(--badge-neutral-text, #94a3b8)',
                             fontWeight: 600
                           }}
                         >

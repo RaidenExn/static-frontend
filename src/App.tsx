@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { MantineProvider, Tabs, Box, Grid } from '@mantine/core'
+import { MantineProvider, Tabs, Box, Grid, Stack } from '@mantine/core'
 import { useHotkeys } from '@mantine/hooks'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
@@ -32,6 +32,7 @@ import { ResultsHistoryTable } from './components/ResultsHistoryTable'
 import { ClaimHistoryTable } from './components/ClaimHistoryTable'
 import { LocalStorageController } from './components/LocalStorageController'
 import { StorageJobMonitor } from './components/StorageJobMonitor'
+import { StorageCategoryBreakdown } from './components/storage/StorageCategoryBreakdown'
 import { NodeBackendFeed } from './components/NodeBackendFeed'
 import ResubmissionLimitAlert from './components/ResubmissionLimitAlert'
 import RemarksAndResubmissionsPanel from './components/activity/RemarksAndResubmissionsPanel'
@@ -633,7 +634,7 @@ function AppInner() {
               encounterInput={encounterInput}
               setEncounterInput={setEncounterInput}
               loading={loading}
-              onLoadEncounter={(val) => loadEncounter(val)}
+              onLoadEncounter={(val) => loadEncounter(val, true)}
               onForceReload={() => loadEncounter(undefined, true)}
               onAutoPrompt={handleAutoPrompt}
               onCopyPrompt={handleCopyPrompt}
@@ -876,23 +877,30 @@ function AppInner() {
 
           <Tabs.Panel value="storage">
             {activeTab === 'storage' && (
-              <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <LocalStorageController
-                  storageInput={storageInput}
-                  setStorageInput={setStorageInput}
-                  storageLoading={storageLoading}
-                  storageJob={storageJob}
-                  storageConcurrency={storageConcurrency}
-                  setStorageConcurrency={setStorageConcurrency}
-                  onStartStorageCaching={startStorageCaching}
-                />
-                <StorageJobMonitor
-                  storedCount={storedCount}
-                  storageJob={storageJob}
-                  onClearStorageJob={clearStorageJob}
-                  onCleanStorage={cleanStorage}
-                />
-              </section>
+              <Stack gap="md">
+                <Grid>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <LocalStorageController
+                      storageInput={storageInput}
+                      setStorageInput={setStorageInput}
+                      storageLoading={storageLoading}
+                      storageJob={storageJob}
+                      storageConcurrency={storageConcurrency}
+                      setStorageConcurrency={setStorageConcurrency}
+                      onStartStorageCaching={startStorageCaching}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <StorageJobMonitor
+                      storedCount={storedCount}
+                      storageJob={storageJob}
+                      onClearStorageJob={clearStorageJob}
+                      onCleanStorage={cleanStorage}
+                    />
+                  </Grid.Col>
+                </Grid>
+                <StorageCategoryBreakdown />
+              </Stack>
             )}
           </Tabs.Panel>
 

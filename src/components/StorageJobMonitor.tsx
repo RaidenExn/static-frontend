@@ -47,7 +47,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
           <BarChart3 size={14} /> Storage Job Monitor
         </Title>
         <Badge color="gray" variant="light" size="xs">
-          Total Stored: {storedCount} files
+          Total Stored: {storedCount} encounters
         </Badge>
       </Group>
 
@@ -60,16 +60,16 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: '300px',
+            minHeight: '200px',
             border: '1px dashed var(--line, rgba(255, 255, 255, 0.05))',
             borderRadius: 'var(--mantine-radius-sm)',
-            padding: 'var(--mantine-spacing-xl)',
+            padding: 'var(--mantine-spacing-md)',
             textAlign: 'center'
           }}
         >
           <Database
-            size={40}
-            style={{ color: 'var(--mantine-color-dimmed)', marginBottom: 'var(--mantine-spacing-sm)', opacity: 0.6 }}
+            size={36}
+            style={{ color: 'var(--mantine-color-dimmed)', marginBottom: 'var(--mantine-spacing-xs)', opacity: 0.6 }}
           />
           <Text size="xs" fw={700} style={{ marginBottom: '4px' }}>
             No Active Storage Job Running
@@ -285,7 +285,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
         </Stack>
       )}
 
-      {/* Cache Cleanup Controls */}
+      {/* Fast Cache Cleanup Controls */}
       <Box
         style={{
           marginTop: 'auto',
@@ -306,11 +306,11 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
             letterSpacing: '0.5px'
           }}
         >
-          <Trash2 size={12} /> Cache Cleanup Options
+          <Trash2 size={12} /> Fast Cache Cleanup
         </Title>
         <SimpleGrid cols={2} spacing="xs">
           <Button onClick={() => onCleanStorage({ olderThanDays: 20 })} variant="outline" color="gray" size="xs">
-            Clear Older &gt; 20 Days
+            Clear Encounters &gt; 20 Days
           </Button>
           <Button
             onClick={() => onCleanStorage()}
@@ -319,7 +319,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
             size="xs"
             leftSection={<ShieldAlert size={14} />}
           >
-            Purge Entire Cache
+            Purge Encounters DB
           </Button>
         </SimpleGrid>
       </Box>

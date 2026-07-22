@@ -447,15 +447,27 @@ export function usePortalQueries({
       })
       .then((data) => {
         if (activeLoadIdRef.current !== currentLoadId) return
-        const finalData = {
-          Ok: {
-            ...data,
-            attachments: [],
-            patientHistoricFiles: []
+        setSummaryResult((prev: any) => {
+          const prevOk = prev?.Ok || {}
+          const existingAttachments = prevOk.attachments || []
+          const existingHistoric = prevOk.patientHistoricFiles || []
+          const merged = {
+            Ok: {
+              ...prevOk,
+              ...data,
+              attachments:
+                data.attachments && data.attachments.length > 0
+                  ? data.attachments
+                  : existingAttachments,
+              patientHistoricFiles:
+                data.patientHistoricFiles && data.patientHistoricFiles.length > 0
+                  ? data.patientHistoricFiles
+                  : existingHistoric
+            }
           }
-        }
-        setSummaryResult(finalData)
-        _cacheBuf.summaryResult = finalData
+          _cacheBuf.summaryResult = merged
+          return merged
+        })
         states.summary = 'ok'
         updateLoadToast()
         addRecentEncounter(targetEnc)
@@ -493,10 +505,12 @@ export function usePortalQueries({
         if (activeLoadIdRef.current !== currentLoadId) return
         setSummaryResult((prev: any) => {
           const prevOk = prev?.Ok || {}
+          const newAttachments = resData.attachments || []
           const merged = {
             Ok: {
               ...prevOk,
-              attachments: resData.attachments || []
+              attachments:
+                newAttachments.length > 0 ? newAttachments : (prevOk.attachments || [])
             }
           }
           _cacheBuf.summaryResult = merged
@@ -533,10 +547,12 @@ export function usePortalQueries({
         if (activeLoadIdRef.current !== currentLoadId) return
         setSummaryResult((prev: any) => {
           const prevOk = prev?.Ok || {}
+          const newFiles = histData.patientHistoricFiles || []
           const merged = {
             Ok: {
               ...prevOk,
-              patientHistoricFiles: histData.patientHistoricFiles || []
+              patientHistoricFiles:
+                newFiles.length > 0 ? newFiles : (prevOk.patientHistoricFiles || [])
             }
           }
           _cacheBuf.summaryResult = merged
