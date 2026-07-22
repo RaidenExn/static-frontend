@@ -10,6 +10,44 @@ export default function BackendConnectionScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  React.useEffect(() => {
+    const autoProbe = async () => {
+      // Proactively scavenge standard ports to auto-negotiate protocol and port context
+      const ports = [8788, 8789, 8790, 8791]
+      const protocols = ['https', 'http']
+      for (const port of ports) {
+        for (const proto of protocols) {
+          try {
+            const url = `${proto}://localhost:${port}`
+            const controller = new AbortController()
+            const id = setTimeout(() => controller.abort(), 600)
+            const res = await fetch(`${url}/lt-local/ping`, {
+              method: 'GET',
+              mode: 'cors',
+              signal: controller.signal
+            })
+            clearTimeout(id)
+            if (res.ok) {
+              const text = await res.text()
+              if (text.trim() === 'LT_LOCAL_OK' || text.includes('OK')) {
+                console.log(`[AutoConnect] Successfully scavenged active local server at ${url}`)
+                setSuccess(true)
+                setBackendUrl(url)
+                setTimeout(() => {
+                  window.location.reload()
+                }, 600)
+                return
+              }
+            }
+          } catch (_) {
+            // Keep probing
+          }
+        }
+      }
+    }
+    autoProbe()
+  }, [])
+
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg(null)
