@@ -45,7 +45,7 @@ export function rcmStrVal(val: any): string | null {
 }
 
 export function priorAuthCode(row: any): string {
-  return row.derived_prior_auth || ''
+  return derivePriorAuthCode(row)
 }
 
 
