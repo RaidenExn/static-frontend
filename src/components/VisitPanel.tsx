@@ -69,7 +69,14 @@ export default function VisitPanel({
 
     try {
       const res = await fetch(`/api/encounter/visit-activities?encounter=${encodeURIComponent(clean)}`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) {
+        let errorMsg = `HTTP ${res.status}`
+        try {
+          const errJson = await res.json()
+          if (errJson?.message) errorMsg = errJson.message
+        } catch (_) {}
+        throw new Error(errorMsg)
+      }
 
       const data = await res.json()
       visitActivityCache.current.set(clean, data)
