@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { SubmissionFileResponse } from '../types'
 import { openBlobUrl, openPdfInExtension, rowHasRepeatTrackerMarker, isoDate } from '../utils'
 import { customFetch as fetch } from '../config/backend'
+import { saveEncounterToIndexedDb, getEncounterFromIndexedDb } from '../services/indexedDbCache'
+
 
 interface EncounterCacheEntry {
   summaryResult: any
@@ -286,7 +288,28 @@ export function usePortalQueries({
         fetchServerAttachments(targetEnc)
         return
       }
+
+      const dbCached = await getEncounterFromIndexedDb(encKey)
+      if (dbCached) {
+        encounterDataCache.set(encKey, {
+          summaryResult: dbCached.summaryResult,
+          rcmResult: dbCached.rcmResult,
+          ts: dbCached.timestamp
+        })
+        setEncounterInput(targetEnc)
+        addRecentEncounter(targetEnc)
+        setSummaryResult(dbCached.summaryResult)
+        setRcmResult(dbCached.rcmResult)
+        setSummaryLoading(false)
+        setRcmLoading(false)
+        setResultsLoading(false)
+        setHistoricLoading(false)
+        setRepeatTrackerLoaded(!!dbCached.rcmResult?.Ok?.detail?.activityWiseStatus?.length)
+        fetchServerAttachments(targetEnc)
+        return
+      }
     }
+
 
     if (refresh) {
       lastInitializedEncounterRef.current = ''
@@ -404,8 +427,10 @@ export function usePortalQueries({
           rcmResult: _cacheBuf.rcmResult,
           ts: Date.now()
         })
+        saveEncounterToIndexedDb(encKey, _cacheBuf.summaryResult, _cacheBuf.rcmResult)
       }
     }
+
 
     fetch('/api/encounter/summary-preview', {
       method: 'POST',
@@ -623,6 +648,54 @@ export function usePortalQueries({
     }
   }
 
+  const prewarmEncounterCache = async (encId: string) => {
+    const encKey = (encId || '').trim().toUpperCase()
+    if (!encKey) return
+    if (encounterDataCache.has(encKey)) return
+
+    const dbCached = await getEncounterFromIndexedDb(encKey)
+    if (dbCached) {
+      encounterDataCache.set(encKey, {
+        summaryResult: dbCached.summaryResult,
+        rcmResult: dbCached.rcmResult,
+        ts: dbCached.timestamp
+      })
+      return
+    }
+
+    try {
+      const payload = {
+        encounter: encKey,
+        searchFromDate: searchFromDate.trim(),
+        searchToDate: searchToDate.trim(),
+        resultFromDate: resultFromDate.trim(),
+        resultToDate: resultToDate.trim()
+      }
+
+      const [sRes, rcmRes] = await Promise.all([
+        fetch('/api/encounter/summary-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ encounter: encKey })
+        }),
+        fetch('/api/encounter/rcm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+      ])
+
+      if (sRes.ok && rcmRes.ok) {
+        const summaryData = await sRes.json()
+        const rcmData = await rcmRes.json()
+        const summaryResult = { Ok: { ...summaryData, attachments: [], patientHistoricFiles: [] } }
+        const rcmResult = { Ok: rcmData }
+        encounterDataCache.set(encKey, { summaryResult, rcmResult, ts: Date.now() })
+        saveEncounterToIndexedDb(encKey, summaryResult, rcmResult)
+      }
+    } catch (_) {}
+  }
+
   useEffect(() => {
     if (encounterInput.trim()) loadEncounter(encounterInput.trim())
   }, [])
@@ -649,6 +722,8 @@ export function usePortalQueries({
     reloadResubmissionsOnly,
     handleLoadRepeatTracker,
     loadEncounter,
-    loadSubmissionFile
+    loadSubmissionFile,
+    prewarmEncounterCache
   }
 }
+

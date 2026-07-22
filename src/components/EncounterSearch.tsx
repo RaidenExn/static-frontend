@@ -31,8 +31,10 @@ interface EncounterSearchProps {
   onAutoPrompt: () => void
   onCopyPrompt: () => void
   onNewChat?: () => void
+  onPrewarmEncounter?: (val: string) => void
 
   recentEncounters: string[]
+
   clearRecentEncounters: () => void
   resolvedEncounter: string
   patientName: string
@@ -85,8 +87,10 @@ export default function EncounterSearch({
   onAutoPrompt,
   onCopyPrompt,
   onNewChat,
+  onPrewarmEncounter,
 
   recentEncounters,
+
   clearRecentEncounters,
   resolvedEncounter,
   patientName,
@@ -214,8 +218,10 @@ export default function EncounterSearch({
             recentEncounters={recentEncounters}
             clearRecentEncounters={clearRecentEncounters}
             onLoadEncounter={onLoadEncounter}
+            onPrewarmEncounter={onPrewarmEncounter}
             showToast={showToast}
           />
+
         </Group>
       </Box>
 

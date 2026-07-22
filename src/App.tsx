@@ -173,8 +173,10 @@ function AppInner() {
     setAiProvider,
     chatInputCount,
     currentModelInUse,
-    chatStats
+    chatStats,
+    prewarmEncounterCache
   } = state
+
 
   const {
     isSavingResub,
@@ -636,7 +638,9 @@ function AppInner() {
               onAutoPrompt={handleAutoPrompt}
               onCopyPrompt={handleCopyPrompt}
               onNewChat={handleNewChat}
+              onPrewarmEncounter={prewarmEncounterCache}
               recentEncounters={recentEncounters}
+
               clearRecentEncounters={clearRecentEncounters}
               resolvedEncounter={resolvedEncounter}
               patientName={patientHeader?.patientName || '-'}

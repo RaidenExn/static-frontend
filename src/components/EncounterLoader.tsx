@@ -8,6 +8,7 @@ interface EncounterLoaderProps {
   recentEncounters: string[]
   clearRecentEncounters: () => void
   onLoadEncounter: (val?: string) => void
+  onPrewarmEncounter?: (val: string) => void
   showToast?: (text: string, tone: string) => void
 }
 
@@ -17,8 +18,10 @@ export default function EncounterLoader({
   recentEncounters,
   clearRecentEncounters,
   onLoadEncounter,
+  onPrewarmEncounter,
   showToast
 }: EncounterLoaderProps) {
+
   const handleCopy = async () => {
     const text = encounterInput.trim()
     if (text) {
@@ -107,12 +110,14 @@ export default function EncounterLoader({
                   <Menu.Item
                     key={enc}
                     leftSection={<History style={{ width: 13, height: 13 }} />}
+                    onMouseEnter={() => onPrewarmEncounter?.(enc)}
                     onClick={() => {
                       setEncounterInput(enc)
                       onLoadEncounter(enc)
                     }}
                     style={{ fontSize: 'var(--mantine-font-size-xs)' }}
                   >
+
                     {enc}
                   </Menu.Item>
                 ))}

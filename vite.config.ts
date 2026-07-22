@@ -14,7 +14,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-core'
+            if (id.includes('@mantine')) return 'mantine-vendor'
+            if (id.includes('lucide-react')) return 'lucide-vendor'
+            if (id.includes('react') || id.includes('react-dom')) return 'react-vendor'
             return 'vendor-helpers'
           }
         }
@@ -22,3 +24,4 @@ export default defineConfig({
     }
   }
 })
+

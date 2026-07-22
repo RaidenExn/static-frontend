@@ -152,7 +152,7 @@ const BatchHeaderCell = ({
   </Table.Th>
 )
 
-export default function ActivityTable({
+function ActivityTable({
   loading,
   sortedRows,
   loadingRepeatTracker,
@@ -877,3 +877,5 @@ export default function ActivityTable({
     </Card>
   )
 }
+
+export default React.memo(ActivityTable)
