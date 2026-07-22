@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
 import { Card, TextInput, Button, Stack, Text, Title, Group, Box, Alert } from '@mantine/core'
 import { Database, Wifi, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { validateBackendUrl } from '../config/backend'
+import { normalizeIpToBackendUrl, validateIpOrHost } from '../config/backend'
 import { setBackendUrl } from '../config/runtime'
+import NetworkDiscoveryCard from './NetworkDiscoveryCard'
 
 export default function BackendConnectionScreen() {
-  const [urlInput, setEncounterInput] = useState('http://localhost:8788')
+  const [ipInput, setIpInput] = useState('localhost')
   const [testing, setTesting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   React.useEffect(() => {
     const autoProbe = async () => {
-      // Proactively scavenge standard ports to auto-negotiate protocol and port context
+      // Proactively scavenge standard ports on localhost
       const ports = [8788, 8789, 8790, 8791]
       const protocols = ['https', 'http']
       for (const port of ports) {
@@ -48,27 +49,27 @@ export default function BackendConnectionScreen() {
     autoProbe()
   }, [])
 
-  const handleConnect = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const connectToIp = async (rawIp: string) => {
     setErrorMsg(null)
     setSuccess(false)
 
-    const targetUrl = urlInput.trim()
-    if (!targetUrl) {
-      setErrorMsg('Backend URL cannot be empty.')
+    const cleanInput = rawIp.trim()
+    if (!cleanInput) {
+      setErrorMsg('Server IP address cannot be empty.')
       return
     }
 
-    if (!validateBackendUrl(targetUrl)) {
-      setErrorMsg('Invalid URL format. Please use http://IP:PORT or https://IP:PORT.')
+    if (!validateIpOrHost(cleanInput)) {
+      setErrorMsg('Invalid IP format. Please enter a valid LAN IP address or hostname (e.g. 192.168.10.13 or localhost).')
       return
     }
 
+    const targetUrl = normalizeIpToBackendUrl(cleanInput)
     setTesting(true)
+
     try {
-      // Direct health-check ping to local backend discovery ping
-      const pingUrl = targetUrl.endsWith('/') 
-        ? `${targetUrl}lt-local/ping` 
+      const pingUrl = targetUrl.endsWith('/')
+        ? `${targetUrl}lt-local/ping`
         : `${targetUrl}/lt-local/ping`
 
       const res = await fetch(pingUrl, {
@@ -84,7 +85,6 @@ export default function BackendConnectionScreen() {
         if (text.trim() === 'LT_LOCAL_OK' || text.includes('OK')) {
           setSuccess(true)
           setBackendUrl(targetUrl)
-          // Short delay for user satisfaction animation before full reload
           setTimeout(() => {
             window.location.reload()
           }, 800)
@@ -93,10 +93,15 @@ export default function BackendConnectionScreen() {
       }
       setErrorMsg('Connected but received an invalid response. Is this a genuine LT-Local server?')
     } catch (err: any) {
-      setErrorMsg(`Failed to connect to the backend: ${err.message || 'Network error'}. Make sure your LT-Local server is running on this address and CORS permits connections.`)
+      setErrorMsg(`Failed to connect to backend: ${err.message || 'Network error'}. Verify your server is active on this IP and permits CORS.`)
     } finally {
       setTesting(false)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    connectToIp(ipInput)
   }
 
   return (
@@ -116,7 +121,7 @@ export default function BackendConnectionScreen() {
         radius="sm"
         style={{
           width: '100%',
-          maxWidth: 460,
+          maxWidth: 520,
           boxShadow: 'var(--mantine-shadow-md)'
         }}
       >
@@ -135,14 +140,14 @@ export default function BackendConnectionScreen() {
             </Text>
           </Box>
 
-          <form onSubmit={handleConnect}>
+          <form onSubmit={handleSubmit}>
             <Stack gap="md">
               <TextInput
-                label="Local Backend Connection Address"
-                placeholder="http://192.168.10.13:8788"
-                description="Input your server's LAN IP or loopback address"
-                value={urlInput}
-                onChange={(e) => setEncounterInput(e.target.value)}
+                label="LT-Local Server IP Address"
+                placeholder="192.168.10.13"
+                description="Enter your server's LAN IP address or hostname"
+                value={ipInput}
+                onChange={(e) => setIpInput(e.target.value)}
                 disabled={testing || success}
                 required
               />
@@ -180,6 +185,9 @@ export default function BackendConnectionScreen() {
               </Button>
             </Stack>
           </form>
+
+          {/* Integrated LAN Network Discovery */}
+          <NetworkDiscoveryCard onSelectServer={(discoveredIp) => connectToIp(discoveredIp)} compact />
 
           <Box style={{ borderTop: '1px solid var(--mantine-color-default-border)', paddingTop: 'var(--mantine-spacing-sm)' }}>
             <Text size="xs" c="dimmed">

@@ -23,24 +23,26 @@ import { SystemUpdateSettings } from './settings/SystemUpdateSettings'
 import { ShortcodesSettings } from './settings/ShortcodesSettings'
 import ApiPanel from './ApiPanel'
 import { setBackendUrl } from '../config/runtime'
-import { validateBackendUrl } from '../config/backend'
+import { normalizeIpToBackendUrl, extractIpFromBackendUrl, validateIpOrHost } from '../config/backend'
+import NetworkDiscoveryCard from './NetworkDiscoveryCard'
 
 function ConnectionSettingsCard({ showToast }: { showToast: any }) {
   const currentUrl = localStorage.getItem('lt-local-backend-url') || ''
-  const [urlInput, setUrlInput] = useState(currentUrl)
+  const [ipInput, setIpInput] = useState(extractIpFromBackendUrl(currentUrl) || 'localhost')
   const [testing, setTesting] = useState(false)
   
-  const handleUpdate = async () => {
-    const val = urlInput.trim()
-    if (!val) {
-      showToast('Backend URL cannot be empty.', 'warning')
+  const handleUpdate = async (rawIp?: string) => {
+    const targetIp = (rawIp || ipInput).trim()
+    if (!targetIp) {
+      showToast('Server IP address cannot be empty.', 'warning')
       return
     }
-    if (!validateBackendUrl(val)) {
-      showToast('Invalid URL format.', 'error')
+    if (!validateIpOrHost(targetIp)) {
+      showToast('Invalid IP address or hostname format.', 'error')
       return
     }
     
+    const val = normalizeIpToBackendUrl(targetIp)
     setTesting(true)
     try {
       const pingUrl = val.endsWith('/') ? `${val}lt-local/ping` : `${val}/lt-local/ping`
@@ -96,10 +98,10 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
           Your browser is currently linked to the following local EHR caching middleware.
         </Text>
         <TextInput
-          label="Backend Address"
-          placeholder="http://192.168.10.13:8788"
-          value={urlInput}
-          onChange={(e) => setUrlInput(e.target.value)}
+          label="Backend Server IP Address"
+          placeholder="192.168.10.13"
+          value={ipInput}
+          onChange={(e) => setIpInput(e.target.value)}
           disabled={testing}
           size="xs"
         />
@@ -117,15 +119,23 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
             size="xs"
             loading={testing}
             leftSection={<Activity size={14} />}
-            onClick={handleUpdate}
+            onClick={() => handleUpdate()}
           >
             Update & Test
           </Button>
         </Group>
+
+        <Box mt="xs">
+          <NetworkDiscoveryCard onSelectServer={(selectedIp) => {
+            setIpInput(selectedIp)
+            handleUpdate(selectedIp)
+          }} compact />
+        </Box>
       </Stack>
     </Card>
   )
 }
+
 
 interface SettingsPanelProps {
   active: boolean
