@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { Card, Title, Group, Text, Box, Stack, Button, Tooltip } from '@mantine/core'
 import { Download, Upload, CheckCircle, RefreshCw } from 'lucide-react'
+import { resolveApiUrl } from '../../config/backend'
 
 interface ShortcodesSettingsProps {
   showToast: (text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
@@ -14,7 +15,7 @@ export function ShortcodesSettings({ showToast }: ShortcodesSettingsProps) {
     try {
       showToast('Downloading CSV...', 'loading')
       const link = document.createElement('a')
-      link.href = '/api/shortcodes/export'
+      link.href = resolveApiUrl('/api/shortcodes/export')
       link.setAttribute('download', 'codes_descriptions_shortcodes.csv')
       document.body.appendChild(link)
       link.click()
