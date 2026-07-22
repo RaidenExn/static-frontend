@@ -24,6 +24,7 @@ import {
   RefreshCw,
   AlertTriangle
 } from 'lucide-react'
+import { customFetch as fetch } from '../../config/backend'
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes <= 0) return '0 B'
