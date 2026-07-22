@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+const outDir = (process.env.GITHUB_ACTIONS === 'true' || process.env.BUILD_TARGET === 'dist') ? 'dist' : '../public'
+
 export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    outDir: 'dist',
+    outDir,
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {

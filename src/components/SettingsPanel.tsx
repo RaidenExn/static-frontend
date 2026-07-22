@@ -20,6 +20,7 @@ import { HospitalCredentialsSettings } from './settings/HospitalCredentialsSetti
 import { AdvancedPromptSettings } from './settings/AdvancedPromptSettings'
 import { NetworkPerformanceSettings } from './settings/NetworkPerformanceSettings'
 import { SystemUpdateSettings } from './settings/SystemUpdateSettings'
+import { ShortcodesSettings } from './settings/ShortcodesSettings'
 import ApiPanel from './ApiPanel'
 import { setBackendUrl } from '../config/runtime'
 import { validateBackendUrl } from '../config/backend'
@@ -268,6 +269,8 @@ export default function SettingsPanel({
           />
 
           <SystemUpdateSettings showToast={showToast} />
+
+          <ShortcodesSettings showToast={showToast} />
 
           {/* Unified System & Browser Diagnostics Card */}
           <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)">
