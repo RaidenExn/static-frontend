@@ -4,8 +4,6 @@ import {
   Group,
   Text,
   TextInput,
-  SegmentedControl,
-  Badge,
   ActionIcon,
   Tooltip,
   Box
@@ -21,13 +19,63 @@ interface NodeBackendFeedProps {
   onToggleAutoScroll: (val: boolean) => void
 }
 
-interface ParsedLog {
-  timestamp: string
-  originalType: string
-  category: string
-  color: string
-  message: string
-  cleanMessage: string
+// Convert ANSI escape codes into colored React spans for native pino-pretty rendering
+function renderAnsiString(text: string) {
+  if (!text) return null
+
+  // Strip or parse ANSI escape sequences
+  const parts = text.split(/\u001b\[([0-9;]*)m/)
+  let currentColor = ''
+  let isBold = false
+
+  const elements: React.ReactNode[] = []
+
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 1) {
+      // Code part
+      const code = parts[i]
+      if (code === '0' || code === '') {
+        currentColor = ''
+        isBold = false
+      } else if (code === '1') {
+        isBold = true
+      } else if (code === '90' || code === '30') {
+        currentColor = '#808080' // Dimmed / Grey
+      } else if (code === '31' || code === '91') {
+        currentColor = '#ff6b6b' // Red
+      } else if (code === '32' || code === '92') {
+        currentColor = '#51cf66' // Green
+      } else if (code === '33' || code === '93') {
+        currentColor = '#fcc419' // Yellow
+      } else if (code === '34' || code === '94') {
+        currentColor = '#339af0' // Blue
+      } else if (code === '35' || code === '95') {
+        currentColor = '#cc5de8' // Magenta
+      } else if (code === '36' || code === '96') {
+        currentColor = '#20c997' // Cyan
+      } else if (code === '37' || code === '97') {
+        currentColor = '#f8f9fa' // White
+      }
+    } else {
+      // Text content part
+      const content = parts[i]
+      if (content) {
+        elements.push(
+          <span
+            key={i}
+            style={{
+              color: currentColor || 'inherit',
+              fontWeight: isBold ? 'bold' : 'normal'
+            }}
+          >
+            {content}
+          </span>
+        )
+      }
+    }
+  }
+
+  return elements
 }
 
 export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
@@ -39,7 +87,6 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
   onToggleAutoScroll
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
   const [isCleared, setIsCleared] = useState(false)
 
   const activeLogs = useMemo(() => {
@@ -47,81 +94,22 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
     return logs
   }, [logs, isCleared])
 
-  // Parse logs into structured metadata categories
-  const parsedLogs = useMemo<ParsedLog[]>(() => {
+  // Extract raw log string messages for native rendering
+  const logStrings = useMemo(() => {
     return activeLogs.map((log) => {
-      const msg = log.message || ''
-      let category = 'INFO'
-      let color = 'gray'
-      let cleanMessage = msg
-
-      if (msg.startsWith('[HTTP]')) {
-        category = 'HTTP'
-        color = 'grape'
-        cleanMessage = msg.replace('[HTTP]', '').trim()
-      } else if (msg.startsWith('[HTTP/Fallback]')) {
-        category = 'HTTP'
-        color = 'grape'
-        cleanMessage = msg.replace('[HTTP/Fallback]', '').trim()
-      } else if (msg.startsWith('[WS]')) {
-        category = 'WS'
-        color = 'teal'
-        cleanMessage = msg.replace('[WS]', '').trim()
-      } else if (msg.startsWith('[PDF-DAEMON]')) {
-        category = 'PDF'
-        color = 'indigo'
-        cleanMessage = msg.replace('[PDF-DAEMON]', '').trim()
-      } else if (msg.startsWith('[Download]')) {
-        category = 'PDF'
-        color = 'indigo'
-        cleanMessage = msg.replace('[Download]', '').trim()
-      } else if (log.type === 'error' || msg.toLowerCase().includes('error')) {
-        category = 'ERROR'
-        color = 'red'
-      } else if (log.type === 'warn' || msg.toLowerCase().includes('warn')) {
-        category = 'WARN'
-        color = 'yellow'
-      } else if (log.type === 'info') {
-        category = 'INFO'
-        color = 'blue'
-      }
-
-      return {
-        timestamp: log.timestamp || '',
-        originalType: log.type || 'info',
-        category,
-        color,
-        message: msg,
-        cleanMessage
-      }
+      if (typeof log === 'string') return log
+      if (log.message) return String(log.message)
+      if (log.data) return typeof log.data === 'string' ? log.data : JSON.stringify(log.data)
+      return JSON.stringify(log)
     })
   }, [activeLogs])
 
-  // Filter parsed logs based on Category Segment and Search bar Query
+  // Filter logs based on search query
   const filteredLogs = useMemo(() => {
-    return parsedLogs.filter((log) => {
-      // Filter by category
-      if (selectedCategory !== 'All') {
-        if (selectedCategory === 'HTTP' && log.category !== 'HTTP') return false
-        if (selectedCategory === 'WS' && log.category !== 'WS') return false
-        if (selectedCategory === 'Info' && log.category !== 'INFO') return false
-        if (selectedCategory === 'Warn' && log.category !== 'WARN') return false
-        if (selectedCategory === 'Error' && log.category !== 'ERROR') return false
-      }
-
-      // Filter by search query
-      if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase()
-        return (
-          log.message.toLowerCase().includes(query) ||
-          log.timestamp.toLowerCase().includes(query) ||
-          log.category.toLowerCase().includes(query)
-        )
-      }
-
-      return true
-    })
-  }, [parsedLogs, selectedCategory, searchQuery])
+    if (!searchQuery.trim()) return logStrings
+    const q = searchQuery.toLowerCase()
+    return logStrings.filter((msg) => msg.toLowerCase().includes(q))
+  }, [logStrings, searchQuery])
 
   // Auto-scroll logic locked to real-time additions
   useEffect(() => {
@@ -130,120 +118,80 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
     }
   }, [filteredLogs, autoScroll, terminalBodyRef])
 
-  const formatTimestamp = (ts: string) => {
-    if (!ts) return ''
-    const match = ts.match(/T(\d{2}:\d{2}:\d{2}\.\d{3})/)
-    return match ? match[1] : ts.replace('T', ' ').substring(0, 19)
-  }
-
   return (
     <Card
-      withBorder
+      padding="0"
       radius="sm"
-      p="md"
       style={{
-        height: 'calc(100vh - 170px)',
         display: 'flex',
         flexDirection: 'column',
+        height: 'calc(100vh - 170px)',
         backgroundColor: 'var(--panel)',
-        borderColor: 'var(--line)',
-        position: 'relative',
-        overflow: 'hidden'
+        border: '1px solid var(--line)',
+        overflow: 'hidden',
+        position: 'relative'
       }}
     >
-      {/* Premium Header Row */}
-      <Group justify="space-between" align="center" style={{ borderBottom: '1px solid var(--line)', paddingBottom: '12px', marginBottom: '12px' }}>
-        <Group gap="xs">
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--border-radius)',
-              border: '1px solid var(--line)',
-              backgroundColor: 'var(--panel-soft)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Terminal size={14} style={{ color: 'var(--accent)' }} />
-          </div>
-          <div>
-            <Text size="sm" fw={800} style={{ letterSpacing: '0.5px' }}>
-              🖥️ BACKEND SYSTEM LOGS
+      {/* Control Header */}
+      <Box
+        p="xs"
+        style={{
+          borderBottom: '1px solid var(--line)',
+          backgroundColor: 'var(--bg-translucent)',
+          backdropFilter: 'blur(8px)'
+        }}
+      >
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <Group gap="xs">
+            <Terminal size={16} style={{ color: 'var(--accent)' }} />
+            <Text size="sm" fw={700} style={{ color: 'var(--text-primary)' }}>
+              Native Pino Stream Inspector
             </Text>
-            <Text size="10px" c="dimmed" fw={600}>
-              REAL-TIME EVENT BROADCAST & TRACING
-            </Text>
-          </div>
+            <Activity
+              size={14}
+              style={{
+                color: logsLoading ? 'var(--mantine-color-yellow-5)' : 'var(--mantine-color-green-5)'
+              }}
+            />
+          </Group>
+
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              placeholder="Filter logs..."
+              size="xs"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.currentTarget.value)}
+              leftSection={<Search size={12} />}
+              styles={{
+                input: {
+                  backgroundColor: 'var(--panel)',
+                  border: '1px solid var(--line)',
+                  fontSize: '11px',
+                  height: '28px'
+                }
+              }}
+            />
+
+            <Tooltip label="Clear local terminal buffer" openDelay={0} closeDelay={0}>
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="sm"
+                onClick={() => setIsCleared(true)}
+              >
+                <Trash2 size={14} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Group>
+      </Box>
 
-        <Group gap="xs">
-          <span className="pulse-dot" style={{ backgroundColor: logsLoading ? 'var(--accent)' : '#8b949e' }} />
-          <Text size="xs" fw={700} c="dimmed" style={{ letterSpacing: '0.2px' }}>
-            {logsLoading ? 'STREAMING...' : `CONNECTED (${filteredLogs.length}/${activeLogs.length} logs)`}
-          </Text>
-        </Group>
-      </Group>
-
-      {/* Control Bar: Search, Category Filter, and Actions */}
-      <Group gap="xs" style={{ marginBottom: '12px' }} wrap="wrap">
-        <TextInput
-          size="xs"
-          placeholder="Search log trace..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
-          leftSection={<Search size={12} />}
-          style={{ flex: 1, minWidth: '180px' }}
-        />
-
-        <SegmentedControl
-          size="xs"
-          value={selectedCategory}
-          onChange={setSelectedCategory}
-          data={[
-            { label: 'All', value: 'All' },
-            { label: 'Info', value: 'Info' },
-            { label: 'Warn', value: 'Warn' },
-            { label: 'Error', value: 'Error' },
-            { label: 'HTTP', value: 'HTTP' },
-            { label: 'WS', value: 'WS' }
-          ]}
-        />
-
-        <Tooltip label="Clear Session Logs" openDelay={0} closeDelay={0}>
-          <ActionIcon
-            variant="light"
-            color="red"
-            size="md"
-            onClick={() => setIsCleared(true)}
-            disabled={activeLogs.length === 0}
-          >
-            <Trash2 size={14} />
-          </ActionIcon>
-        </Tooltip>
-
-        {isCleared && (
-          <Tooltip label="Restore Session Logs" openDelay={0} closeDelay={0}>
-            <ActionIcon
-              variant="light"
-              color="blue"
-              size="md"
-              onClick={() => setIsCleared(false)}
-            >
-              <Activity size={14} />
-            </ActionIcon>
-          </Tooltip>
-        )}
-      </Group>
-
-      {/* High-density Log Streaming Panel */}
+      {/* Terminal Output Area */}
       <Box
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.15)',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--border-radius)',
+          backgroundColor: '#0d1117',
+          color: '#c9d1d9',
           position: 'relative',
           overflow: 'hidden'
         }}
@@ -254,7 +202,7 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
           style={{
             height: '100%',
             overflowY: 'auto',
-            padding: '10px',
+            padding: '12px',
             fontFamily: 'var(--mantine-font-family-monospace)',
             fontSize: '11px',
             lineHeight: '1.5'
@@ -263,81 +211,33 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
           {filteredLogs.length === 0 ? (
             <div
               style={{
-                color: 'var(--muted)',
+                color: '#8b949e',
                 textAlign: 'center',
                 paddingTop: '60px',
                 fontWeight: 600
               }}
             >
-              No matching system logs available. Action triggers will stream here.
+              No matching system logs available. Native pino stream will output here.
             </div>
           ) : (
-            filteredLogs.map((row, idx) => (
-              <Group
+            filteredLogs.map((line, idx) => (
+              <div
                 key={idx}
-                gap="xs"
-                align="flex-start"
-                wrap="nowrap"
                 style={{
-                  padding: '2px 4px',
-                  borderRadius: '2px',
-                  backgroundColor: idx % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.02)',
-                  minHeight: '20px'
+                  fontFamily: 'var(--mantine-font-family-monospace)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                  padding: '1px 0'
                 }}
               >
-                <Text
-                  size="10px"
-                  span
-                  c="dimmed"
-                  style={{
-                    fontFamily: 'var(--mantine-font-family-monospace)',
-                    whiteSpace: 'nowrap',
-                    opacity: 0.7,
-                    marginTop: '2px'
-                  }}
-                >
-                  [{formatTimestamp(row.timestamp)}]
-                </Text>
-
-                <Badge
-                  color={row.color}
-                  size="10px"
-                  radius="xs"
-                  variant="light"
-                  style={{
-                    minWidth: '55px',
-                    textAlign: 'center',
-                    padding: '0 4px',
-                    height: '16px',
-                    lineHeight: '16px',
-                    fontWeight: 800,
-                    fontSize: '9px',
-                    marginTop: '2px'
-                  }}
-                >
-                  {row.category}
-                </Badge>
-
-                <Text
-                  span
-                  size="xs"
-                  style={{
-                    fontFamily: 'var(--mantine-font-family-monospace)',
-                    wordBreak: 'break-all',
-                    whiteSpace: 'pre-wrap',
-                    color: row.originalType === 'error' ? 'var(--mantine-color-red-4)' : 'var(--text-primary)'
-                  }}
-                >
-                  {row.cleanMessage}
-                </Text>
-              </Group>
+                {renderAnsiString(line)}
+              </div>
             ))
           )}
         </div>
       </Box>
 
-      {/* Auto-scroll overlay banner if scrolled away from bottom */}
+      {/* Auto-scroll overlay button */}
       {!autoScroll && (
         <button
           onClick={() => {
