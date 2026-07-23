@@ -7,8 +7,7 @@ interface EncounterLoaderProps {
   setEncounterInput: (val: string) => void
   recentEncounters: string[]
   clearRecentEncounters: () => void
-  onLoadEncounter: (val?: string) => void
-  onPrewarmEncounter?: (val: string) => void
+  onLoadEncounter: (val?: string, mode?: 'force' | 'cache-first') => void
   showToast?: (text: string, tone: string) => void
 }
 
@@ -18,7 +17,6 @@ export default function EncounterLoader({
   recentEncounters,
   clearRecentEncounters,
   onLoadEncounter,
-  onPrewarmEncounter,
   showToast
 }: EncounterLoaderProps) {
 
@@ -110,10 +108,9 @@ export default function EncounterLoader({
                   <Menu.Item
                     key={enc}
                     leftSection={<History style={{ width: 13, height: 13 }} />}
-                    onMouseEnter={() => onPrewarmEncounter?.(enc)}
                     onClick={() => {
                       setEncounterInput(enc)
-                      onLoadEncounter(enc)
+                      onLoadEncounter(enc, 'cache-first')
                     }}
                     style={{ fontSize: 'var(--mantine-font-size-xs)' }}
                   >

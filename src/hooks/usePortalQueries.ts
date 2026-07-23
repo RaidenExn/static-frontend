@@ -3,6 +3,7 @@ import { SubmissionFileResponse } from '../types'
 import { openBlobUrl, openPdfInExtension, rowHasRepeatTrackerMarker, isoDate } from '../utils'
 import { customFetch as fetch } from '../config/backend'
 import { saveEncounterToIndexedDb, getEncounterFromIndexedDb } from '../services/indexedDbCache'
+import { pdfCache } from '../services/pdfMemoryCache'
 
 
 interface EncounterCacheEntry {
@@ -11,7 +12,6 @@ interface EncounterCacheEntry {
   ts: number
 }
 const encounterDataCache = new Map<string, EncounterCacheEntry>()
-const CACHE_TTL_MS = 60_000
 
 interface UsePortalQueriesProps {
   encounterInput: string
@@ -123,7 +123,7 @@ export function usePortalQueries({
     const payload = {
       encounter: targetEnc,
       section: 'resubmissions',
-      refresh: true,
+      refresh: 'force',
       searchFromDate: searchFromDate.trim(),
       searchToDate: searchToDate.trim(),
       resultFromDate: resultFromDate.trim(),
@@ -163,7 +163,7 @@ export function usePortalQueries({
     }
   }
 
-  const handleLoadRepeatTracker = async (encValue?: any, lookbackYears?: number) => {
+  const handleLoadRepeatTracker = async (encValue?: any, lookbackYears?: number, mode?: 'auto' | 'manual') => {
     const targetEnc = (typeof encValue === 'string' && encValue.trim() ? encValue : encounterInput).trim()
     const toastId = 'repeat-tracker'
     if (!targetEnc) return showToast('No active encounter loaded.', 'error')
@@ -185,9 +185,20 @@ export function usePortalQueries({
     const activityRows = (rcmResult?.Ok?.rcm?.detail?.activityWiseStatus ||
       rcmResult?.Ok?.rcm?.flattened?.activity ||
       []) as any[]
+
+    const isManual = mode === 'manual'
+    const excludeCodes = new Set(['9.01', '10.01', '11.01'])
+    const isExcludedCode = (row: any) => {
+      const code = String(row.code || row.code_id || '').trim()
+      return excludeCodes.has(code)
+    }
+
     const repeatTrackerRows = activityRows
       .map((row: any, index: number) => ({ row, index }))
-      .filter(({ row }) => rowHasRepeatTrackerMarker(row))
+      .filter(({ row }) => {
+        if (isExcludedCode(row)) return false
+        return isManual ? true : rowHasRepeatTrackerMarker(row)
+      })
 
     if (!repeatTrackerRows.length) {
       showToast({
@@ -208,7 +219,8 @@ export function usePortalQueries({
       searchFromDate: selectedYears.searchFromDate,
       searchToDate: selectedYears.searchToDate,
       resultFromDate: resultFromDate.trim(),
-      resultToDate: resultToDate.trim()
+      resultToDate: resultToDate.trim(),
+      manual: isManual || undefined
     }))
 
     try {
@@ -248,7 +260,7 @@ export function usePortalQueries({
     }
   }
 
-  const loadEncounter = async (encValue?: string, refresh?: boolean) => {
+  const loadEncounter = async (encValue?: string, mode?: 'force' | 'cache-first') => {
     const targetEnc = (encValue || encounterInput).trim()
     if (!targetEnc) return showToast('Enter an encounter number.', 'error')
 
@@ -256,39 +268,30 @@ export function usePortalQueries({
       clearTimeout(loadDebounceRef.current)
     }
 
-    if (!refresh) {
+    if (mode !== 'force') {
+      const encKey = targetEnc.toUpperCase()
+      if (encounterDataCache.has(encKey)) {
+        return doLoadEncounter(targetEnc, 'cache-first')
+      }
+
       return new Promise<void>((resolve) => {
         loadDebounceRef.current = setTimeout(() => {
           loadDebounceRef.current = undefined
-          doLoadEncounter(targetEnc, refresh)
+          doLoadEncounter(targetEnc, 'cache-first')
           resolve()
         }, 300)
       })
     }
 
-    return doLoadEncounter(targetEnc, refresh)
+    return doLoadEncounter(targetEnc, 'force')
   }
 
-  const doLoadEncounter = async (targetEnc: string, refresh?: boolean) => {
+  const doLoadEncounter = async (targetEnc: string, mode: 'force' | 'cache-first') => {
     const currentLoadId = ++activeLoadIdRef.current
     const encKey = targetEnc.toUpperCase()
+    const isForce = mode === 'force'
 
-    if (!refresh) {
-      const cached = encounterDataCache.get(encKey)
-      if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-        setEncounterInput(targetEnc)
-        addRecentEncounter(targetEnc)
-        setSummaryResult(cached.summaryResult)
-        setRcmResult(cached.rcmResult)
-        setSummaryLoading(false)
-        setRcmLoading(false)
-        setResultsLoading(false)
-        setHistoricLoading(false)
-        setRepeatTrackerLoaded(!!cached.rcmResult?.Ok?.detail?.activityWiseStatus?.length)
-        fetchServerAttachments(targetEnc)
-        return
-      }
-
+    if (!isForce) {
       const dbCached = await getEncounterFromIndexedDb(encKey)
       if (dbCached) {
         encounterDataCache.set(encKey, {
@@ -310,28 +313,27 @@ export function usePortalQueries({
       }
     }
 
+    // Force path (or cache-first miss — clear + fetch fresh)
+    encounterDataCache.delete(encKey)
+    pdfCache.clear()
 
-    if (refresh) {
-      lastInitializedEncounterRef.current = ''
-      initializedEncounterRef.current = ''
-    }
+    lastInitializedEncounterRef.current = ''
+    initializedEncounterRef.current = ''
 
     setEncounterInput(targetEnc)
 
     const isDifferentEncounter = encKey !== encounterInput.trim().toUpperCase()
 
-    if (isDifferentEncounter || refresh) {
-      setSummaryLoading(true)
-      setRcmLoading(true)
-      setResultsLoading(true)
-      setHistoricLoading(true)
-      setSummaryResult(null)
-      setRcmResult(null)
-      setRepeatTrackerLoaded(false)
-      setLoadToken((prev) => prev + 1)
+    setSummaryLoading(true)
+    setRcmLoading(true)
+    setResultsLoading(true)
+    setHistoricLoading(true)
+    setSummaryResult(null)
+    setRcmResult(null)
+    setRepeatTrackerLoaded(false)
+    setLoadToken((prev) => prev + 1)
 
-      resetDrafts()
-    }
+    resetDrafts()
 
     fetchServerAttachments(targetEnc)
 
@@ -344,7 +346,7 @@ export function usePortalQueries({
 
     const updateLoadToast = () => {
       if (activeLoadIdRef.current !== currentLoadId) return
-      if (!isDifferentEncounter && !refresh) return
+      if (!isDifferentEncounter && !isForce) return
 
       const getSymbol = (s: string) => {
         if (s === 'loading') return '•'
@@ -414,14 +416,15 @@ export function usePortalQueries({
       searchToDate: searchToDate.trim(),
       resultFromDate: resultFromDate.trim(),
       resultToDate: resultToDate.trim(),
-      refresh: !!refresh,
+      refresh: mode,
       autoAttachSummary
     }
 
     const _cacheBuf: { summaryResult?: any; rcmResult?: any } = {}
     let _cacheReady = 0
     const _tryCache = () => {
-      if (++_cacheReady >= 4 && !refresh && _cacheBuf.summaryResult && _cacheBuf.rcmResult) {
+      _cacheReady++
+      if (_cacheReady >= 4 && _cacheBuf.summaryResult && _cacheBuf.rcmResult) {
         encounterDataCache.set(encKey, {
           summaryResult: _cacheBuf.summaryResult,
           rcmResult: _cacheBuf.rcmResult,
@@ -447,34 +450,32 @@ export function usePortalQueries({
       })
       .then((data) => {
         if (activeLoadIdRef.current !== currentLoadId) return
-        setSummaryResult((prev: any) => {
-          const prevOk = prev?.Ok || {}
-          const existingAttachments = prevOk.attachments || []
-          const existingHistoric = prevOk.patientHistoricFiles || []
-          const merged = {
-            Ok: {
-              ...prevOk,
-              ...data,
-              attachments:
-                data.attachments && data.attachments.length > 0
-                  ? data.attachments
-                  : existingAttachments,
-              patientHistoricFiles:
-                data.patientHistoricFiles && data.patientHistoricFiles.length > 0
-                  ? data.patientHistoricFiles
-                  : existingHistoric
-            }
+        const prevOk = _cacheBuf.summaryResult?.Ok || {}
+        const existingAttachments = prevOk.attachments || []
+        const existingHistoric = prevOk.patientHistoricFiles || []
+        const merged = {
+          Ok: {
+            ...prevOk,
+            ...data,
+            attachments:
+              data.attachments && data.attachments.length > 0
+                ? data.attachments
+                : existingAttachments,
+            patientHistoricFiles:
+              data.patientHistoricFiles && data.patientHistoricFiles.length > 0
+                ? data.patientHistoricFiles
+                : existingHistoric
           }
-          _cacheBuf.summaryResult = merged
-          return merged
-        })
+        }
+        _cacheBuf.summaryResult = merged
+        setSummaryResult(merged)
         states.summary = 'ok'
         updateLoadToast()
         addRecentEncounter(targetEnc)
       })
       .catch((e) => {
         if (e.message === 'STALE_LOAD' || activeLoadIdRef.current !== currentLoadId) return
-        if (isDifferentEncounter || refresh) {
+        if (isDifferentEncounter || isForce) {
           setSummaryResult({ Err: e.message || 'Failed to load summary' })
         } else {
           showToast(`Background sync failed: ${e.message || 'Failed to load summary'}`, 'warning')
@@ -503,18 +504,24 @@ export function usePortalQueries({
       })
       .then((resData) => {
         if (activeLoadIdRef.current !== currentLoadId) return
-        setSummaryResult((prev: any) => {
-          const prevOk = prev?.Ok || {}
-          const newAttachments = resData.attachments || []
-          const merged = {
+        const newAttachments = resData.attachments || []
+        const currentSummaryOk = _cacheBuf.summaryResult?.Ok || {}
+        if (newAttachments.length > 0) {
+          _cacheBuf.summaryResult = {
             Ok: {
-              ...prevOk,
-              attachments:
-                newAttachments.length > 0 ? newAttachments : (prevOk.attachments || [])
+              ...currentSummaryOk,
+              attachments: newAttachments
             }
           }
-          _cacheBuf.summaryResult = merged
-          return merged
+        }
+        setSummaryResult((prev: any) => {
+          const prevOk = prev?.Ok || {}
+          return {
+            Ok: {
+              ...prevOk,
+              attachments: newAttachments.length > 0 ? newAttachments : (prevOk.attachments || [])
+            }
+          }
         })
         states.results = 'ok'
         updateLoadToast()
@@ -545,18 +552,24 @@ export function usePortalQueries({
       })
       .then((histData) => {
         if (activeLoadIdRef.current !== currentLoadId) return
-        setSummaryResult((prev: any) => {
-          const prevOk = prev?.Ok || {}
-          const newFiles = histData.patientHistoricFiles || []
-          const merged = {
+        const newFiles = histData.patientHistoricFiles || []
+        const currentSummaryOk = _cacheBuf.summaryResult?.Ok || {}
+        if (newFiles.length > 0) {
+          _cacheBuf.summaryResult = {
             Ok: {
-              ...prevOk,
-              patientHistoricFiles:
-                newFiles.length > 0 ? newFiles : (prevOk.patientHistoricFiles || [])
+              ...currentSummaryOk,
+              patientHistoricFiles: newFiles
             }
           }
-          _cacheBuf.summaryResult = merged
-          return merged
+        }
+        setSummaryResult((prev: any) => {
+          const prevOk = prev?.Ok || {}
+          return {
+            Ok: {
+              ...prevOk,
+              patientHistoricFiles: newFiles.length > 0 ? newFiles : (prevOk.patientHistoricFiles || [])
+            }
+          }
         })
         states.historic = 'ok'
         updateLoadToast()
@@ -588,14 +601,14 @@ export function usePortalQueries({
       .then((data) => {
         if (activeLoadIdRef.current !== currentLoadId) return
         const rcmRes = { Ok: data }
-        setRcmResult(rcmRes)
         _cacheBuf.rcmResult = rcmRes
+        setRcmResult(rcmRes)
         states.rcm = 'ok'
         updateLoadToast()
       })
       .catch((e) => {
         if (e.message === 'STALE_LOAD' || activeLoadIdRef.current !== currentLoadId) return
-        if (isDifferentEncounter || refresh) {
+        if (isDifferentEncounter || isForce) {
           setRcmResult({ Err: e.message || 'Failed to load RCM' })
         } else {
           showToast(`Background sync failed: ${e.message || 'Failed to load RCM'}`, 'warning')
@@ -664,54 +677,6 @@ export function usePortalQueries({
     }
   }
 
-  const prewarmEncounterCache = async (encId: string) => {
-    const encKey = (encId || '').trim().toUpperCase()
-    if (!encKey) return
-    if (encounterDataCache.has(encKey)) return
-
-    const dbCached = await getEncounterFromIndexedDb(encKey)
-    if (dbCached) {
-      encounterDataCache.set(encKey, {
-        summaryResult: dbCached.summaryResult,
-        rcmResult: dbCached.rcmResult,
-        ts: dbCached.timestamp
-      })
-      return
-    }
-
-    try {
-      const payload = {
-        encounter: encKey,
-        searchFromDate: searchFromDate.trim(),
-        searchToDate: searchToDate.trim(),
-        resultFromDate: resultFromDate.trim(),
-        resultToDate: resultToDate.trim()
-      }
-
-      const [sRes, rcmRes] = await Promise.all([
-        fetch('/api/encounter/summary-preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ encounter: encKey })
-        }),
-        fetch('/api/encounter/rcm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-      ])
-
-      if (sRes.ok && rcmRes.ok) {
-        const summaryData = await sRes.json()
-        const rcmData = await rcmRes.json()
-        const summaryResult = { Ok: { ...summaryData, attachments: [], patientHistoricFiles: [] } }
-        const rcmResult = { Ok: rcmData }
-        encounterDataCache.set(encKey, { summaryResult, rcmResult, ts: Date.now() })
-        saveEncounterToIndexedDb(encKey, summaryResult, rcmResult)
-      }
-    } catch (_) {}
-  }
-
   useEffect(() => {
     if (encounterInput.trim()) loadEncounter(encounterInput.trim())
   }, [])
@@ -738,8 +703,7 @@ export function usePortalQueries({
     reloadResubmissionsOnly,
     handleLoadRepeatTracker,
     loadEncounter,
-    loadSubmissionFile,
-    prewarmEncounterCache
+    loadSubmissionFile
   }
 }
 

@@ -183,7 +183,7 @@ export function usePortalSync() {
       if (alreadyAnalyzed) {
         if (!repeatTrackerLoaded) setRepeatTrackerLoaded(true)
       } else if (!repeatTrackerLoaded && !loadingRepeatTracker) {
-        handleLoadRepeatTracker(rcmResult.Ok.encounterInput || encounterInput)
+        handleLoadRepeatTracker(rcmResult.Ok.encounterInput || encounterInput, undefined, 'auto')
       }
     }
   }, [rcmResult, repeatTrackerLoaded, loadingRepeatTracker])

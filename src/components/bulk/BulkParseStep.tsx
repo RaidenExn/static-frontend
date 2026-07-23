@@ -89,7 +89,7 @@ export function BulkParseStep({
                   margin: 0
                 }}
               />
-              <span>Collect data from storage</span>
+              <span>Load from storage</span>
             </label>
           </div>
 

@@ -11,7 +11,8 @@ import {
   Modal,
   Box,
   Progress,
-  Divider
+  Divider,
+  Switch
 } from '@mantine/core'
 import {
   HardDrive,
@@ -22,9 +23,14 @@ import {
   Clock,
   Trash2,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  FlaskConical,
+  ShieldCheck
 } from 'lucide-react'
 import { customFetch as fetch } from '../../config/backend'
+import { ExperimentalSettingsCard } from '../settings/ExperimentalSettingsCard'
+
+
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes <= 0) return '0 B'
@@ -48,6 +54,8 @@ export const StorageCategoryBreakdown: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [purgingTarget, setPurgingTarget] = useState<string | null>(null)
   const [confirmModalTarget, setConfirmModalTarget] = useState<{ target: string; title: string } | null>(null)
+  const [expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
+  const [savingExp, setSavingExp] = useState<boolean>(false)
 
   const fetchOverview = useCallback(async () => {
     setLoading(true)
@@ -63,11 +71,38 @@ export const StorageCategoryBreakdown: React.FC = () => {
     }
   }, [])
 
+  const fetchExperimentalSettings = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings/experimental-verification')
+      if (res.ok) {
+        const data = await res.json()
+        setExpEhrVerification(data.experimentalEhrVerification !== false)
+      }
+    } catch (_) {}
+  }, [])
+
   useEffect(() => {
     fetchOverview()
-  }, [fetchOverview])
+    fetchExperimentalSettings()
+  }, [fetchOverview, fetchExperimentalSettings])
+
+  const handleToggleExp = async (checked: boolean) => {
+    setExpEhrVerification(checked)
+    setSavingExp(true)
+    try {
+      await fetch('/api/settings/experimental-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ experimentalEhrVerification: checked })
+      })
+    } catch (_) {
+    } finally {
+      setSavingExp(false)
+    }
+  }
 
   const handlePurge = async (target: string) => {
+
     setPurgingTarget(target)
     setConfirmModalTarget(null)
     try {
@@ -87,18 +122,22 @@ export const StorageCategoryBreakdown: React.FC = () => {
 
   if (!overview) {
     return (
-      <Card withBorder radius="sm" padding="sm">
-        <Group justify="space-between" align="center">
-          <Text size="xs" fw={700}>
-            Loading Storage Breakdown...
-          </Text>
-          <Button variant="subtle" size="xs" loading onClick={fetchOverview} leftSection={<RefreshCw size={12} />}>
-            Refresh
-          </Button>
-        </Group>
-      </Card>
+      <Stack gap="md">
+        <Card withBorder radius="sm" padding="sm">
+          <Group justify="space-between" align="center">
+            <Text size="xs" fw={700}>
+              Loading Storage Breakdown...
+            </Text>
+            <Button variant="subtle" size="xs" loading onClick={fetchOverview} leftSection={<RefreshCw size={12} />}>
+              Refresh
+            </Button>
+          </Group>
+        </Card>
+        <ExperimentalSettingsCard />
+      </Stack>
     )
   }
+
 
   const categories = [
     {
@@ -268,10 +307,15 @@ export const StorageCategoryBreakdown: React.FC = () => {
             )
           })}
         </SimpleGrid>
+
+        {/* Experimental Features Section */}
+        <ExperimentalSettingsCard />
       </Stack>
+
 
       {/* Confirmation Modal */}
       <Modal
+
         opened={!!confirmModalTarget}
         onClose={() => setConfirmModalTarget(null)}
         title={

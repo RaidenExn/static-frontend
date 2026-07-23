@@ -549,7 +549,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
 
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl" mb="xl">
         {/* OpenRouter AI pipeline configuration */}
-        <Paper p="xl" bg="var(--panel-soft)">
+        <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
           <Stack gap="xl">
             <Title order={3} size="h4" fw={600}>
               OpenRouter AI Pipeline
@@ -624,7 +624,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
         </Paper>
 
         {/* Gemini AI pipeline configuration */}
-        <Paper p="xl" bg="var(--panel-soft)">
+        <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
           <Stack gap="xl">
             <Title order={3} size="h4" fw={600}>
               Google AI Studio (Gemini) Pipeline
@@ -698,7 +698,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
       </SimpleGrid>
 
       {/* iLovePDF Compactor panel */}
-      <Paper p="xl" bg="var(--panel-soft)" mb="xl">
+      <Paper p="xl" bg="var(--panel-soft)" mb="xl" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
         <Stack gap="xl">
           <Group justify="space-between">
             <Title order={3} size="h4" fw={600}>

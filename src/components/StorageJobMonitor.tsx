@@ -108,8 +108,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
               withBorder
               padding="xs"
               radius="sm"
-              bg="var(--panel-soft, rgba(255, 255, 255, 0.02))"
-              style={{ textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
+              style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))", textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
             >
               <Text size="md" fw={800}>
                 {storageJob.total}
@@ -122,8 +121,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
               withBorder
               padding="xs"
               radius="sm"
-              bg="var(--panel-soft, rgba(255, 255, 255, 0.02))"
-              style={{ textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
+              style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))", textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
             >
               <Text size="md" fw={800} c="green">
                 {storageJob.success}
@@ -136,8 +134,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
               withBorder
               padding="xs"
               radius="sm"
-              bg="var(--panel-soft, rgba(255, 255, 255, 0.02))"
-              style={{ textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
+              style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))", textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
             >
               <Text size="md" fw={800} c="red">
                 {storageJob.failed}
@@ -150,8 +147,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
               withBorder
               padding="xs"
               radius="sm"
-              bg="var(--panel-soft, rgba(255, 255, 255, 0.02))"
-              style={{ textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
+              style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))", textAlign: 'center', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}
             >
               <Text size="md" fw={800}>
                 {storageJob.skipped}
@@ -188,7 +184,7 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
             >
               <Box style={{ maxHeight: '180px', overflowY: 'auto' }}>
                 <Table highlightOnHover verticalSpacing={4} horizontalSpacing="xs" style={{ fontSize: '10.5px' }}>
-                  <Table.Thead bg="var(--panel-soft, rgba(255, 255, 255, 0.02))">
+                  <Table.Thead style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
                     <Table.Tr style={{ borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.05))' }}>
                       <Table.Th
                         style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)' }}

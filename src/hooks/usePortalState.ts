@@ -199,8 +199,7 @@ export function usePortalState() {
     reloadResubmissionsOnly,
     handleLoadRepeatTracker,
     loadEncounter,
-    loadSubmissionFile,
-    prewarmEncounterCache
+    loadSubmissionFile
   } = usePortalQueries({
 
     encounterInput,
@@ -562,8 +561,7 @@ export function usePortalState() {
     activeEncounterNo,
     encounterDate,
     doubleAccumulationMode,
-    setDoubleAccumulationMode,
-    prewarmEncounterCache
+    setDoubleAccumulationMode
   }
 }
 

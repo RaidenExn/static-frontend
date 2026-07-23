@@ -65,7 +65,7 @@ interface ActivityPanelProps {
   onLoadSubmissionFile: (fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
   loading?: boolean
   repeatTrackerLoaded: boolean
-  onLoadRepeatTracker: (encValue?: any, lookbackYears?: number) => void
+  onLoadRepeatTracker: (encValue?: any, lookbackYears?: number, mode?: 'auto' | 'manual') => void
   loadingRepeatTracker: boolean
   repeatTrackerLookbackYears: number
   setRepeatTrackerLookbackYears: (val: number) => void

@@ -109,7 +109,7 @@ export function useBulkResubmission(
       const response = await fetch('/api/bulk-resubmission/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encounterNumbers: encounters, collectFromStorage })
+        body: JSON.stringify({ encounterNumbers: encounters, mode: collectFromStorage ? 'cache-first' : 'force' })
       })
 
       if (!response.ok) {

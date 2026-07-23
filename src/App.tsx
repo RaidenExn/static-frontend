@@ -37,7 +37,7 @@ import { NodeBackendFeed } from './components/NodeBackendFeed'
 import ResubmissionLimitAlert from './components/ResubmissionLimitAlert'
 import RemarksAndResubmissionsPanel from './components/activity/RemarksAndResubmissionsPanel'
 import ResubmissionPreviewCard from './components/activity/ResubmissionPreviewCard'
-import { useEncounterSync } from './hooks/useEncounterSync'
+import { useUiTracing } from './hooks/useUiTracing'
 import { FRONTEND_VERSION } from './version'
 
 import BackendConnectionScreen from './components/BackendConnectionScreen'
@@ -174,8 +174,7 @@ function AppInner() {
     setAiProvider,
     chatInputCount,
     currentModelInUse,
-    chatStats,
-    prewarmEncounterCache
+    chatStats
   } = state
 
 
@@ -270,6 +269,8 @@ function AppInner() {
   const isPaperClaim = Number(selected?.is_paper_claim) === 1 || Number(selected?.is_paper) === 1
   const resolvedEncounter = patientHeader?.resolvedEncounter || (encounterInput === '' ? '-' : encounterInput)
 
+  useUiTracing({ activeEncounter: resolvedEncounter, activeTab })
+
   // Dynamic fallback for encounter start and end dates derived from activities
   const activityRows = rcmResult?.Ok?.rcm?.flattened?.activity || []
   const fallbackStartDate = React.useMemo(() => {
@@ -307,15 +308,6 @@ function AppInner() {
     })
     return maxStr || fallbackStartDate
   }, [selected, activityRows, fallbackStartDate])
-
-  useEncounterSync({
-    encounterNumber: resolvedEncounter && resolvedEncounter !== '-' ? resolvedEncounter : undefined,
-    onUpdate: () => {
-      if (!loading) {
-        loadEncounter(resolvedEncounter, false)
-      }
-    }
-  })
 
   const [ceedModalOpen, setCeedModalOpen] = useState<boolean>(false)
   const encounterDate = patientHeader?.encounterDate || '-'
@@ -621,7 +613,9 @@ function AppInner() {
               position: 'sticky',
               top: 0,
               zIndex: 1000,
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent",
+              backdropFilter: "var(--backdrop-filter, blur(16px))",
+              WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
@@ -634,12 +628,11 @@ function AppInner() {
               encounterInput={encounterInput}
               setEncounterInput={setEncounterInput}
               loading={loading}
-              onLoadEncounter={(val) => loadEncounter(val, true)}
-              onForceReload={() => loadEncounter(undefined, true)}
+              onLoadEncounter={(val, mode) => loadEncounter(val, mode)}
+              onForceReload={() => loadEncounter(undefined, 'force')}
               onAutoPrompt={handleAutoPrompt}
               onCopyPrompt={handleCopyPrompt}
               onNewChat={handleNewChat}
-              onPrewarmEncounter={prewarmEncounterCache}
               recentEncounters={recentEncounters}
 
               clearRecentEncounters={clearRecentEncounters}

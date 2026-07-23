@@ -15,12 +15,16 @@ import {
   TextInput
 } from '@mantine/core'
 import { Settings, ShieldCheck, Database, Unlink, Activity } from 'lucide-react'
+
+type SettingsSubTab = 'infrastructure' | 'hospital' | 'system' | 'appearance' | 'advanced'
 import { useSettings } from '../hooks/useSettings'
 import { HospitalCredentialsSettings } from './settings/HospitalCredentialsSettings'
 import { AdvancedPromptSettings } from './settings/AdvancedPromptSettings'
 import { NetworkPerformanceSettings } from './settings/NetworkPerformanceSettings'
 import { SystemUpdateSettings } from './settings/SystemUpdateSettings'
 import { ShortcodesSettings } from './settings/ShortcodesSettings'
+import { ExperimentalSettingsCard } from './settings/ExperimentalSettingsCard'
+
 import ApiPanel from './ApiPanel'
 import { setBackendUrl } from '../config/runtime'
 import { normalizeIpToBackendUrl, extractIpFromBackendUrl, validateIpOrHost } from '../config/backend'
@@ -75,7 +79,7 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
   }
 
   return (
-    <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)">
+    <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
       <Title
         order={3}
         style={{
@@ -205,6 +209,8 @@ export default function SettingsPanel({
     handleFixPermissions
   } = useSettings({ active, showToast })
 
+  const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>('infrastructure')
+
   if (!active) return null
 
   if (loading || !settings) {
@@ -220,8 +226,7 @@ export default function SettingsPanel({
 
   return (
     <Box>
-      {/* Central Glassmorphic Header Control Card */}
-      <Card withBorder mb="md" padding="md" style={{ background: 'var(--panel-soft, rgba(255, 255, 255, 0.02))' }}>
+      <Card withBorder mb="md" padding="md" style={{ background: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
         <Group justify="space-between" align="center" wrap="wrap" gap="md">
           <Box>
             <Group gap="xs" align="center" mb={4}>
@@ -259,18 +264,27 @@ export default function SettingsPanel({
             </Button>
           </Group>
         </Group>
+
+        <Box mt="md">
+          <SegmentedControl
+            value={settingsSubTab}
+            onChange={(val) => setSettingsSubTab(val as SettingsSubTab)}
+            fullWidth
+            size="xs"
+            data={[
+              { value: 'infrastructure', label: 'Infrastructure' },
+              { value: 'hospital', label: 'Hospital' },
+              { value: 'system', label: 'System' },
+              { value: 'appearance', label: 'Appearance' },
+              { value: 'advanced', label: 'Advanced' }
+            ]}
+          />
+        </Box>
       </Card>
 
-      <SimpleGrid cols={{ base: 1, xl: 2 }} spacing="md" style={{ alignItems: 'start' }}>
-        {/* Column 1 */}
+      {settingsSubTab === 'infrastructure' && (
         <Stack gap="md">
           <ConnectionSettingsCard showToast={showToast} />
-          <HospitalCredentialsSettings
-            settings={settings}
-            validationErrors={validationErrors}
-            employees={employees}
-            updateNestedSetting={updateNestedSetting}
-          />
 
           <NetworkPerformanceSettings
             settings={settings}
@@ -278,12 +292,7 @@ export default function SettingsPanel({
             updateNestedSetting={updateNestedSetting}
           />
 
-          <SystemUpdateSettings showToast={showToast} />
-
-          <ShortcodesSettings showToast={showToast} />
-
-          {/* Unified System & Browser Diagnostics Card */}
-          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)">
+          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
             <Title
               order={3}
               style={{
@@ -349,19 +358,89 @@ export default function SettingsPanel({
             </Stack>
           </Card>
         </Stack>
+      )}
 
-        {/* Column 2 */}
+      {settingsSubTab === 'hospital' && (
         <Stack gap="md">
-          <AdvancedPromptSettings
-            wsStatus={wsStatus}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            setTheme={setTheme}
-            onStopServer={onStopServer}
+          <HospitalCredentialsSettings
+            settings={settings}
+            validationErrors={validationErrors}
+            employees={employees}
+            updateNestedSetting={updateNestedSetting}
           />
+        </Stack>
+      )}
 
-          {/* 🎨 Real-Time Personalization Center */}
-          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)">
+      {settingsSubTab === 'system' && (
+        <Stack gap="md">
+          <SystemUpdateSettings showToast={showToast} />
+          <ShortcodesSettings showToast={showToast} />
+          <ExperimentalSettingsCard />
+        </Stack>
+      )}
+
+      {settingsSubTab === 'appearance' && (
+        <Stack gap="md">
+          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+            <Title
+              order={3}
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: 'var(--mantine-color-text)',
+                margin: '0 0 16px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              ⚡ Theme & Environment
+            </Title>
+            <Stack gap="sm">
+              <Box
+                p="sm"
+                bg="var(--panel)"
+                style={{ border: '1px solid var(--line)', borderRadius: 'var(--mantine-radius-sm)' }}
+              >
+                <Box mb="xs">
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Active System Theme
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Raw DOM sub-millisecond swapping
+                  </Text>
+                </Box>
+                <SegmentedControl
+                  value={theme}
+                  onChange={(val) => setTheme(val)}
+                  data={[
+                    { label: 'Light', value: 'light' },
+                    { label: 'Dark', value: 'dark' }
+                  ]}
+                  fullWidth
+                  styles={{
+                    root: {
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid var(--line)',
+                      borderRadius: 'var(--mantine-radius-sm)',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    },
+                    control: { border: 'none' },
+                    indicator: {
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: 'var(--mantine-radius-sm)'
+                    }
+                  }}
+                />
+              </Box>
+            </Stack>
+          </Card>
+
+          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
             <Title
               order={3}
               style={{
@@ -380,13 +459,8 @@ export default function SettingsPanel({
             </Title>
             <Stack gap="md">
               <SimpleGrid cols={2} spacing="xs">
-                {/* Accent Color Palette */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Accent Palette
                   </Text>
                   <Select
@@ -403,14 +477,8 @@ export default function SettingsPanel({
                     ]}
                   />
                 </Box>
-
-                {/* Background Tone Palette */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Background Tone
                   </Text>
                   <Select
@@ -428,13 +496,8 @@ export default function SettingsPanel({
               </SimpleGrid>
 
               <SimpleGrid cols={2} spacing="xs">
-                {/* Corner Radius Scale */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Corner Radius
                   </Text>
                   <SegmentedControl
@@ -451,14 +514,8 @@ export default function SettingsPanel({
                     ]}
                   />
                 </Box>
-
-                {/* Spacing & Margins scale */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Spacing & Margins
                   </Text>
                   <SegmentedControl
@@ -478,13 +535,8 @@ export default function SettingsPanel({
               </SimpleGrid>
 
               <SimpleGrid cols={2} spacing="xs">
-                {/* Font Typography */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Typography Family
                   </Text>
                   <Select
@@ -499,14 +551,8 @@ export default function SettingsPanel({
                     ]}
                   />
                 </Box>
-
-                {/* Font Size Scale */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Font Size Scale
                   </Text>
                   <SegmentedControl
@@ -525,13 +571,8 @@ export default function SettingsPanel({
               </SimpleGrid>
 
               <SimpleGrid cols={2} spacing="xs">
-                {/* Visual Style Overlay */}
                 <Box>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
-                  >
+                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                     Visual Style Overlay
                   </Text>
                   <SegmentedControl
@@ -545,8 +586,6 @@ export default function SettingsPanel({
                     ]}
                   />
                 </Box>
-
-                {/* Adaptive Card Backgrounds Switch */}
                 <Box
                   style={{
                     display: 'flex',
@@ -567,10 +606,21 @@ export default function SettingsPanel({
               </SimpleGrid>
             </Stack>
           </Card>
+        </Stack>
+      )}
 
+      {settingsSubTab === 'advanced' && (
+        <Stack gap="md">
+          <AdvancedPromptSettings
+            wsStatus={wsStatus}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            setTheme={setTheme}
+            onStopServer={onStopServer}
+          />
           <ApiPanel showToast={showToast as any} aiModel={aiModel} setAiModel={setAiModel} />
         </Stack>
-      </SimpleGrid>
+      )}
     </Box>
   )
 }
