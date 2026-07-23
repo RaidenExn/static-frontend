@@ -386,7 +386,9 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
           paddingBottom: '10px'
         },
         content: {
-          backgroundColor: 'var(--bg-translucent, rgba(26, 26, 26, 0.75))',
+          backgroundColor: "var(--bg-translucent, rgba(26, 26, 26, 0.75))",
+          backdropFilter: "var(--backdrop-filter, blur(16px))",
+          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
           borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
           color: 'var(--ink, #ffffff)',
           overflow: 'hidden',

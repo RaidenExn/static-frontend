@@ -163,7 +163,7 @@ export default function ExcelWorkshopPanel({ active, showToast }: ExcelWorkshopP
 
       // Step B: Trigger background pipeline execution
       const startRes = await fetch(
-        `/api/excel-workshop/process?jobId=${registeredJobId}&pullFromCache=${pullFromCache}&showResubmissionComments=${showResubmissionComments}&hideColumns=${hideColumns}`,
+        `/api/excel-workshop/process?jobId=${registeredJobId}&mode=${pullFromCache ? 'cache-first' : 'force'}&showResubmissionComments=${showResubmissionComments}&hideColumns=${hideColumns}`,
         {
           method: 'POST'
         }
@@ -433,7 +433,7 @@ export default function ExcelWorkshopPanel({ active, showToast }: ExcelWorkshopP
               <Group justify="space-between" align="center" style={{ width: '100%' }}>
                 <Group gap="md">
                   <Switch
-                    label="Pull from cache"
+                    label="Load from storage"
                     checked={pullFromCache}
                     onChange={(event) => setPullFromCache(event.currentTarget.checked)}
                     size="xs"

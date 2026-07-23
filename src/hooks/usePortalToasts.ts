@@ -105,45 +105,21 @@ export function usePortalToasts(initialSummaryLoading?: boolean, initialRcmLoadi
     const message = rawMessage || ''
     const title = rawTitle
 
-    // Map custom tones to Mantine colors and Lucide icons
+    // Map custom tones to native Mantine colors (Iconless)
     let color = 'blue'
-    let iconElement: React.ReactNode = null
+    let isLoading = false
 
     if (tone === 'ok') {
       color = 'teal'
-      iconElement = React.createElement(Check, { size: 16, style: { color: 'var(--mantine-color-teal-6)' } })
     } else if (tone === 'error') {
       color = 'red'
-      iconElement = React.createElement(AlertCircle, { size: 16, style: { color: 'var(--mantine-color-red-6)' } })
     } else if (tone === 'warning') {
       color = 'orange'
-      iconElement = React.createElement(AlertTriangle, { size: 16, style: { color: 'var(--mantine-color-orange-6)' } })
     } else if (tone === 'info') {
       color = 'blue'
-      iconElement = React.createElement(Info, { size: 16, style: { color: 'var(--mantine-color-blue-6)' } })
     } else if (tone === 'loading') {
       color = 'blue'
-      iconElement = React.createElement(
-        'div',
-        { style: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center' } },
-        React.createElement(
-          'style',
-          null,
-          `
-          @keyframes toast-spinner {
-            100% { transform: rotate(360deg); }
-          }
-          .toast-spin-active {
-            animation: toast-spinner 0.85s linear infinite;
-          }
-        `
-        ),
-        React.createElement(Loader2, {
-          size: 16,
-          className: 'toast-spin-active',
-          style: { color: 'var(--mantine-color-blue-6)' }
-        })
-      )
+      isLoading = true
     }
 
     // Build standard or action-based message content
@@ -153,7 +129,7 @@ export function usePortalToasts(initialSummaryLoading?: boolean, initialRcmLoadi
       React.createElement(
         'div',
         {
-          style: { whiteSpace: 'pre-wrap', lineHeight: '1.4', fontSize: 'var(--mantine-font-size-xs)', fontWeight: 500 }
+          style: { whiteSpace: 'pre-wrap', lineHeight: '1.35', fontSize: 'var(--mantine-font-size-xs)', fontWeight: 500 }
         },
         message
       ),
@@ -168,11 +144,11 @@ export function usePortalToasts(initialSummaryLoading?: boolean, initialRcmLoadi
             },
             style: {
               alignSelf: 'flex-start',
-              backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.04))',
-              border: '1px solid var(--line, rgba(255, 255, 255, 0.08))',
-              color: 'var(--text-primary, var(--mantine-color-text))',
-              padding: '4px 8px',
-              borderRadius: 'var(--mantine-radius-default, var(--mantine-radius-sm, 4px))',
+              backgroundColor: 'var(--mantine-color-default-hover)',
+              border: '1px solid var(--mantine-color-border)',
+              color: 'var(--mantine-color-text)',
+              padding: '2px 8px',
+              borderRadius: 'var(--mantine-radius-xs)',
               cursor: 'pointer',
               fontSize: '10px',
               fontWeight: 700,
@@ -192,8 +168,8 @@ export function usePortalToasts(initialSummaryLoading?: boolean, initialRcmLoadi
       title: title || undefined,
       message: renderedMessage,
       color,
-      icon: iconElement,
-      loading: false, // We supply our own gorgeous spinning animated Lucide loader
+      icon: undefined, // Iconless as requested
+      loading: isLoading,
       autoClose: tone === 'loading' ? false : duration,
       onClose: () => {
         activeIdsRef.current.delete(id)

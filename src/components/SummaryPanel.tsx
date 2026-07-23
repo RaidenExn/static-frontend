@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Group, Grid, Button, Stack, Box, Title, Text } from '@mantine/core'
+import { Card, Group, Grid, Button, Stack, Box, Title, Text, ScrollArea } from '@mantine/core'
 import { Download, Eye, Archive, RefreshCw } from 'lucide-react'
 import { useIcdState } from '../hooks/useIcdState'
 import { IcdResultsTable } from './icd/IcdResultsTable'
@@ -17,85 +17,45 @@ interface SummaryPanelProps {
   theme: string
 }
 
-// Applies dynamic theme patches to the raw EMR document before embedding
-function patchSummaryHtmlForTheme(html: string, theme: string): string {
+function processSummaryHtml(html: string): string {
   if (!html) return ''
 
-  const scrollbarStyles = `
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: ${theme === 'dark' ? '#373a40' : '#dee2e6'};
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: ${theme === 'dark' ? '#4a4f56' : '#ced4da'};
-    }
-  `
+  // Remove duplicate nested page tags
+  let clean = html
+    .replace(/<!DOCTYPE html>/gi, '')
+    .replace(/<body[^>]*>/gi, '')
+    .replace(/<\/body>/gi, '')
+    .replace(/<\/html>/gi, '')
 
-  let injectedStyles = ''
-  if (theme === 'dark') {
-    injectedStyles = `
-      <style>
-        :root {
-          color-scheme: dark !important;
-        }
-        body {
-          background-color: #1a1b1e !important;
-          color: #c1c2c5 !important;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-          padding: 16px !important;
-          margin: 0 !important;
-        }
-        table, tr, td, th, div, span, p, font, b, strong, h1, h2, h3, h4, h5, h6 {
-          background-color: transparent !important;
-          background: transparent !important;
-          color: #c1c2c5 !important;
-        }
-        th, b, strong, h1, h2, h3, h4 {
-          color: #ffffff !important;
-        }
-        table, tr, td, th {
-          border-color: #373a40 !important;
-        }
-        a {
-          color: #909296 !important;
-        }
-        img {
-          opacity: 0.85;
-          filter: grayscale(20%);
-        }
-        ${scrollbarStyles}
-      </style>
-    `
-  } else {
-    injectedStyles = `
-      <style>
-        body {
-          background-color: #ffffff !important;
-          color: #212529 !important;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-          padding: 16px !important;
-          margin: 0 !important;
-        }
-        ${scrollbarStyles}
-      </style>
-    `
+  // Convert spacing divs into standard unified block spacers
+  clean = clean.replace(
+    /<div style=["']?line-height:\s*(200%|70%)["']?[^>]*><br><\/div>/gi,
+    '<div class="clinical-line-break"></div>'
+  )
+  clean = clean.replace(
+    /<div style=["']?line-height:\s*(200%|70%)["']?[^>]*><br\s*\/><\/div>/gi,
+    '<div class="clinical-line-break"></div>'
+  )
+
+  // Standard clinical titles to isolate and wrap in block headings
+  const sections = [
+    'Known Allergy\\s*:',
+    'Patient\\s+Complaints\\s*:',
+    'History\\s+of\\s+Present\\s+illness\\s*\\(HPI\\)\\s*:',
+    'Family\\s+History\\s*:',
+    'Vitals\\s*:',
+    'Diagnosed\\s+Problems\\s*:',
+    'Plan\\s+Notes\\s*:',
+    'Procedure\\s+Orders\\s*:',
+    'Procedure\\s+Notes\\s*:'
+  ]
+
+  for (const section of sections) {
+    const regex = new RegExp(`<b>(${section})\\s*<\\/b>`, 'gi')
+    clean = clean.replace(regex, '<div class="clinical-section-title"><b>$1</b></div>')
   }
 
-  // Inject styles just before </head> or <body>
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `${injectedStyles}</head>`)
-  } else if (html.includes('<body>')) {
-    return html.replace('<body>', `<body>${injectedStyles}`)
-  } else {
-    return `${injectedStyles}${html}`
-  }
+  return clean
 }
 
 export default function SummaryPanel({
@@ -110,15 +70,15 @@ export default function SummaryPanel({
 }: SummaryPanelProps) {
   const icdState = useIcdState({ encounter, active, showToast })
 
-  const patchedHtml = React.useMemo(() => {
-    return patchSummaryHtmlForTheme(summaryHtml, theme)
-  }, [summaryHtml, theme])
+  const processedHtml = React.useMemo(() => {
+    return processSummaryHtml(summaryHtml)
+  }, [summaryHtml])
 
   if (!active) return null
 
   return (
     <Grid style={{ marginTop: '12px', marginLeft: 0, marginRight: 0 }}>
-      {/* LEFT SIDE: Native iframe Summary Document with dark theme compatible patches */}
+      {/* LEFT SIDE: Structured React DOM Summary Document */}
       <Grid.Col span={{ base: 12, md: 6 }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {/* Consolidated Action Dock */}
         <Card withBorder radius="sm" p="xs" bg="var(--mantine-color-body)">
@@ -159,7 +119,7 @@ export default function SummaryPanel({
           </Group>
         </Card>
 
-        {/* Dynamic Theme Patched iframe Sheet Container */}
+        {/* Dynamic Theme Patched Structured Clinical Document Container */}
         <Card
           withBorder
           padding={0}
@@ -167,6 +127,99 @@ export default function SummaryPanel({
           bg="var(--mantine-color-body)"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px', overflow: 'hidden' }}
         >
+          {/* Dynamic inline styles mapped completely through native Mantine CSS tokens */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+            .clinical-summary-html {
+              color-scheme: light dark;
+              font-family: var(--mantine-font-family), sans-serif !important;
+              color: var(--mantine-color-text) !important;
+              line-height: 1.5 !important;
+              font-size: 12.5px !important;
+            }
+            
+            .clinical-summary-html table[bgcolor] {
+              background-color: var(--mantine-color-gray-1) !important;
+              border-left: 4px solid var(--mantine-color-primary) !important;
+              width: 100% !important;
+              margin-top: 14px !important;
+              margin-bottom: 8px !important;
+              border-collapse: separate !important;
+              border-radius: 0 4px 4px 0 !important;
+            }
+
+            .clinical-summary-html table[bgcolor] td {
+              padding: 6px 12px !important;
+              font-size: 11px !important;
+              font-weight: 800 !important;
+              letter-spacing: 0.04em !important;
+              text-transform: uppercase !important;
+              color: var(--mantine-color-text) !important;
+            }
+
+            [data-mantine-color-scheme="dark"] .clinical-summary-html table[bgcolor] {
+              background-color: rgba(255, 255, 255, 0.05) !important;
+              border-left: 4px solid var(--mantine-color-primary) !important;
+            }
+
+            [data-mantine-color-scheme="dark"] .clinical-summary-html table[bgcolor] td {
+              color: var(--mantine-color-dark-0) !important;
+            }
+
+            .clinical-section-title {
+              display: block !important;
+              margin-top: 10px !important;
+              margin-bottom: 4px !important;
+              font-weight: 700 !important;
+              font-size: 11.5px !important;
+              letter-spacing: 0.02em !important;
+              text-transform: uppercase !important;
+              color: var(--mantine-color-primary) !important;
+            }
+
+            [data-mantine-color-scheme="dark"] .clinical-section-title {
+              color: var(--mantine-color-primary) !important;
+            }
+
+            .clinical-line-break {
+              display: block !important;
+              height: 6px !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            .clinical-summary-html br + br {
+              display: none !important;
+            }
+
+            .clinical-summary-html br {
+              margin: 2px 0 !important;
+            }
+
+            .clinical-summary-html hr {
+              border: none !important;
+              height: 1px !important;
+              background-color: var(--mantine-color-default-border) !important;
+              margin: 10px 0 !important;
+            }
+
+            [data-mantine-color-scheme="dark"] .clinical-summary-html hr {
+              background-color: var(--mantine-color-dark-4) !important;
+            }
+
+            .clinical-summary-html b, .clinical-summary-html strong {
+              color: var(--mantine-color-text) !important;
+            }
+
+            [data-mantine-color-scheme="dark"] .clinical-summary-html b, 
+            [data-mantine-color-scheme="dark"] .clinical-summary-html strong {
+              color: var(--mantine-color-dark-0) !important;
+            }
+          `
+            }}
+          />
+
           {!summaryHtml ? (
             <Stack align="center" justify="center" p="xl" style={{ flex: 1, minHeight: '320px' }}>
               <div
@@ -188,18 +241,16 @@ export default function SummaryPanel({
               </Text>
             </Stack>
           ) : (
-            <iframe
-              srcDoc={patchedHtml}
-              title="EMR Summary Document"
-              style={{
-                border: 'none',
-                width: '100%',
-                height: '100%',
-                flex: 1,
-                minHeight: '600px',
-                backgroundColor: theme === 'dark' ? '#1a1b1e' : '#ffffff'
-              }}
-            />
+            <Box style={{ flex: 1, overflow: 'hidden', height: '100%', minHeight: '600px' }}>
+              <ScrollArea h="100%" p="md">
+                <div
+                  className="clinical-summary-html"
+                  dangerouslySetInnerHTML={{
+                    __html: processedHtml
+                  }}
+                />
+              </ScrollArea>
+            </Box>
           )}
         </Card>
       </Grid.Col>

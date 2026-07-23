@@ -26,12 +26,11 @@ interface EncounterSearchProps {
   encounterInput: string
   setEncounterInput: (val: string) => void
   loading: boolean
-  onLoadEncounter: (val?: string) => void
+  onLoadEncounter: (val?: string, mode?: 'force' | 'cache-first') => void
   onForceReload: () => void
   onAutoPrompt: () => void
   onCopyPrompt: () => void
   onNewChat?: () => void
-  onPrewarmEncounter?: (val: string) => void
 
   recentEncounters: string[]
 
@@ -87,7 +86,6 @@ export default function EncounterSearch({
   onAutoPrompt,
   onCopyPrompt,
   onNewChat,
-  onPrewarmEncounter,
 
   recentEncounters,
 
@@ -218,7 +216,6 @@ export default function EncounterSearch({
             recentEncounters={recentEncounters}
             clearRecentEncounters={clearRecentEncounters}
             onLoadEncounter={onLoadEncounter}
-            onPrewarmEncounter={onPrewarmEncounter}
             showToast={showToast}
           />
 

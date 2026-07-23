@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Tooltip } from '@mantine/core'
 import { AutosizeTextArea } from './AutosizeTextArea'
 
 interface CustomRuleItem {
@@ -368,55 +369,58 @@ export function CustomRulesListManager({ field, value, onChange, disabled = fals
               />
 
               {/* Control arrows and delete */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button
-                  type="button"
-                  onClick={() => handleMoveUp(idx)}
-                  disabled={idx === 0}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: idx === 0 ? 'var(--line)' : 'var(--accent)',
-                    cursor: idx === 0 ? 'default' : 'pointer',
-                    fontSize: '10px',
-                    padding: '2px'
-                  }}
-                  title="Move instruction priority up"
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMoveDown(idx)}
-                  disabled={idx === items.length - 1}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: idx === items.length - 1 ? 'var(--line)' : 'var(--accent)',
-                    cursor: idx === items.length - 1 ? 'default' : 'pointer',
-                    fontSize: '10px',
-                    padding: '2px'
-                  }}
-                  title="Move instruction priority down"
-                >
-                  ▼
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveItem(item.id)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--bad)',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    padding: '2px',
-                    marginLeft: '4px'
-                  }}
-                  title="Delete rule point"
-                >
-                  ✕
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <Tooltip label="Move instruction priority up" openDelay={0} closeDelay={0} withinPortal zIndex={3000}>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveUp(idx)}
+                    disabled={idx === 0}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: idx === 0 ? 'var(--line)' : 'var(--accent)',
+                      cursor: idx === 0 ? 'default' : 'pointer',
+                      fontSize: '10px',
+                      padding: '2px'
+                    }}
+                  >
+                    ▲
+                  </button>
+                </Tooltip>
+                <Tooltip label="Move instruction priority down" openDelay={0} closeDelay={0} withinPortal zIndex={3000}>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveDown(idx)}
+                    disabled={idx === items.length - 1}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: idx === items.length - 1 ? 'var(--line)' : 'var(--accent)',
+                      cursor: idx === items.length - 1 ? 'default' : 'pointer',
+                      fontSize: '10px',
+                      padding: '2px'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </Tooltip>
+                <Tooltip label="Delete rule point" openDelay={0} closeDelay={0} withinPortal zIndex={3000}>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(item.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--bad)',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      padding: '2px',
+                      marginLeft: '4px'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </Tooltip>
               </div>
             </div>
           ))}

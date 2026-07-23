@@ -102,23 +102,43 @@ export function activityRaStatus(row: any): string {
   if (!row) return ''
   if (row.derived_ra_status) return row.derived_ra_status
 
-  const rejected = rcmNumVal(row.total_rej_amount) ?? 0.0
-  const paid = rcmNumVal(row.ra_net_payable) ?? rcmNumVal(row.total_ra_amount) ?? 0.0
   const claimPayer = rcmNumVal(row.claim_payer_pay) ?? 0.0
   const raPayer = rcmNumVal(row.ra_payer_payable) ?? 0.0
 
-  if (claimPayer > 0.0 && raPayer === 0.0) {
-    return 'Denied'
+  const hasExplicitRa =
+    !!row._has_ra ||
+    !!row.ra_id_payer ||
+    !!row.payment_ref ||
+    raPayer > 0.0 ||
+    raPayer < 0 ||
+    ((row.claim_denial_code || '').trim() !== '' && (row.claim_denial_desc || '').trim() !== '')
+
+  if (hasExplicitRa) {
+    if (raPayer < 0) return 'Recovery'
+    if (claimPayer > 0 && raPayer > claimPayer) return 'RA Error'
+    if (claimPayer > 0 && raPayer > 0 && raPayer === claimPayer) return 'Full Remittance'
+    if (claimPayer > 0 && raPayer > 0 && raPayer < claimPayer) return 'Partial Remittance'
+    if (claimPayer > 0 && raPayer === 0) return 'Denied'
+    if (raPayer > 0 && claimPayer <= 0) return 'RA Error'
+
+    const isDenied =
+      (row.claim_denial_code || '').trim() !== '' ||
+      rcmNumVal(row.claim_auth_status) === 2.0
+    if (isDenied) return 'Denied'
+
+    return row.status || ''
   }
 
-  if (paid > 0.0) {
-    return rejected > 0.0 ? 'Partial Remittance' : 'Full Remittance'
-  }
+  const isSubmitted =
+    !!row._has_submission ||
+    Number(row.claim_resubmission_count || 0) > 0 ||
+    !!row.submitted_date ||
+    !!row.resubmission_date ||
+    /subm/i.test(String(row.status || ''))
 
-  const isDenied =
-    (row.claim_denial_code || '').trim() !== '' || rcmNumVal(row.claim_auth_status) === 2.0 || rejected > 0.0
+  if (isSubmitted) return 'Submitted'
 
-  return isDenied ? 'Denied' : (row.status || '')
+  return 'Billed'
 }
 
 export function derivePriorAuthCode(row: any): string {
@@ -257,6 +277,8 @@ export function activityRaStatusClass(status: string, row?: any): string {
   }
   if (status === 'Denied') return 'status-badge status-denied'
   if (status === 'Partial Remittance') return 'status-badge status-partial'
+  if (status === 'Recovery') return 'status-badge status-recovery'
+  if (status === 'RA Error') return 'status-badge status-ra-error'
   return 'status-badge'
 }
 

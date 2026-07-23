@@ -157,6 +157,8 @@ export const theme = createTheme({
             borderRadius: 'var(--mantine-radius-default, var(--mantine-radius-sm, 4px))',
             border: `1px solid var(--line, rgba(255, 255, 255, 0.08))`,
             backgroundColor: `var(--bg-translucent, rgba(255, 255, 255, 0.45))`,
+            backdropFilter: "var(--backdrop-filter, blur(16px))",
+            WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
             boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.12), 0 4px 15px -3px rgba(0, 0, 0, 0.08)',
             alignItems: 'center',
             minHeight: 'auto',

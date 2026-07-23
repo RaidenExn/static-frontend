@@ -138,7 +138,8 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
         style={{
           borderBottom: '1px solid var(--line)',
           backgroundColor: 'var(--bg-translucent)',
-          backdropFilter: 'blur(8px)'
+          backdropFilter: "var(--backdrop-filter, blur(16px))",
+          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))"
         }}
       >
         <Group justify="space-between" align="center" wrap="nowrap">
@@ -254,7 +255,8 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
             transform: 'translateX(-50%)',
             padding: '8px 16px',
             background: 'var(--bg-translucent)',
-            backdropFilter: 'blur(8px)',
+            backdropFilter: "var(--backdrop-filter, blur(16px))",
+          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
             border: '1.5px solid var(--accent)',
             color: 'var(--accent)',
             borderRadius: '20px',

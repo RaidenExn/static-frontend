@@ -605,7 +605,11 @@ export default function VisitPanel({
                                     ? 'red'
                                     : act.status === 'Submitted'
                                       ? 'cyan'
-                                      : 'gray'
+                                      : act.status === 'Recovery'
+                                        ? 'violet'
+                                        : act.status === 'RA Error'
+                                          ? 'pink'
+                                          : 'gray'
                             }
                             style={{ height: '16px', fontSize: '8.5px' }}
                           >

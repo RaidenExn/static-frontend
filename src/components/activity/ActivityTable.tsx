@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Table, Group, Text, Badge, Button, Popover, TextInput, Card, Loader, Tooltip } from '@mantine/core'
-import { RefreshCw, Download, X } from 'lucide-react'
+import { RefreshCw, Download, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { RcmActivity } from '../../types'
 import { activityRaStatus, priorAuthCode, rcmStrVal, rowHasRepeatTrackerMarker } from '../../utils'
 
@@ -9,7 +9,7 @@ interface ActivityTableProps {
   sortedRows: RcmActivity[]
   loadingRepeatTracker: boolean
   repeatTrackerLoaded: boolean
-  onLoadRepeatTracker?: (encValue?: any, lookbackYears?: number) => void
+  onLoadRepeatTracker?: (encValue?: any, lookbackYears?: number, mode?: 'auto' | 'manual') => void
   repeatTrackerLookbackYears?: number
   batchAuthStartInput: string
   setBatchAuthStartInput: (val: string) => void
@@ -40,6 +40,8 @@ const mapStatusDisplayName = (status: string): string => {
   if (['partial remittance', 'partial', 'partial ra'].includes(normalized)) return 'Partial RA'
   if (['submitted', 'claim submitted', 'subm'].includes(normalized)) return 'Submitted'
   if (['billed', 'newly billed', 'ready for submission', 'unsubmitted'].includes(normalized)) return 'Billed'
+  if (normalized === 'recovery') return 'Recovery'
+  if (normalized === 'ra error') return 'RA Error'
   return status || 'Billed'
 }
 
@@ -184,6 +186,7 @@ function ActivityTable({
   dateEditMode
 }: ActivityTableProps) {
   const [activePopover, setActivePopover] = useState<'start' | 'expiry' | 'activityStart' | null>(null)
+  const [raErrorExpanded, setRaErrorExpanded] = useState<Record<number, boolean>>({})
 
   const [scrollTop, setScrollTop] = useState(0)
   const containerHeight = 650
@@ -256,8 +259,7 @@ function ActivityTable({
       withBorder
       radius="sm"
       padding="xs"
-      bg="var(--panel-soft, rgba(255, 255, 255, 0.02))"
-      style={{ overflow: 'visible' }}
+      bg="var(--panel-soft, rgba(255, 255, 255, 0.02))" style={{ overflow: "visible", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
     >
       <div
         style={{
@@ -354,7 +356,7 @@ function ActivityTable({
                   onClick={() =>
                     !loadingRepeatTracker &&
                     onLoadRepeatTracker &&
-                    onLoadRepeatTracker(undefined, repeatTrackerLookbackYears)
+                    onLoadRepeatTracker(undefined, repeatTrackerLookbackYears, 'manual')
                   }
                   leftSection={
                     loadingRepeatTracker ? <Loader size={10} /> : <Download style={{ width: 12, height: 12 }} />
@@ -749,51 +751,77 @@ function ActivityTable({
                           ? (() => {
                               const rawStatus = (row.activity_status || row.status || '').trim()
                               const normalizedStatus = rawStatus.toLowerCase()
+                              const isRaError = raStatus === 'RA Error'
 
-                              // 1. Except for "closed", no need to show anything when activity is Closed.
-                              if (normalizedStatus === 'closed') {
-                                return null
-                              }
+                              if (normalizedStatus === 'closed') return null
 
-                              // 2. We should be able to set the actions only when they are open.
-                              if (normalizedStatus === 'open') {
+                              const showActions = normalizedStatus === 'open' || (isRaError && raErrorExpanded[authId])
+
+                              if (showActions) {
                                 const isChipDisabled = !canSaveRaRemarks
                                 const currentAction = rowActions[authId]
 
                                 return (
                                   <Group gap="xs" wrap="nowrap" style={{ height: '24px', alignItems: 'center' }}>
-                                    <Button
-                                      {...getActionButtonProps('re-sub', currentAction, isChipDisabled)}
-                                      onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 're-sub' }))}
-                                    >
-                                      Re-sub
-                                    </Button>
-                                    <Button
-                                      {...getActionButtonProps('w-off', currentAction, isChipDisabled)}
-                                      onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 'w-off' }))}
-                                    >
-                                      W-off
-                                    </Button>
-                                    <Button
-                                      size="xs"
-                                      variant={currentAction === 'close' ? 'filled' : 'default'}
-                                      color="red"
-                                      onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 'close' }))}
-                                      disabled={isChipDisabled}
-                                      style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        padding: 0,
-                                        minHeight: '0'
-                                      }}
-                                    >
-                                      <X style={{ width: 12, height: 12 }} />
-                                    </Button>
+                                    {isRaError && !raErrorExpanded[authId] ? null : (
+                                      <>
+                                        <Button
+                                          {...getActionButtonProps('re-sub', currentAction, isChipDisabled)}
+                                          onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 're-sub' }))}
+                                        >
+                                          Re-sub
+                                        </Button>
+                                        <Button
+                                          {...getActionButtonProps('w-off', currentAction, isChipDisabled)}
+                                          onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 'w-off' }))}
+                                        >
+                                          W-off
+                                        </Button>
+                                        <Button
+                                          size="xs"
+                                          variant={currentAction === 'close' ? 'filled' : 'default'}
+                                          color="red"
+                                          onClick={() => setRowActions((prev) => ({ ...prev, [authId]: 'close' }))}
+                                          disabled={isChipDisabled}
+                                          style={{
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            minHeight: '0'
+                                          }}
+                                        >
+                                          <X style={{ width: 12, height: 12 }} />
+                                        </Button>
+                                      </>
+                                    )}
                                   </Group>
                                 )
                               }
 
-                              // 3. When they are in a different state, show that state.
+                              if (isRaError) {
+                                const isExpanded = !!raErrorExpanded[authId]
+                                return (
+                                  <Button
+                                    size="xs"
+                                    variant="subtle"
+                                    color="gray"
+                                    onClick={() =>
+                                      setRaErrorExpanded((prev) => ({ ...prev, [authId]: !isExpanded }))
+                                    }
+                                    style={{ height: '24px', padding: '0 6px', minHeight: '0' }}
+                                    leftSection={
+                                      isExpanded ? (
+                                        <ChevronDown style={{ width: 12, height: 12 }} />
+                                      ) : (
+                                        <ChevronRight style={{ width: 12, height: 12 }} />
+                                      )
+                                    }
+                                  >
+                                    Actions
+                                  </Button>
+                                )
+                              }
+
                               let badgeColor = 'blue'
                               if (normalizedStatus.includes('written') || normalizedStatus.includes('write')) {
                                 badgeColor = 'orange'
