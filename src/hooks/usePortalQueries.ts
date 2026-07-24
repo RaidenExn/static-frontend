@@ -344,6 +344,8 @@ export function usePortalQueries({
       rcm: 'loading'
     }
 
+    const loadStartTime = performance.now()
+
     const updateLoadToast = () => {
       if (activeLoadIdRef.current !== currentLoadId) return
       if (!isDifferentEncounter && !isForce) return
@@ -377,13 +379,16 @@ export function usePortalQueries({
       let duration = Infinity
 
       if (isAllDone) {
+        const durationMs = Math.round(performance.now() - loadStartTime)
+        const formattedTime = durationMs >= 1000 ? `${(durationMs / 1000).toFixed(2)}s` : `${durationMs}ms`
+
         if (isAnyError) {
           tone = 'warning'
-          title = `Loaded with Errors: ${targetEnc}`
+          title = `Loaded with Errors (${formattedTime}): ${targetEnc}`
           duration = 6000
         } else {
           tone = 'ok'
-          title = `Loaded Successfully: ${targetEnc}`
+          title = `Loaded Successfully (${formattedTime}): ${targetEnc}`
           duration = 5000
         }
       }
