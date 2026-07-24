@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { notifications } from '@mantine/notifications'
-import { Check, AlertCircle, AlertTriangle, Info, Loader2 } from 'lucide-react'
 
 export interface ToastAction {
   label: string

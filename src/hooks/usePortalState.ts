@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Tab } from '../types'
 import { rcmNumVal, sendExtensionMessage, safeFileName, calculateRcmFinances } from '../utils'
 import { useShortcodes } from './useShortcodes'
 import { useRecentEncounters } from './useRecentEncounters'

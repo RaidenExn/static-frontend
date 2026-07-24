@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Tabs, Card, Box, Group, Badge, ActionIcon, Tooltip } from '@mantine/core'
+import { Tabs, Card, Box, Group, Badge, ActionIcon, Tooltip, Paper, Text, Divider } from '@mantine/core'
 import {
   FileText,
   Clipboard,
@@ -22,15 +22,15 @@ import EncounterLoader from './EncounterLoader'
 import SubmissionBadgeGroup from './SubmissionBadgeGroup'
 import { usePortal } from '../context/PortalContext'
 
+import { resolveClaimQueueStatus } from '../utils'
+
 interface EncounterSearchProps {
   encounterInput: string
   setEncounterInput: (val: string) => void
   loading: boolean
   onLoadEncounter: (val?: string, mode?: 'force' | 'cache-first') => void
   onForceReload: () => void
-  onAutoPrompt: () => void
-  onCopyPrompt: () => void
-  onNewChat?: () => void
+
 
   recentEncounters: string[]
 
@@ -63,18 +63,10 @@ interface EncounterSearchProps {
   setAiModel?: (val: string) => void
   aiProvider?: string
   setAiProvider?: (val: string) => void
-  chatInputCount?: number
-  currentModelInUse?: string | null
-  chatStats?: {
-    latencyMs: number
-    attempts: number
-    usage: {
-      prompt_tokens: number
-      completion_tokens: number
-      total_tokens: number
-    } | null
-  } | null
   onOpenCeedValidator: () => void
+  onAutoPrompt?: () => void
+  onCopyPrompt?: () => void
+  onNewChat?: () => void
 }
 
 export default function EncounterSearch({
@@ -83,9 +75,6 @@ export default function EncounterSearch({
   loading,
   onLoadEncounter,
   onForceReload,
-  onAutoPrompt,
-  onCopyPrompt,
-  onNewChat,
 
   recentEncounters,
 
@@ -118,13 +107,33 @@ export default function EncounterSearch({
   setAiModel,
   aiProvider = 'openrouter',
   setAiProvider,
-  chatInputCount = 0,
-  currentModelInUse = null,
-  chatStats = null,
-  onOpenCeedValidator
+
+  onOpenCeedValidator,
+  onAutoPrompt,
+  onCopyPrompt,
+  onNewChat
 }: EncounterSearchProps) {
-  const { theme, toggleTheme } = usePortal()
+  const { theme, toggleTheme, summaryResult, rcmResult } = usePortal()
   const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  const selected = summaryResult?.Ok?.selected || rcmResult?.Ok?.rcm?.selected
+  const detail = rcmResult?.Ok?.rcm?.detail || {}
+  const flattened = rcmResult?.Ok?.rcm?.flattened || {}
+  const activeClaimHistory = detail.claimHistory || flattened.history || claimHistory || []
+  const activityRows = detail.activityWiseStatus || flattened.activity || []
+
+  const rawMpi = selected?.mpi || selected?.MPI || selected?.patient_mpi || '-'
+  const rawApptStatus = selected?.appointment_status || selected?.app_status_desc || '-'
+
+  const rawClaimQueueStatus = React.useMemo(() => {
+    return resolveClaimQueueStatus({
+      selected,
+      rcm: rcmResult?.Ok?.rcm,
+      claimHistory: activeClaimHistory,
+      activities: activityRows,
+      submissionState
+    })
+  }, [selected, rcmResult, activeClaimHistory, activityRows, submissionState])
 
   const handleCopyField = async (text: string, fieldKey: string, label: string) => {
     if (!text || text === '--' || text === 'None' || text === '-') return
@@ -149,13 +158,8 @@ export default function EncounterSearch({
         WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
         display: 'flex',
         flexDirection: 'column',
-        gap: '4px',
-        width: '100%',
-        boxSizing: 'border-box',
-        paddingLeft: 0,
-        paddingRight: 0,
-        paddingTop: '2px',
-        paddingBottom: '2px'
+        gap: '8px',
+        padding: '10px'
       }}
     >
       {/* ROW 1: Patient & Encounter Metadata Strip (Delegated to PatientHeaderBanner) */}
@@ -196,17 +200,14 @@ export default function EncounterSearch({
             dateEditMode={dateEditMode}
             setDateEditMode={setDateEditMode}
             onForceReload={onForceReload}
-            onCopyPrompt={onCopyPrompt}
-            onNewChat={onNewChat}
             aiModel={aiModel}
             setAiModel={setAiModel}
             aiProvider={aiProvider}
             setAiProvider={setAiProvider}
-            chatInputCount={chatInputCount}
-            currentModelInUse={currentModelInUse}
-            chatStats={chatStats}
-            onAutoPrompt={onAutoPrompt}
             onOpenCeedValidator={onOpenCeedValidator}
+            onAutoPrompt={onAutoPrompt}
+            onCopyPrompt={onCopyPrompt}
+            onNewChat={onNewChat}
           />
 
           {/* Right Loader Controls (Delegated to EncounterLoader) */}
@@ -222,7 +223,7 @@ export default function EncounterSearch({
         </Group>
       </Box>
 
-      {/* ROW 3: Embedded Compact Tabs & Resubs Badge Group (On the same line!) */}
+      {/* ROW 3: Embedded Compact Tabs & Status / Resubs Group */}
       <Group
         justify="space-between"
         align="center"
@@ -255,7 +256,7 @@ export default function EncounterSearch({
                 { id: 'settings', label: 'Settings', icon: Settings },
                 { id: 'bulk', label: 'Bulk Operations', icon: Layers },
                 { id: 'workshop', label: 'Excel Workshop', icon: FileSpreadsheet }
-                // { id: 'afm', label: 'Apple Intelligence', icon: Sparkles }
+
               ] as const
             ).map((tab) => {
               const IconComponent = tab.icon
@@ -287,9 +288,53 @@ export default function EncounterSearch({
           </Tabs.List>
         </Tabs>
 
-        {/* Resubs indicator moved dynamically to this row, alongside theme switcher */}
+        {/* Status Card, Resubs indicator, CEED, Theme Switcher */}
         <Box style={{ flexShrink: 0, paddingLeft: '8px' }}>
           <Group gap="xs" align="center" wrap="nowrap">
+            {/* Outlined status card with MPI, Appointment Status, Claim Queue */}
+            <Paper
+              withBorder
+              radius="sm"
+              style={{
+                backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
+                borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
+                backdropFilter: 'var(--backdrop-filter, blur(16px))',
+                WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
+                height: '28px',
+                padding: '0 10px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                userSelect: 'none'
+              }}
+            >
+              <Group gap="xs" align="center" wrap="nowrap">
+                <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
+                  MPI:{' '}
+                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                    {rawMpi}
+                  </Text>
+                </Text>
+
+                <Divider orientation="vertical" style={{ height: '14px', opacity: 0.5 }} />
+
+                <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
+                  Appointment Status:{' '}
+                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                    {rawApptStatus}
+                  </Text>
+                </Text>
+
+                <Divider orientation="vertical" style={{ height: '14px', opacity: 0.5 }} />
+
+                <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
+                  Claim Queue:{' '}
+                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                    {rawClaimQueueStatus}
+                  </Text>
+                </Text>
+              </Group>
+            </Paper>
+
             <SubmissionBadgeGroup
               isPaperClaim={isPaperClaim}
               resubmissionCount={resubmissionCount}

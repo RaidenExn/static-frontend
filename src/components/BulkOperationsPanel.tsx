@@ -3,8 +3,7 @@ import { Card, Text, Group, Box, SimpleGrid } from '@mantine/core'
 import { Layers } from 'lucide-react'
 import BulkXmlPanel from './BulkXmlPanel'
 import BulkResubmissionPanel from './BulkResubmissionPanel'
-import BulkRepeatTrackerExtraction from './BulkRepeatTrackerExtraction'
-import BulkMnecExtraction from './BulkMnecExtraction'
+import BulkExtractionPanel from './BulkExtractionPanel'
 import RaExcelPanel from './RaExcelPanel'
 import BypassPanel from './BypassPanel'
 
@@ -49,17 +48,19 @@ export default function BulkOperationsPanel({
         <BulkXmlPanel active={active} showToast={showToast} />
 
         {/* Row 2 */}
-        <BulkRepeatTrackerExtraction
+        <BulkExtractionPanel
           active={active}
           showToast={showToast}
-          repeatTrackerLookbackYears={repeatTrackerLookbackYears}
-          setRepeatTrackerLookbackYears={setRepeatTrackerLookbackYears}
+          type="repeatTracker"
+          lookbackYears={repeatTrackerLookbackYears}
+          setLookbackYears={setRepeatTrackerLookbackYears}
         />
-        <BulkMnecExtraction
+        <BulkExtractionPanel
           active={active}
           showToast={showToast}
-          mnecLookbackYears={mnecLookbackYears}
-          setMnecLookbackYears={setMnecLookbackYears}
+          type="mnec"
+          lookbackYears={mnecLookbackYears}
+          setLookbackYears={setMnecLookbackYears}
         />
 
         {/* Row 3 */}

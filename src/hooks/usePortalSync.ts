@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo } from 'react'
-import { activityRaStatus, getShortcode, rcmNumVal, rowHasRepeatTrackerMarker } from '../utils'
+import { activityRaStatus, rowHasRepeatTrackerMarker } from '../utils'
 
 import { usePortal } from '../context/PortalContext'
 

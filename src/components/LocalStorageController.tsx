@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Group, Stack, Text, Title, Textarea, Button, Badge } from '@mantine/core'
+import { Card, Group, Stack, Text, Title, Textarea, Button } from '@mantine/core'
 import { Database, Play } from 'lucide-react'
 
 interface LocalStorageControllerProps {

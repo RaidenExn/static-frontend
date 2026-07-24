@@ -17,10 +17,12 @@ import {
   calculateRcmFinances,
   applyRowAction,
   normalizeEncounterValue,
-  derivePriorAuthCode
-} from '../shared/utils/helpers.ts'
+  derivePriorAuthCode,
+  computeSubmissionStateShared,
+  resolveClaimQueueStatus
+} from '../../shared/utils/helpers.ts'
 
-export { rcmNumVal, parseDateLikeJs, currentServiceDate, serviceDateMonthsAgo, currentUsDate, usDateMonthsAgo, activityRaStatus, isSpecialRepeatTrackerRow, rowHasRepeatTrackerMarker, remarkText, resubmissionReason, activityRaStatusClass, isoDate, calculateRcmFinances, applyRowAction, normalizeEncounterValue, derivePriorAuthCode }
+export { rcmNumVal, parseDateLikeJs, currentServiceDate, serviceDateMonthsAgo, currentUsDate, usDateMonthsAgo, activityRaStatus, isSpecialRepeatTrackerRow, rowHasRepeatTrackerMarker, remarkText, resubmissionReason, activityRaStatusClass, isoDate, calculateRcmFinances, applyRowAction, normalizeEncounterValue, derivePriorAuthCode, computeSubmissionStateShared, resolveClaimQueueStatus }
 
 import dayjs from 'dayjs'
 import { customFetch as fetch } from './config/backend'

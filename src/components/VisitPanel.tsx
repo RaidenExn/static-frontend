@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { Card, Table, Badge, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton, Tooltip, ActionIcon } from '@mantine/core'
-import { Eye, Clock, Archive, BookOpen, Download, Copy, Check, FileSpreadsheet, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Card, Table, Badge, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton } from '@mantine/core'
+import { Eye, Clock, Archive, BookOpen, Download, Copy, Check, FileSpreadsheet, ShieldCheck } from 'lucide-react'
 import { RcmVisit, PatientHistoricFile } from '../types'
 import { rcmStrVal } from '../utils'
 import { customFetch as fetch } from '../config/backend'

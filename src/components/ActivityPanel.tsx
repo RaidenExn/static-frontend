@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Group, Stack, Button, Text, Box } from '@mantine/core'
+import { Card, Group, Stack, Button, Text } from '@mantine/core'
 import { Calendar } from 'lucide-react'
 import { DateTimePicker } from '@mantine/dates'
 import { RcmActivity, RcmRemark, RcmResubmission, RcmVisit } from '../types'
