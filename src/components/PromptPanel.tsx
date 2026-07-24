@@ -16,8 +16,10 @@ import {
   Center,
   Loader,
   Paper,
-  Divider
+  Card,
+  Tooltip
 } from '@mantine/core'
+import { Save, Download, Upload, Plus, FileText, Trash2 } from 'lucide-react'
 import { usePromptConfig } from '../hooks/usePromptConfig'
 
 interface PromptPanelProps {
@@ -27,26 +29,18 @@ interface PromptPanelProps {
 
 export default function PromptPanel({ active, showToast }: PromptPanelProps) {
   const {
-    blocks,
+    systemInstructions,
+    setSystemInstructions,
     encounterBlocks,
     versions,
     selectedVersion,
-    name,
-    setName,
-    description,
-    setDescription,
-    aiModel,
-    setAiModel,
     loading,
+    name,
     saving,
     handleSave,
     handleSaveAsNew,
     handleLoadVersion,
     handleDeleteVersion,
-    handleAddBlock,
-    handleDeleteBlock,
-    handleMoveBlock,
-    handleBlockChange,
     handleAddEncounterBlock,
     handleDeleteEncounterBlock,
     handleMoveEncounterBlock,
@@ -63,79 +57,78 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
 
   return (
     <Box component="section" id="promptPanel" p="lg" bg="var(--mantine-color-body)" mih="100vh">
-      {/* Top Controls Toolbar */}
-      <Group justify="space-between" align="center" gap="md" pb="md">
-        <Stack gap={4} style={{ maxWidth: '60%' }}>
-          <Title order={1} fz={26} fw={600} lts="-0.02em">
-            {name || 'Prompt Configuration Workspace'}
-          </Title>
-          <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-line' }}>
-            {description ||
-              'Side-by-side customization of instructions and EMR data formatting. Save custom prompt versions to switch configurations.'}
-          </Text>
-        </Stack>
+      {/* ==================== CONTROL TOOLBAR ==================== */}
+      <Card withBorder radius="sm" p="xs" mb="xl" style={{ backgroundColor: 'var(--bg-translucent, rgba(255, 255, 255, 0.06))', backdropFilter: 'var(--backdrop-filter, blur(16px))', WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))' }}>
+        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+          {/* Left: Version management */}
+          <Group gap="xs" align="center" wrap="nowrap" style={{ flexShrink: 0 }}>
+            <FileText style={{ width: 14, height: 14, color: 'var(--mantine-color-dimmed)' }} />
+            <Text size="sm" fw={800} tt="uppercase" lts="0.5px">
+              Config
+            </Text>
+            {versions.length > 0 && (
+              <Group gap={4} wrap="nowrap">
+                <Select
+                  size="xs"
+                  w={160}
+                  placeholder="-- Load Config --"
+                  value={selectedVersion || null}
+                  onChange={(val) => { if (val) handleLoadVersion(val) }}
+                  data={versions.map((v) => ({ value: v.filename, label: v.name }))}
+                  styles={{ input: { height: '28px' } }}
+                />
+                {selectedVersion && (
+                  <Tooltip label="Delete this version" position="top" withArrow>
+                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDeleteVersion(selectedVersion)}>
+                      <Trash2 style={{ width: 13, height: 13 }} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </Group>
+            )}
+          </Group>
 
-        {/* Configuration loading, saving & file controls */}
-        <Group gap="xs">
-          {versions.length > 0 && (
-            <Group gap={6}>
-              <Select
-                size="sm"
-                w={180}
-                radius="xl"
-                placeholder="-- Load Config --"
-                value={selectedVersion || null}
-                onChange={(val) => {
-                  if (val) handleLoadVersion(val)
-                }}
-                data={versions.map((v) => ({ value: v.filename, label: v.name }))}
-              />
-              {selectedVersion && (
-                <ActionIcon
-                  variant="outline"
-                  color="red"
-                  radius="xl"
-                  size={30}
-                  onClick={() => handleDeleteVersion(selectedVersion)}
-                >
-                  ✕
-                </ActionIcon>
-              )}
-            </Group>
-          )}
+          {/* Right: Action buttons */}
+          <Group gap="xs" wrap="wrap">
+            <Tooltip label="Save current configuration" position="top" withArrow>
+              <Button size="xs" bg="#cc7129" fw={600} disabled={saving}
+                leftSection={<Save style={{ width: 13, height: 13 }} />} onClick={() => handleSave()}>
+                {saving ? 'Saving...' : 'Save Active'}
+              </Button>
+            </Tooltip>
 
-          <Button radius="xl" size="sm" bg="#cc7129" fw={600} disabled={saving} onClick={() => handleSave()}>
-            {saving ? 'Saving...' : 'Save Active'}
-          </Button>
+            <Tooltip label="Save as a new named version" position="top" withArrow>
+              <Button size="xs" variant="default" fw={500}
+                leftSection={<Plus style={{ width: 13, height: 13 }} />}
+                onClick={() => {
+                  const proposedName = prompt('Enter name for the new configuration:', name)
+                  if (proposedName && proposedName.trim()) {
+                    handleSaveAsNew(proposedName.trim())
+                  }
+                }}>
+                Save As New
+              </Button>
+            </Tooltip>
 
-          <Button
-            variant="default"
-            radius="xl"
-            size="sm"
-            fw={500}
-            onClick={() => {
-              const proposedName = prompt('Enter name for the new configuration:', name)
-              if (proposedName && proposedName.trim()) {
-                handleSaveAsNew(proposedName.trim())
-              }
-            }}
-          >
-            Save As New
-          </Button>
+            <Tooltip label="Export configuration as YAML file" position="top" withArrow>
+              <Button size="xs" variant="default" fw={500}
+                leftSection={<Download style={{ width: 13, height: 13 }} />} onClick={handleExport}>
+                Export
+              </Button>
+            </Tooltip>
 
-          <Button variant="default" radius="xl" size="sm" fw={500} onClick={handleExport}>
-            Export YAML
-          </Button>
-
-          <Button variant="default" radius="xl" size="sm" fw={500} onClick={() => fileInputRef.current?.click()}>
-            Import Config
-          </Button>
-
-          <input type="file" ref={fileInputRef} accept=".yaml,.yml,.json" onChange={handleImportFile} hidden />
+            <Tooltip label="Import configuration from YAML/JSON file" position="top" withArrow>
+              <Button size="xs" variant="default" fw={500}
+                leftSection={<Upload style={{ width: 13, height: 13 }} />}
+                onClick={() => fileInputRef.current?.click()}>
+                Import
+              </Button>
+            </Tooltip>
+          </Group>
         </Group>
-      </Group>
+      </Card>
 
-      <Divider mb="xl" />
+      <input type="file" ref={fileInputRef} accept=".yaml,.yml,.json" onChange={handleImportFile} hidden />
 
       {loading ? (
         <Center mih="300px">
@@ -149,135 +142,24 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
       ) : (
         <Container fluid p={0}>
           {/* Workspace Metadata Settings Card */}
-          <Paper withBorder p="md" radius="sm" mb="xl" bg="var(--mantine-color-default-hover)">
-            <Title order={3} fz="xs" fw={700} mb="xs" c="#cc7129" lts="0.06em">
-              WORKSPACE METADATA & MODEL SETTINGS
-            </Title>
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-              <TextInput
-                label="Config Name"
-                placeholder="e.g. Standard Clinical Claims Auditor"
-                value={name}
-                onChange={(e) => setName(e.currentTarget.value)}
-                size="xs"
-              />
-              <Select
-                label="Target AI Model"
-                placeholder="Select model"
-                value={aiModel}
-                onChange={(val) => setAiModel(val || 'claude-3-5-sonnet-20241022')}
-                data={[
-                  { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
-                  { value: 'claude-3-5-haiku-latest', label: 'Claude 3.5 Haiku' },
-                  { value: 'gpt-4o', label: 'GPT-4o' },
-                  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-                  { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-                  { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' }
-                ]}
-                size="xs"
-              />
-              <TextInput
-                label="Description"
-                placeholder="Description of this prompt layout..."
-                value={description}
-                onChange={(e) => setDescription(e.currentTarget.value)}
-                size="xs"
-              />
-            </SimpleGrid>
-          </Paper>
 
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
             {/* ==================== LEFT COLUMN: SYSTEM INSTRUCTIONS ==================== */}
             <Box>
-              <Group
-                justify="space-between"
-                align="center"
-                mb="md"
-                pb="xs"
-                bd="0 0 1px solid var(--mantine-color-default-border)"
-              >
-                <Title order={2} fz={18} fw={600}>
-                  System Instructions
-                </Title>
-                <Button
-                  variant="outline"
-                  color="#cc7129"
-                  size="xs"
-                  radius="xl"
-                  fw={600}
-                  onClick={handleAddBlock}
-                  bd="1px solid #cc7129"
-                >
-                  + Add Block
-                </Button>
-              </Group>
+              <Title order={2} fz={18} fw={600} mb="md">
+                System Instructions
+              </Title>
 
-              <Stack gap="md">
-                {blocks.map((block, idx) => (
-                  <Paper
-                    key={block.id}
-                    withBorder
-                    p="md"
-                    radius="sm"
-                    bg="var(--mantine-color-default-hover)"
-                    opacity={block.enabled ? 1 : 0.65}
-                  >
-                    <Group justify="space-between" align="center" mb="xs">
-                      <Group gap="md" flex={1}>
-                        <TextInput
-                          variant="unstyled"
-                          size="xs"
-                          fw={700}
-                          flex={1}
-                          value={block.title || ''}
-                          onChange={(e) => handleBlockChange(idx, 'title', e.currentTarget.value.toUpperCase())}
-                          c="#cc7129"
-                          lts="0.06em"
-                        />
-                        <Checkbox
-                          size="xs"
-                          color="#cc7129"
-                          label="Active"
-                          checked={block.enabled}
-                          onChange={(e) => handleBlockChange(idx, 'enabled', e.currentTarget.checked)}
-                        />
-                      </Group>
-
-                      <Group gap={2}>
-                        <ActionIcon
-                          variant="subtle"
-                          color="dimmed"
-                          onClick={() => handleMoveBlock(idx, 'up')}
-                          disabled={idx === 0}
-                        >
-                          ↑
-                        </ActionIcon>
-                        <ActionIcon
-                          variant="subtle"
-                          color="dimmed"
-                          onClick={() => handleMoveBlock(idx, 'down')}
-                          disabled={idx === blocks.length - 1}
-                        >
-                          ↓
-                        </ActionIcon>
-                        <ActionIcon variant="subtle" color="red" onClick={() => handleDeleteBlock(block.id)}>
-                          ✕
-                        </ActionIcon>
-                      </Group>
-                    </Group>
-
-                    <Textarea
-                      autosize
-                      minRows={4}
-                      value={block.content || ''}
-                      onChange={(e) => handleBlockChange(idx, 'content', e.currentTarget.value)}
-                      placeholder="Guideline content..."
-                      ff="monospace"
-                      size="xs"
-                    />
-                  </Paper>
-                ))}
-              </Stack>
+              <Textarea
+                autosize
+                minRows={20}
+                maxRows={60}
+                value={systemInstructions}
+                onChange={(e) => setSystemInstructions(e.currentTarget.value)}
+                placeholder="Enter your system instructions..."
+                ff="monospace"
+                size="sm"
+              />
             </Box>
 
             {/* ==================== RIGHT COLUMN: ENCOUNTER DATA ==================== */}

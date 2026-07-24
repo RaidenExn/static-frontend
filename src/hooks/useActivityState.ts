@@ -1,6 +1,6 @@
 import React from 'react'
 import { RcmActivity, RcmRemark, RcmResubmission } from '../types'
-import { activityRaStatus, priorAuthCode, getShortcode } from '../utils'
+import { activityRaStatus, priorAuthCode } from '../utils'
 import { usePortal } from '../context/PortalContext'
 import { customFetch as fetch } from '../config/backend'
 

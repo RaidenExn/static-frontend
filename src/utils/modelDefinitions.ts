@@ -1,7 +1,7 @@
 export interface ModelPreset {
   value: string
-  label: string // The full label used in settings/API dashboard, e.g. "Gemini 2.5 Flash (google/gemini-2.5-flash)"
-  shortLabel: string // The short label used in the Action Bar, e.g. "Gemini 2.5 Flash"
+  label: string
+  shortLabel: string
 }
 
 export const MODEL_PRESETS: ModelPreset[] = [
@@ -40,16 +40,23 @@ export const GEMINI_MODEL_PRESETS: ModelPreset[] = [
   }
 ]
 
-export const APPLE_MODEL_PRESETS: ModelPreset[] = [
-  {
-    value: 'apple/system-core',
-    label: 'Apple Intelligence (On-Device Core Model)',
-    shortLabel: 'Apple On-Device'
-  }
-]
+export const ALL_PRESETS: ModelPreset[] = [...MODEL_PRESETS, ...GEMINI_MODEL_PRESETS]
 
-export const VALID_MODEL_VALUES = [
-  ...MODEL_PRESETS.map((p) => p.value),
-  ...GEMINI_MODEL_PRESETS.map((p) => p.value),
-  ...APPLE_MODEL_PRESETS.map((p) => p.value)
-]
+export const VALID_MODEL_VALUES = ALL_PRESETS.map((p) => p.value)
+
+export function mergeModelOptions(
+  provider: 'openrouter' | 'gemini',
+  customModels: string[],
+  variant: 'short' | 'full' = 'short'
+): { value: string; label: string }[] {
+  const presets = provider === 'gemini' ? GEMINI_MODEL_PRESETS : MODEL_PRESETS
+  const known = new Set(presets.map((p) => p.value))
+  const custom = customModels
+    .filter((m) => !known.has(m))
+    .map((m) => ({ value: m, label: m }))
+  return [
+    ...presets.map((p) => ({ value: p.value, label: variant === 'full' ? p.label : p.shortLabel })),
+    ...custom,
+    { value: 'custom', label: 'Custom Model ID...' }
+  ]
+}

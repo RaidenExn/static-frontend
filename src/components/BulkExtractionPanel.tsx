@@ -16,11 +16,12 @@ import {
 import { Repeat, UploadCloud, FileSpreadsheet, Play, Check, RefreshCw, X, Info } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
 
-interface BulkMnecExtractionProps {
+interface BulkExtractionPanelProps {
   active: boolean
   showToast: (msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
-  mnecLookbackYears: number
-  setMnecLookbackYears: (val: number) => void
+  type: 'mnec' | 'repeatTracker'
+  lookbackYears: number
+  setLookbackYears: (val: number) => void
 }
 
 interface JobStatus {
@@ -31,12 +32,37 @@ interface JobStatus {
   error: string | null
 }
 
-export default function BulkMnecExtraction({
+const PROFILE_MAP: Record<string, { apiPrefix: string; title: string; description: string; iconColor: string; fileInputId: string; successLabel: string; processingLabel: string; successPasteLabel: string }> = {
+  mnec: {
+    apiPrefix: 'mnec-extraction',
+    title: 'Bulk MNEC-005 Data Extraction',
+    description: 'Upload an Excel template or paste spreadsheet rows to automatically extract MNEC-005 clinical and billing histories across active lookback configurations.',
+    iconColor: 'var(--mantine-color-teal-filled)',
+    fileInputId: 'mnecFileUploader',
+    successLabel: 'MNEC-005',
+    processingLabel: 'MNEC',
+    successPasteLabel: 'MNEC'
+  },
+  repeatTracker: {
+    apiPrefix: 'repeat-tracker-extraction',
+    title: 'Bulk Repeat Tracker Extraction',
+    description: 'Upload an Excel template or paste spreadsheet rows to automatically evaluate repeat tracker rules across active lookback configurations.',
+    iconColor: 'var(--mantine-color-indigo-filled)',
+    fileInputId: 'repeatTrackerFileUploader',
+    successLabel: 'Repeat Tracker',
+    processingLabel: 'Repeat Tracker',
+    successPasteLabel: 'Repeat Tracker'
+  }
+}
+
+export default function BulkExtractionPanel({
   active,
   showToast,
-  mnecLookbackYears,
-  setMnecLookbackYears
-}: BulkMnecExtractionProps) {
+  type,
+  lookbackYears,
+  setLookbackYears
+}: BulkExtractionPanelProps) {
+  const p = PROFILE_MAP[type]
   const [extractIcdCodes, setExtractIcdCodes] = useState<boolean>(true)
   const [dragOver, setDragOver] = useState(false)
   const [activeJob, setActiveJob] = useState<JobStatus | null>(null)
@@ -44,13 +70,12 @@ export default function BulkMnecExtraction({
   const [uploadMode, setUploadMode] = useState<'file' | 'paste'>('file')
   const [pastedRows, setPastedRows] = useState<any[] | null>(null)
 
-  // Status poller
   useEffect(() => {
     if (!activeJob || activeJob.status !== 'processing') return
 
     const pollStatus = async () => {
       try {
-        const res = await fetch(`/api/mnec-extraction/status?jobId=${activeJob.jobId}`)
+        const res = await fetch(`/api/${p.apiPrefix}/status?jobId=${activeJob.jobId}`)
         if (!res.ok) throw new Error(`HTTP error ${res.status}`)
         const data = await res.json()
 
@@ -63,7 +88,7 @@ export default function BulkMnecExtraction({
         })
 
         if (data.status === 'completed') {
-          showToast('Bulk MNEC-005 extraction completed successfully!', 'ok')
+          showToast(`Bulk ${p.successLabel} extraction completed successfully!`, 'ok')
         } else if (data.status === 'failed') {
           showToast(`Extraction failed: ${data.error || 'Unknown error'}`, 'error')
         }
@@ -74,9 +99,8 @@ export default function BulkMnecExtraction({
 
     const interval = setInterval(pollStatus, 1000)
     return () => clearInterval(interval)
-  }, [activeJob, showToast])
+  }, [activeJob, showToast, p.apiPrefix, p.successLabel])
 
-  // Smart TSV parse helper
   const parseAndSetPastedText = (text: string) => {
     const lines = text
       .split(/\r?\n/)
@@ -95,7 +119,6 @@ export default function BulkMnecExtraction({
 
     const firstRow = parsedRows[0]
     if (firstRow) {
-      // Pass 1: Exact matches first
       firstRow.forEach((cell, idx) => {
         const val = cell.toLowerCase()
         if (
@@ -127,7 +150,6 @@ export default function BulkMnecExtraction({
         }
       })
 
-      // Pass 2: Fallback to partial matches for any missing columns with exclusions
       firstRow.forEach((cell, idx) => {
         const val = cell.toLowerCase()
 
@@ -195,7 +217,6 @@ export default function BulkMnecExtraction({
     showToast(`Successfully parsed ${rowsData.length} records! Check the preview below.`, 'ok')
   }
 
-  // Handle global paste event when active and in paste mode
   useEffect(() => {
     if (!active || uploadMode !== 'paste') return
 
@@ -222,12 +243,12 @@ export default function BulkMnecExtraction({
       reader.onload = async (e) => {
         const base64 = (e.target?.result as string).split(',')[1]
         try {
-          const res = await fetch('/api/mnec-extraction/start', {
+          const res = await fetch(`/api/${p.apiPrefix}/start`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fileData: base64,
-              lookbackYears: mnecLookbackYears,
+              lookbackYears,
               extractIcdCodes
             })
           })
@@ -245,7 +266,7 @@ export default function BulkMnecExtraction({
             processed: 0,
             error: null
           })
-          showToast('Bulk MNEC extraction job registered successfully. Processing...', 'info')
+          showToast(`Bulk ${p.processingLabel} extraction job registered successfully. Processing...`, 'info')
         } catch (err: any) {
           showToast(`Failed to start job: ${err.message}`, 'error')
         } finally {
@@ -265,12 +286,12 @@ export default function BulkMnecExtraction({
     showToast(`Initiating background extraction for ${pastedRows.length} pasted records...`, 'loading')
 
     try {
-      const res = await fetch('/api/mnec-extraction/start', {
+      const res = await fetch(`/api/${p.apiPrefix}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pastedRows,
-          lookbackYears: mnecLookbackYears,
+          lookbackYears,
           extractIcdCodes
         })
       })
@@ -288,7 +309,7 @@ export default function BulkMnecExtraction({
         processed: 0,
         error: null
       })
-      showToast('Bulk MNEC extraction job for pasted records started successfully!', 'ok')
+      showToast(`Bulk ${p.successPasteLabel} extraction job for pasted records started successfully!`, 'ok')
     } catch (err: any) {
       showToast(`Failed to initiate paste job: ${err.message}`, 'error')
     } finally {
@@ -312,7 +333,7 @@ export default function BulkMnecExtraction({
 
   const handleDownload = () => {
     if (!activeJob || activeJob.status !== 'completed') return
-    window.location.href = `/api/mnec-extraction/download?jobId=${activeJob.jobId}`
+    window.location.href = `/api/${p.apiPrefix}/download?jobId=${activeJob.jobId}`
     showToast('Spreadsheet download initiated.', 'ok')
   }
 
@@ -329,12 +350,11 @@ export default function BulkMnecExtraction({
   return (
     <Card withBorder padding="md">
       <Stack gap="sm">
-        {/* Header Block */}
         <Group justify="space-between" align="center">
           <Group gap="xs" align="center">
-            <Repeat size={20} color="var(--mantine-color-teal-filled)" />
+            <Repeat size={20} color={p.iconColor} />
             <Text fw={700} size="sm" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Bulk MNEC-005 Data Extraction
+              {p.title}
             </Text>
           </Group>
           {activeJob && (
@@ -360,14 +380,12 @@ export default function BulkMnecExtraction({
         >
           <Info size={16} style={{ marginTop: '2px', color: 'var(--muted)' }} />
           <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>
-            Upload an Excel template or paste spreadsheet rows to automatically extract MNEC-005 clinical and billing
-            histories across active lookback configurations.
+            {p.description}
           </Text>
         </Group>
 
         {!activeJob ? (
           <Stack gap="md">
-            {/* Options configuration */}
             <Group
               grow
               align="center"
@@ -379,8 +397,8 @@ export default function BulkMnecExtraction({
                   Lookback Period
                 </Text>
                 <SegmentedControl
-                  value={String(mnecLookbackYears)}
-                  onChange={(val) => setMnecLookbackYears(Number(val))}
+                  value={String(lookbackYears)}
+                  onChange={(val) => setLookbackYears(Number(val))}
                   data={[
                     { label: '1 Year', value: '1' },
                     { label: '2 Years', value: '2' },
@@ -403,7 +421,6 @@ export default function BulkMnecExtraction({
               </Box>
             </Group>
 
-            {/* Mode Selector */}
             <SegmentedControl
               value={uploadMode}
               onChange={(val) => {
@@ -418,7 +435,6 @@ export default function BulkMnecExtraction({
               fullWidth
             />
 
-            {/* File Mode */}
             {uploadMode === 'file' && (
               <Box
                 onDragOver={(e) => {
@@ -427,7 +443,7 @@ export default function BulkMnecExtraction({
                 }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleFileDrop}
-                onClick={() => document.getElementById('mnecFileUploader')?.click()}
+                onClick={() => document.getElementById(p.fileInputId)?.click()}
                 style={{
                   border: `1.5px dashed ${dragOver ? 'var(--mantine-color-blue-filled)' : 'var(--line)'}`,
                   borderRadius: 'var(--mantine-radius-sm)',
@@ -439,7 +455,7 @@ export default function BulkMnecExtraction({
                 }}
               >
                 <input
-                  id="mnecFileUploader"
+                  id={p.fileInputId}
                   type="file"
                   accept=".xlsx"
                   onChange={handleFileSelect}
@@ -455,7 +471,6 @@ export default function BulkMnecExtraction({
               </Box>
             )}
 
-            {/* Paste Mode */}
             {uploadMode === 'paste' && (
               <Stack gap="sm">
                 {!pastedRows ? (
@@ -556,7 +571,6 @@ export default function BulkMnecExtraction({
             )}
           </Stack>
         ) : (
-          /* Running Job Progress Card */
           <Stack gap="md" align="center" style={{ padding: '16px 0' }}>
             {activeJob.status === 'processing' && (
               <>

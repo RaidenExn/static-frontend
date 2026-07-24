@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Text, Group, Stack, Stepper, Badge } from '@mantine/core'
+import { Card, Text, Group, Stack, Stepper } from '@mantine/core'
 import { RefreshCw } from 'lucide-react'
 import { useBulkResubmission } from './bulk/hooks/useBulkResubmission'
 import { BulkParseStep } from './bulk/BulkParseStep'

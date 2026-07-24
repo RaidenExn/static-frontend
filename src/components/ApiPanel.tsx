@@ -15,14 +15,13 @@ import {
   Group,
   Stack,
   Badge,
-  Modal,
   Code,
   FileButton
 } from '@mantine/core'
-import { Download, Upload, RefreshCw, Play, Plus, Trash2 } from 'lucide-react'
-import { MODEL_PRESETS, GEMINI_MODEL_PRESETS } from '../utils/modelDefinitions'
-import { validateModelId, parseAndValidateImportConfig } from '../utils/openRouterConfigHelper'
+import { Download, Upload, RefreshCw, Plus, Play, Trash2 } from 'lucide-react'
+import { parseAndValidateImportConfig } from '../utils/openRouterConfigHelper'
 import { customFetch as fetch } from '../config/backend'
+import AiProviderPipeline from './AiProviderPipeline'
 
 interface ILovePdfKey {
   publicKey: string
@@ -45,16 +44,6 @@ interface ILovePdfSettings {
   pythonNoCheck?: boolean
   pythonPath?: string
 }
-interface OpenRouterSettings {
-  apiKey: string
-  model: string
-  maxTokens?: number
-}
-interface GeminiSettings {
-  apiKey: string
-  model: string
-  maxTokens?: number
-}
 interface ApiPanelProps {
   showToast: (text: string, tone: string) => void
   aiModel?: string
@@ -76,29 +65,10 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
     pythonNoCheck: false,
     pythonPath: ''
   })
-  const [openRouterSettings, setOpenRouterSettings] = useState<OpenRouterSettings>({
-    apiKey: '',
-    model: 'openrouter/auto',
-    maxTokens: 4096
-  })
-  const [geminiSettings, setGeminiSettings] = useState<GeminiSettings>({
-    apiKey: '',
-    model: 'models/gemini-2.5-flash',
-    maxTokens: 4096
-  })
-
   const [flags, setFlags] = useState({
     loadingPdf: true,
     savingPdf: false,
-    compressing: false,
-    loadingOr: true,
-    savingOr: false,
-    testingOr: false,
-    loadingGem: true,
-    savingGem: false,
-    testingGem: false,
-    showModal: false,
-    showGeminiModal: false
+    compressing: false
   })
 
   const [newPublicKey, setNewPublicKey] = useState('')
@@ -106,24 +76,6 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
   const [testUrl, setTestUrl] = useState('')
   const [testFileName, setTestFileName] = useState('test_compression.pdf')
   const [progressLog, setProgressLog] = useState<{ stage: string; message: string }[]>([])
-
-  // OpenRouter Model States
-  const [selectedDropdown, setSelectedDropdown] = useState('openrouter/auto')
-  const [customModelId, setCustomModelId] = useState('')
-  const [customModelsList, setCustomModelsList] = useState<string[]>([])
-  const [testPrompt, setTestPrompt] = useState('Say "OpenRouter is working!" in a single short sentence.')
-  const [testResult, setTestPromptResult] = useState('')
-  const [newCustomModelInput, setNewCustomModelInput] = useState('')
-
-  // Gemini Model States
-  const [geminiDropdown, setGeminiDropdown] = useState('models/gemini-2.5-flash')
-  const [geminiCustomModelId, setGeminiCustomModelId] = useState('')
-  const [geminiCustomModelsList, setGeminiCustomModelsList] = useState<string[]>([])
-  const [testGeminiPrompt, setTestGeminiPrompt] = useState(
-    'Say "Google AI Studio is working!" in a single short sentence.'
-  )
-  const [testGeminiResult, setTestGeminiResult] = useState('')
-  const [newGeminiCustomModelInput, setNewGeminiCustomModelInput] = useState('')
 
   const updateFlag = (key: keyof typeof flags, val: boolean) => setFlags((p) => ({ ...p, [key]: val }))
 
@@ -152,68 +104,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
     }
   }
 
-  const fetchOpenRouterSettings = async () => {
-    try {
-      const res = await fetch('/api/openrouter-settings')
-      const data = await res.json()
-      const model = data.model || 'openrouter/auto'
-      const customList = data.customModels || []
-      setOpenRouterSettings({ apiKey: data.apiKey || '', model, maxTokens: data.maxTokens ?? 4096 })
-      setCustomModelsList(customList)
-      if (setAiModel && localStorage.getItem('lifetrenz.aiProvider') !== 'gemini') setAiModel(model)
-      setSelectedDropdown(
-        MODEL_PRESETS.some((p) => p.value === model) || customList.includes(model) ? model : 'openrouter/auto'
-      )
-    } catch {
-      showToast('Failed to load OpenRouter settings', 'error')
-    } finally {
-      updateFlag('loadingOr', false)
-    }
-  }
-
-  const fetchGeminiSettings = async () => {
-    try {
-      const res = await fetch('/api/gemini-settings')
-      const data = await res.json()
-      const model = data.model || 'models/gemini-2.5-flash'
-      const customList = data.customModels || []
-      setGeminiSettings({ apiKey: data.apiKey || '', model, maxTokens: data.maxTokens ?? 4096 })
-      setGeminiCustomModelsList(customList)
-      if (setAiModel && localStorage.getItem('lifetrenz.aiProvider') === 'gemini') setAiModel(model)
-      setGeminiDropdown(
-        GEMINI_MODEL_PRESETS.some((p) => p.value === model) || customList.includes(model)
-          ? model
-          : 'models/gemini-2.5-flash'
-      )
-    } catch {
-      showToast('Failed to load Google AI Studio settings', 'error')
-    } finally {
-      updateFlag('loadingGem', false)
-    }
-  }
-
   useEffect(() => {
     fetchILovePdfSettings()
-    fetchOpenRouterSettings()
-    fetchGeminiSettings()
   }, [])
-
-  useEffect(() => {
-    if (aiModel) {
-      const activeProvider = localStorage.getItem('lifetrenz.aiProvider') || 'openrouter'
-      if (activeProvider === 'gemini') {
-        if (aiModel !== geminiSettings.model) {
-          setGeminiSettings((p) => ({ ...p, model: aiModel }))
-          setGeminiDropdown(aiModel)
-        }
-      } else {
-        if (aiModel !== openRouterSettings.model) {
-          setOpenRouterSettings((p) => ({ ...p, model: aiModel }))
-          setSelectedDropdown(aiModel)
-        }
-      }
-    }
-  }, [aiModel])
 
   const handleSaveILovePdfSettings = async (updated: ILovePdfSettings) => {
     updateFlag('savingPdf', true)
@@ -322,149 +215,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
     }
   }
 
-  const saveOpenRouterConfig = async (key: string, mod: string, list: string[], max?: number) => {
-    const body = {
-      apiKey: key.trim(),
-      model: mod.trim(),
-      customModels: list,
-      maxTokens: max ?? openRouterSettings.maxTokens ?? 4096
-    }
-    if (
-      !(
-        await fetch('/api/openrouter-settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        })
-      ).ok
-    )
-      throw new Error()
-    setOpenRouterSettings({ apiKey: body.apiKey, model: body.model, maxTokens: body.maxTokens })
-    setCustomModelsList(list)
-    if (setAiModel && localStorage.getItem('lifetrenz.aiProvider') !== 'gemini') setAiModel(body.model)
-  }
-
-  const handleSaveOpenRouterSettings = async (e: React.FormEvent) => {
-    e.preventDefault()
-    let model = selectedDropdown
-    if (selectedDropdown === 'custom') {
-      const v = validateModelId(customModelId.trim())
-      if (!v.isValid) return showToast(v.error || 'Invalid ID', 'error')
-      model = customModelId.trim()
-    }
-    updateFlag('savingOr', true)
-    try {
-      await saveOpenRouterConfig(
-        openRouterSettings.apiKey,
-        model,
-        customModelsList.includes(model) ? customModelsList : [...customModelsList, model]
-      )
-      showToast('OpenRouter settings saved!', 'ok')
-    } catch {
-      showToast('Save failed', 'error')
-    } finally {
-      updateFlag('savingOr', false)
-    }
-  }
-
-  const saveGeminiConfig = async (key: string, mod: string, list: string[], max?: number) => {
-    const body = {
-      apiKey: key.trim(),
-      model: mod.trim(),
-      customModels: list,
-      maxTokens: max ?? geminiSettings.maxTokens ?? 4096
-    }
-    if (
-      !(
-        await fetch('/api/gemini-settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        })
-      ).ok
-    )
-      throw new Error()
-    setGeminiSettings({ apiKey: body.apiKey, model: body.model, maxTokens: body.maxTokens })
-    setGeminiCustomModelsList(list)
-    if (setAiModel && localStorage.getItem('lifetrenz.aiProvider') === 'gemini') setAiModel(body.model)
-  }
-
-  const handleSaveGeminiSettings = async (e: React.FormEvent) => {
-    e.preventDefault()
-    let model = geminiDropdown
-    if (geminiDropdown === 'custom') {
-      const v = validateModelId(geminiCustomModelId.trim())
-      if (!v.isValid) return showToast(v.error || 'Invalid ID', 'error')
-      model = geminiCustomModelId.trim()
-    }
-    updateFlag('savingGem', true)
-    try {
-      await saveGeminiConfig(
-        geminiSettings.apiKey,
-        model,
-        geminiCustomModelsList.includes(model) ? geminiCustomModelsList : [...geminiCustomModelsList, model]
-      )
-      showToast('Gemini settings saved!', 'ok')
-    } catch {
-      showToast('Save failed', 'error')
-    } finally {
-      updateFlag('savingGem', false)
-    }
-  }
-
-  const handleTestOpenRouter = async () => {
-    if (!openRouterSettings.apiKey.trim() || !testPrompt.trim()) return showToast('Check API Key and Prompt', 'error')
-    updateFlag('testingOr', true)
-    setTestPromptResult('Connecting...')
-    try {
-      const res = await fetch('/api/gpt-automate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: testPrompt.trim(), provider: 'openrouter', model: openRouterSettings.model })
-      })
-      const data = await res.json()
-      if (data.responseText) {
-        setTestPromptResult(data.responseText)
-        showToast('Response captured!', 'ok')
-      } else throw new Error()
-    } catch {
-      setTestPromptResult('Error Executing Test')
-    } finally {
-      updateFlag('testingOr', false)
-    }
-  }
-
-  const handleTestGemini = async () => {
-    if (!geminiSettings.apiKey.trim() || !testGeminiPrompt.trim()) return showToast('Check API Key and Prompt', 'error')
-    updateFlag('testingGem', true)
-    setTestGeminiResult('Connecting...')
-    try {
-      const res = await fetch('/api/gpt-automate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: testGeminiPrompt.trim(), provider: 'gemini', model: geminiSettings.model })
-      })
-      const data = await res.json()
-      if (data.responseText) {
-        setTestGeminiResult(data.responseText)
-        showToast('Response captured!', 'ok')
-      } else throw new Error()
-    } catch {
-      setTestGeminiResult('Error Executing Test')
-    } finally {
-      updateFlag('testingGem', false)
-    }
-  }
-
   const handleExportAll = () => {
     const blob = new Blob(
-      [
-        JSON.stringify({
-          ilovepdf: ilovepdfSettings,
-          openrouter: { ...openRouterSettings, customModels: customModelsList },
-          gemini: { ...geminiSettings, customModels: geminiCustomModelsList }
-        })
-      ],
+      [JSON.stringify({ ilovepdf: ilovepdfSettings })],
       { type: 'application/json' }
     )
     const a = document.createElement('a')
@@ -480,54 +233,10 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
       const v = parseAndValidateImportConfig(ev.target?.result as string)
       if (!v.isValid || !v.data) return showToast('Invalid config file', 'error')
       if (v.data.ilovepdf) await handleSaveILovePdfSettings(v.data.ilovepdf)
-      if (v.data.openrouter?.apiKey)
-        await saveOpenRouterConfig(
-          v.data.openrouter.apiKey,
-          v.data.openrouter.model,
-          v.data.openrouter.customModels || [],
-          v.data.openrouter.maxTokens
-        )
-      if (v.data.gemini?.apiKey)
-        await saveGeminiConfig(
-          v.data.gemini.apiKey,
-          v.data.gemini.model,
-          v.data.gemini.customModels || [],
-          v.data.gemini.maxTokens
-        )
       showToast('Configuration restored!', 'ok')
       fetchILovePdfSettings()
-      fetchOpenRouterSettings()
-      fetchGeminiSettings()
     }
     reader.readAsText(file)
-  }
-
-  const handleSaveCustomModel = () => {
-    const val = newCustomModelInput.trim()
-    if (!validateModelId(val).isValid) return showToast('Invalid format', 'error')
-    if (customModelsList.includes(val)) return showToast('Model already listed', 'warning')
-    const nextList = [...customModelsList, val]
-    setCustomModelsList(nextList)
-    setSelectedDropdown(val)
-    updateFlag('showModal', false)
-    setNewCustomModelInput('')
-    saveOpenRouterConfig(openRouterSettings.apiKey, val, nextList).then(() =>
-      showToast('Custom Model registered!', 'ok')
-    )
-  }
-
-  const handleSaveGeminiCustomModel = () => {
-    const val = newGeminiCustomModelInput.trim()
-    if (!validateModelId(val).isValid) return showToast('Invalid format', 'error')
-    if (geminiCustomModelsList.includes(val)) return showToast('Model already listed', 'warning')
-    const nextList = [...geminiCustomModelsList, val]
-    setGeminiCustomModelsList(nextList)
-    setGeminiDropdown(val)
-    updateFlag('showGeminiModal', false)
-    setNewGeminiCustomModelInput('')
-    saveGeminiConfig(geminiSettings.apiKey, val, nextList).then(() =>
-      showToast('Custom Gemini Model registered!', 'ok')
-    )
   }
 
   return (
@@ -548,153 +257,8 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
       </Group>
 
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl" mb="xl">
-        {/* OpenRouter AI pipeline configuration */}
-        <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-          <Stack gap="xl">
-            <Title order={3} size="h4" fw={600}>
-              OpenRouter AI Pipeline
-            </Title>
-            {flags.loadingOr ? (
-              <Text size="sm" c="dimmed">
-                Loading runtime parameters...
-              </Text>
-            ) : (
-              <Stack gap="lg" component="form" onSubmit={handleSaveOpenRouterSettings}>
-                <TextInput
-                  label="OpenRouter.ai API Key"
-                  placeholder="sk-or-v1-..."
-                  value={openRouterSettings.apiKey}
-                  onChange={(e) => setOpenRouterSettings({ ...openRouterSettings, apiKey: e.target.value })}
-                  size="sm"
-                />
-                <Select
-                  label="Primary Model Router"
-                  value={selectedDropdown}
-                  data={[
-                    ...MODEL_PRESETS.map((p) => ({ value: p.value, label: p.label })),
-                    ...customModelsList
-                      .filter((m) => !MODEL_PRESETS.some((p) => p.value === m))
-                      .map((m) => ({ value: m, label: m })),
-                    { value: 'custom', label: 'Custom Model ID...' }
-                  ]}
-                  onChange={(v) => (v === 'custom' ? updateFlag('showModal', true) : v && setSelectedDropdown(v))}
-                  size="sm"
-                />
-                <NumberInput
-                  label="Max Completion Tokens Cap"
-                  min={1}
-                  max={65536}
-                  value={openRouterSettings.maxTokens || 4096}
-                  onChange={(v) =>
-                    setOpenRouterSettings((p) => ({ ...p, maxTokens: typeof v === 'number' ? v : 4096 }))
-                  }
-                  size="sm"
-                />
-                <Button type="submit" loading={flags.savingOr} size="sm">
-                  Save OpenRouter Config
-                </Button>
-                <Stack gap="sm" p="md" bg="var(--panel)">
-                  <Text size="sm" fw={700}>
-                    Live OpenRouter Pipeline Validation
-                  </Text>
-                  <TextInput
-                    label="Verification Prompt"
-                    value={testPrompt}
-                    onChange={(e) => setTestPrompt(e.target.value)}
-                    size="xs"
-                  />
-                  <Button
-                    onClick={handleTestOpenRouter}
-                    loading={flags.testingOr}
-                    variant="default"
-                    size="xs"
-                    leftSection={<Play size={14} />}
-                  >
-                    Run OpenRouter Test
-                  </Button>
-                  {testResult && (
-                    <Code block p="xs" bg="var(--panel-soft)">
-                      {testResult}
-                    </Code>
-                  )}
-                </Stack>
-              </Stack>
-            )}
-          </Stack>
-        </Paper>
-
-        {/* Gemini AI pipeline configuration */}
-        <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-          <Stack gap="xl">
-            <Title order={3} size="h4" fw={600}>
-              Google AI Studio (Gemini) Pipeline
-            </Title>
-            {flags.loadingGem ? (
-              <Text size="sm" c="dimmed">
-                Loading Gemini parameters...
-              </Text>
-            ) : (
-              <Stack gap="lg" component="form" onSubmit={handleSaveGeminiSettings}>
-                <TextInput
-                  label="Gemini API Key"
-                  placeholder="AIzaSy..."
-                  value={geminiSettings.apiKey}
-                  onChange={(e) => setGeminiSettings({ ...geminiSettings, apiKey: e.target.value })}
-                  size="sm"
-                />
-                <Select
-                  label="Primary Model Router"
-                  value={geminiDropdown}
-                  data={[
-                    ...GEMINI_MODEL_PRESETS.map((p) => ({ value: p.value, label: p.label })),
-                    ...geminiCustomModelsList
-                      .filter((m) => !GEMINI_MODEL_PRESETS.some((p) => p.value === m))
-                      .map((m) => ({ value: m, label: m })),
-                    { value: 'custom', label: 'Custom Model ID...' }
-                  ]}
-                  onChange={(v) => (v === 'custom' ? updateFlag('showGeminiModal', true) : v && setGeminiDropdown(v))}
-                  size="sm"
-                />
-                <NumberInput
-                  label="Max Completion Tokens Cap"
-                  min={1}
-                  max={65536}
-                  value={geminiSettings.maxTokens || 4096}
-                  onChange={(v) => setGeminiSettings((p) => ({ ...p, maxTokens: typeof v === 'number' ? v : 4096 }))}
-                  size="sm"
-                />
-                <Button type="submit" loading={flags.savingGem} size="sm">
-                  Save Gemini Config
-                </Button>
-                <Stack gap="sm" p="md" bg="var(--panel)">
-                  <Text size="sm" fw={700}>
-                    Live Gemini Pipeline Validation
-                  </Text>
-                  <TextInput
-                    label="Verification Prompt"
-                    value={testGeminiPrompt}
-                    onChange={(e) => setTestGeminiPrompt(e.target.value)}
-                    size="xs"
-                  />
-                  <Button
-                    onClick={handleTestGemini}
-                    loading={flags.testingGem}
-                    variant="default"
-                    size="xs"
-                    leftSection={<Play size={14} />}
-                  >
-                    Run Gemini Test
-                  </Button>
-                  {testGeminiResult && (
-                    <Code block p="xs" bg="var(--panel-soft)">
-                      {testGeminiResult}
-                    </Code>
-                  )}
-                </Stack>
-              </Stack>
-            )}
-          </Stack>
-        </Paper>
+        <AiProviderPipeline providerKey="openrouter" showToast={showToast} />
+        <AiProviderPipeline providerKey="gemini" showToast={showToast} />
       </SimpleGrid>
 
       {/* iLovePDF Compactor panel */}
@@ -978,61 +542,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
         </Stack>
       </Paper>
 
-      {/* Custom OpenRouter Model Modal */}
-      <Modal
-        opened={flags.showModal}
-        onClose={() => updateFlag('showModal', false)}
-        title="Register Custom Model ID"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="xs" c="dimmed">
-            Input the official string ID (e.g. author/model-name or similar)
-          </Text>
-          <TextInput
-            value={newCustomModelInput}
-            onChange={(e) => setNewCustomModelInput(e.target.value)}
-            placeholder="google/gemini-2.5-pro"
-            size="sm"
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button onClick={() => updateFlag('showModal', false)} variant="subtle" color="gray" size="xs">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveCustomModel} size="xs">
-              Save Model
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
 
-      {/* Custom Gemini Model Modal */}
-      <Modal
-        opened={flags.showGeminiModal}
-        onClose={() => updateFlag('showGeminiModal', false)}
-        title="Register Custom Gemini Model ID"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="xs" c="dimmed">
-            Input the official string ID (e.g. models/gemini-2.5-pro or similar)
-          </Text>
-          <TextInput
-            value={newGeminiCustomModelInput}
-            onChange={(e) => setNewGeminiCustomModelInput(e.target.value)}
-            placeholder="models/gemini-2.5-pro"
-            size="sm"
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button onClick={() => updateFlag('showGeminiModal', false)} variant="subtle" color="gray" size="xs">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveGeminiCustomModel} size="xs">
-              Save Model
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Box>
   )
 }

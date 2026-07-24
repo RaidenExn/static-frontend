@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Card, Group, Text, Select, Switch, Button, TextInput, Textarea, Stack } from '@mantine/core'
+import { Card, Group, Text, Select, Switch, Button, Textarea, Stack, TextInput } from '@mantine/core'
 import { Zap } from 'lucide-react'
 import ResubmissionShimmer from './ResubmissionShimmer'
 import ResubmissionPdfSection from './ResubmissionPdfSection'
@@ -10,7 +10,6 @@ interface RaFile {
 }
 
 interface ResubmissionTabProps {
-  onAutoPrompt?: () => void
   loading?: boolean
   canSaveResubmission: boolean
   canSaveRaRemarks: boolean
@@ -33,9 +32,6 @@ interface ResubmissionTabProps {
   isSavingResub: boolean
   onSaveResubmissionAndUpload: () => void
   onClearResubmission: () => void
-  followUpReply: string
-  onFollowUpReplyChange: (val: string) => void
-  onSendFollowUpReply: () => void
   onRemoveAttachment?: () => void
   showToast?: (text: string, tone: string) => void
   serverAttachments?: any[]
@@ -43,13 +39,16 @@ interface ResubmissionTabProps {
   suggestions?: string[]
   autoAttachSummary: boolean
   setAutoAttachSummary: (val: boolean) => void
+  onAutoPrompt?: () => void
+  followUpReply: string
+  onFollowUpReplyChange: (val: string) => void
+  onSendFollowUpReply: () => void
   allActivitiesWriteOff: boolean
   adaptiveCardColors?: boolean
   submissionStateColor?: string
 }
 
 export default function ResubmissionTab({
-  onAutoPrompt,
   loading,
   canSaveResubmission,
   canSaveRaRemarks,
@@ -72,9 +71,6 @@ export default function ResubmissionTab({
   isSavingResub,
   onSaveResubmissionAndUpload,
   onClearResubmission,
-  followUpReply,
-  onFollowUpReplyChange,
-  onSendFollowUpReply,
   onRemoveAttachment,
   showToast,
   serverAttachments = [],
@@ -82,6 +78,10 @@ export default function ResubmissionTab({
   suggestions = [],
   autoAttachSummary,
   setAutoAttachSummary,
+  onAutoPrompt,
+  followUpReply,
+  onFollowUpReplyChange,
+  onSendFollowUpReply,
   allActivitiesWriteOff,
   adaptiveCardColors = true,
   submissionStateColor = 'gray'
@@ -210,20 +210,6 @@ export default function ResubmissionTab({
           <Text size="sm" fw={800} tt="uppercase" style={{ letterSpacing: '0.5px' }} c="var(--mantine-color-text)">
             Write Resub
           </Text>
-          {onAutoPrompt && (
-            <Button
-              id="duplicateAutoPromptButton"
-              type="button"
-              size="xs"
-              variant="filled"
-              leftSection={<Zap style={{ width: 14, height: 14 }} />}
-              onClick={onAutoPrompt}
-              title="Send prompt to extension, submit automatically, and paste response here"
-              aria-label="Send prompt automatically"
-            >
-              Auto Prompt
-            </Button>
-          )}
           {!loading && (
             <Select
               value={resubmitType}
@@ -389,33 +375,51 @@ export default function ResubmissionTab({
           </Stack>
 
           <Group gap="xs" justify="flex-end" style={{ marginTop: '8px', width: '100%' }}>
-            <TextInput
-              value={followUpReply}
-              onChange={(e) => onFollowUpReplyChange(e.target.value)}
-              disabled={!canSaveResubmission}
-              placeholder="Type a follow-up reply for the AI..."
-              style={{ flex: 1 }}
-              styles={{
-                input: {
-                  height: '36px',
-                  fontSize: 'var(--mantine-font-size-sm)',
-                  backgroundColor: 'var(--panel-soft, rgba(0,0,0,0.02))'
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  onSendFollowUpReply()
-                }
-              }}
-            />
-            <Button
-              onClick={onSendFollowUpReply}
-              disabled={!canSaveResubmission || !followUpReply.trim()}
-              style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 16px' }}
-            >
-              Send
-            </Button>
+            {onAutoPrompt && (
+              <Button
+                id="duplicateAutoPromptButton"
+                type="button"
+                size="xs"
+                variant="filled"
+                leftSection={<Zap style={{ width: 14, height: 14 }} />}
+                onClick={onAutoPrompt}
+                title="Send prompt to extension, submit automatically, and paste response here"
+                aria-label="Send prompt automatically"
+              >
+                Auto Prompt
+              </Button>
+            )}
+            {!loading && (
+              <TextInput
+                value={followUpReply}
+                onChange={(e) => onFollowUpReplyChange(e.target.value)}
+                disabled={!canSaveResubmission}
+                placeholder="Type a follow-up reply for the AI..."
+                style={{ flex: 1 }}
+                styles={{
+                  input: {
+                    height: '36px',
+                    fontSize: 'var(--mantine-font-size-sm)',
+                    backgroundColor: 'var(--panel-soft, rgba(0,0,0,0.02))'
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    onSendFollowUpReply()
+                  }
+                }}
+              />
+            )}
+            {!loading && (
+              <Button
+                onClick={onSendFollowUpReply}
+                disabled={!canSaveResubmission || !followUpReply.trim()}
+                style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 16px' }}
+              >
+                Send
+              </Button>
+            )}
             <Button
               onClick={onClearResubmission}
               variant="light"

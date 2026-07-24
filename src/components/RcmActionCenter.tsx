@@ -9,7 +9,6 @@ interface RaFile {
 }
 
 interface RcmActionCenterProps {
-  onAutoPrompt?: () => void
   loading?: boolean
   canSaveResubmission: boolean
   canSaveRaRemarks: boolean
@@ -32,9 +31,6 @@ interface RcmActionCenterProps {
   isSavingResub: boolean
   onSaveResubmissionAndUpload: () => void
   onClearResubmission: () => void
-  followUpReply: string
-  onFollowUpReplyChange: (val: string) => void
-  onSendFollowUpReply: () => void
   onRemoveAttachment?: () => void
   raRemarks: string
   setRaRemarks: (val: string) => void
@@ -65,6 +61,10 @@ interface RcmActionCenterProps {
   hasPreExistingRemarksOrComments: boolean
   autoAttachSummary: boolean
   setAutoAttachSummary: (val: boolean) => void
+  onAutoPrompt?: () => void
+  followUpReply: string
+  onFollowUpReplyChange: (val: string) => void
+  onSendFollowUpReply: () => void
   allActivitiesWriteOff: boolean
   adaptiveCardColors?: boolean
   submissionStateColor?: string

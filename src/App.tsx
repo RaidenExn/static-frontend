@@ -9,6 +9,7 @@ import { theme as portalTheme, resolver as portalResolver } from './theme'
 import { PortalProvider, usePortal } from './context/PortalContext'
 import { usePortalActions } from './hooks/usePortalActions'
 import { usePortalPrompts } from './hooks/usePortalPrompts'
+
 import { openPdfInExtension, compressPdfOnBackend } from './utils'
 import { compressAndMergePdfsOnBackend } from './services/recommendationEngine'
 import { Attachment } from './types'
@@ -25,8 +26,6 @@ import PromptPanel from './components/PromptPanel'
 import SettingsPanel from './components/SettingsPanel'
 import BulkOperationsPanel from './components/BulkOperationsPanel'
 import ExcelWorkshopPanel from './components/ExcelWorkshopPanel'
-import AppleIntelligencePanel from './components/AppleIntelligencePanel'
-
 // Newly extracted components
 import { ResultsHistoryTable } from './components/ResultsHistoryTable'
 import { ClaimHistoryTable } from './components/ClaimHistoryTable'
@@ -172,9 +171,6 @@ function AppInner() {
     setAiModel,
     aiProvider,
     setAiProvider,
-    chatInputCount,
-    currentModelInUse,
-    chatStats
   } = state
 
 
@@ -192,15 +188,6 @@ function AppInner() {
     exportXml,
     processFile
   } = actions
-
-  const {
-    handleAutoPrompt,
-    handleCopyPrompt,
-    handleNewChat,
-    handleSendFollowUpReply,
-    handleFollowUpReplyChange,
-    followUpReply
-  } = prompts
 
   const [dateEditMode, setDateEditMode] = useState(false)
   const [mnecLookbackYears, setMnecLookbackYears] = useState(2)
@@ -240,13 +227,6 @@ function AppInner() {
       (e) => {
         e.preventDefault()
         handleGlobalPasteAndLoad()
-      }
-    ],
-    [
-      'mod+i',
-      (e) => {
-        e.preventDefault()
-        handleAutoPrompt?.()
       }
     ],
     [
@@ -630,9 +610,6 @@ function AppInner() {
               loading={loading}
               onLoadEncounter={(val, mode) => loadEncounter(val, mode)}
               onForceReload={() => loadEncounter(undefined, 'force')}
-              onAutoPrompt={handleAutoPrompt}
-              onCopyPrompt={handleCopyPrompt}
-              onNewChat={handleNewChat}
               recentEncounters={recentEncounters}
 
               clearRecentEncounters={clearRecentEncounters}
@@ -662,10 +639,10 @@ function AppInner() {
               setAiModel={setAiModel}
               aiProvider={aiProvider}
               setAiProvider={setAiProvider}
-              chatInputCount={chatInputCount}
-              currentModelInUse={currentModelInUse}
               onOpenCeedValidator={() => setCeedModalOpen(true)}
-              chatStats={chatStats}
+              onAutoPrompt={prompts.handleAutoPrompt}
+              onCopyPrompt={prompts.handleCopyPrompt}
+              onNewChat={prompts.handleNewChat}
               activityCount={activityRowsForCalc.length}
               visitCount={visitCount}
             />
@@ -764,7 +741,6 @@ function AppInner() {
                       shortcodes={shortcodes}
                     />
                     <RcmActionCenter
-                      onAutoPrompt={handleAutoPrompt}
                       loading={loading}
                       adaptiveCardColors={adaptiveCardColors}
                       submissionStateColor={submissionStateColor}
@@ -799,14 +775,15 @@ function AppInner() {
                         e.stopPropagation()
                         if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0])
                       }}
+                      onAutoPrompt={prompts.handleAutoPrompt}
+                      followUpReply={prompts.followUpReply}
+                      onFollowUpReplyChange={prompts.handleFollowUpReplyChange}
+                      onSendFollowUpReply={prompts.handleSendFollowUpReply}
                       resubComments={resubComments}
                       setResubComments={setResubComments}
                       suggestions={suggestions}
                       isSavingResub={isSavingResub}
                       onSaveResubmissionAndUpload={handleSaveResubmissionAndUpload}
-                      followUpReply={followUpReply}
-                      onFollowUpReplyChange={handleFollowUpReplyChange}
-                      onSendFollowUpReply={handleSendFollowUpReply}
                       onClearResubmission={handleClearResubmission}
                       onRemoveAttachment={handleRemoveAttachment}
                       raRemarks={raRemarks}
@@ -960,10 +937,6 @@ function AppInner() {
 
           <Tabs.Panel value="workshop">
             <ExcelWorkshopPanel active={activeTab === 'workshop'} showToast={showToast} />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="afm">
-            <AppleIntelligencePanel active={activeTab === 'afm'} showToast={showToast} />
           </Tabs.Panel>
         </Box>
       </Tabs>
