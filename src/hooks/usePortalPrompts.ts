@@ -105,7 +105,7 @@ export function usePortalPrompts() {
       const response = await fetch('/api/gpt-follow-up', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: reply, provider: aiProvider, model: aiModel })
+        body: JSON.stringify({ prompt: reply, provider: aiProvider, model: aiModel, encounter: encounterInput.trim() })
       })
       if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
       const data = await response.json()
@@ -161,7 +161,7 @@ export function usePortalPrompts() {
       const response = await fetch('/api/gpt-new-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ new_chat: true })
+        body: JSON.stringify({ new_chat: true, encounter: encounterInput.trim() })
       })
       if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
       setChatInputCount(0)

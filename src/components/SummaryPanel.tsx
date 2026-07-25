@@ -1,6 +1,6 @@
-import React from 'react'
-import { Card, Group, Grid, Button, Stack, Box, Title, Text, ScrollArea } from '@mantine/core'
-import { Download, Eye, Archive, RefreshCw } from 'lucide-react'
+import React, { useMemo } from 'react'
+import { Card, Group, Grid, Button, Stack, Box, Title, Text, ScrollArea, Paper } from '@mantine/core'
+import { Download, Eye, Archive, RefreshCw, User, Calendar, Stethoscope, AlertCircle, Activity, ClipboardList, HeartPulse, FileCheck } from 'lucide-react'
 import { useIcdState } from '../hooks/useIcdState'
 import { IcdResultsTable } from './icd/IcdResultsTable'
 import { IcdConfigCard } from './icd/IcdConfigCard'
@@ -17,45 +17,83 @@ interface SummaryPanelProps {
   theme: string
 }
 
-function processSummaryHtml(html: string): string {
-  if (!html) return ''
+export interface ClinicalSummaryData {
+  patientName: string
+  gender: string
+  dob: string
+  date: string
+  doctor: string
+  mpi: string
+  printedOn: string
+  allergy: string
+  complaints: string
+  hpi: string
+  familyHistory: string
+  vitals: string
+  diagnoses: string
+  planNotes: string
+  procedureOrders: string
+  procedureNotes: string
+}
 
-  // Remove duplicate nested page tags
-  let clean = html
-    .replace(/<!DOCTYPE html>/gi, '')
-    .replace(/<body[^>]*>/gi, '')
-    .replace(/<\/body>/gi, '')
-    .replace(/<\/html>/gi, '')
-
-  // Convert spacing divs into standard unified block spacers
-  clean = clean.replace(
-    /<div style=["']?line-height:\s*(200%|70%)["']?[^>]*><br><\/div>/gi,
-    '<div class="clinical-line-break"></div>'
-  )
-  clean = clean.replace(
-    /<div style=["']?line-height:\s*(200%|70%)["']?[^>]*><br\s*\/><\/div>/gi,
-    '<div class="clinical-line-break"></div>'
-  )
-
-  // Standard clinical titles to isolate and wrap in block headings
-  const sections = [
-    'Known Allergy\\s*:',
-    'Patient\\s+Complaints\\s*:',
-    'History\\s+of\\s+Present\\s+illness\\s*\\(HPI\\)\\s*:',
-    'Family\\s+History\\s*:',
-    'Vitals\\s*:',
-    'Diagnosed\\s+Problems\\s*:',
-    'Plan\\s+Notes\\s*:',
-    'Procedure\\s+Orders\\s*:',
-    'Procedure\\s+Notes\\s*:'
-  ]
-
-  for (const section of sections) {
-    const regex = new RegExp(`<b>(${section})\\s*<\\/b>`, 'gi')
-    clean = clean.replace(regex, '<div class="clinical-section-title"><b>$1</b></div>')
+export function parseSummaryToNativeData(htmlString: string): ClinicalSummaryData {
+  const result: ClinicalSummaryData = {
+    patientName: '',
+    gender: '',
+    dob: '',
+    date: '',
+    doctor: '',
+    mpi: '',
+    printedOn: '',
+    allergy: '',
+    complaints: '',
+    hpi: '',
+    familyHistory: '',
+    vitals: '',
+    diagnoses: '',
+    planNotes: '',
+    procedureOrders: '',
+    procedureNotes: ''
   }
 
-  return clean
+  if (!htmlString) return result
+
+  const cleanText = htmlString
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<hr[^>]*>/gi, '\n---\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+
+  const getMatch = (pattern: RegExp): string => {
+    const match = cleanText.match(pattern)
+    return match ? match[1].trim() : ''
+  }
+
+  result.patientName = getMatch(/Patient\s+Name\s*:\s*([^:\n]+?)(?=\s*Gender|\s*Date|\s*Doctor|$)/i)
+  result.gender = getMatch(/Gender\s*:\s*([^:\n]+?)(?=\s*Date|\s*Doctor|\s*Printed|$)/i)
+  result.dob = getMatch(/Date\s+of\s+Birth\s*:\s*([^:\n]+?)(?=\s*Date|\s*Doctor|\s*Printed|$)/i)
+  result.date = getMatch(/Date\s*:\s*(\d{2}-\d{2}-\d{4}[^\n]*?)(?=\s*Doctor|\s*Printed|$)/i)
+  result.doctor = getMatch(/Doctor\/Dept\s*:\s*([^:\n]+?)(?=\s*Printed|\s*MPI|$)/i)
+  result.printedOn = getMatch(/Printed\s+On\s*:\s*([^:\n]+?)(?=\s*MPI|$)/i)
+  result.mpi = getMatch(/MPI\s*:\s*(\d+)/i)
+
+  result.allergy = getMatch(/Known\s+Allergy\s*:\s*([\s\S]*?)(?=Patient\s+Complaints|History\s+of|Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
+  result.complaints = getMatch(/Patient\s+Complaints\s*:\s*([\s\S]*?)(?=History\s+of|Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
+  result.hpi = getMatch(/History\s+of\s+Present\s+illness\s*\(HPI\)\s*:\s*([\s\S]*?)(?=Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
+  result.familyHistory = getMatch(/Family\s+History\s*:\s*([\s\S]*?)(?=Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
+  result.vitals = getMatch(/Vitals\s*:\s*([\s\S]*?)(?=Assessment|Diagnosed|Plan|$)/i)
+  result.diagnoses = getMatch(/Diagnosed\s+Problems\s*:\s*([\s\S]*?)(?=Plan\s+Notes|Procedure|$)/i)
+  result.planNotes = getMatch(/Plan\s+Notes\s*:\s*([\s\S]*?)(?=Procedure\s+Orders|Procedure\s+Notes|$)/i)
+  result.procedureOrders = getMatch(/Procedure\s+Orders\s*:\s*([\s\S]*?)(?=Procedure\s+Notes|$)/i)
+  result.procedureNotes = getMatch(/Procedure\s+Notes\s*:\s*([\s\S]*?)(?=Dr\.|\b\d{2}:\d{2}\b|$)/i)
+
+  return result
 }
 
 export default function SummaryPanel({
@@ -65,20 +103,19 @@ export default function SummaryPanel({
   onExportPdf,
   onExportZip,
   showToast,
-  encounter,
-  theme
+  encounter
 }: SummaryPanelProps) {
   const icdState = useIcdState({ encounter, active, showToast })
 
-  const processedHtml = React.useMemo(() => {
-    return processSummaryHtml(summaryHtml)
+  const nativeData = useMemo(() => {
+    return parseSummaryToNativeData(summaryHtml)
   }, [summaryHtml])
 
   if (!active) return null
 
   return (
     <Grid style={{ marginTop: '12px', marginLeft: 0, marginRight: 0 }}>
-      {/* LEFT SIDE: Structured React DOM Summary Document */}
+      {/* LEFT SIDE: Native React Clinical Summary View */}
       <Grid.Col span={{ base: 12, md: 6 }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {/* Consolidated Action Dock */}
         <Card withBorder radius="sm" p="xs" bg="var(--mantine-color-body)">
@@ -119,7 +156,7 @@ export default function SummaryPanel({
           </Group>
         </Card>
 
-        {/* Dynamic Theme Patched Structured Clinical Document Container */}
+        {/* Dynamic Native React Clinical Summary Card */}
         <Card
           withBorder
           padding={0}
@@ -127,99 +164,6 @@ export default function SummaryPanel({
           bg="var(--mantine-color-body)"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px', overflow: 'hidden' }}
         >
-          {/* Dynamic inline styles mapped completely through native Mantine CSS tokens */}
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `
-            .clinical-summary-html {
-              color-scheme: light dark;
-              font-family: var(--mantine-font-family), sans-serif !important;
-              color: var(--mantine-color-text) !important;
-              line-height: 1.5 !important;
-              font-size: 12.5px !important;
-            }
-            
-            .clinical-summary-html table[bgcolor] {
-              background-color: var(--mantine-color-gray-1) !important;
-              border-left: 4px solid var(--mantine-color-primary) !important;
-              width: 100% !important;
-              margin-top: 14px !important;
-              margin-bottom: 8px !important;
-              border-collapse: separate !important;
-              border-radius: 0 4px 4px 0 !important;
-            }
-
-            .clinical-summary-html table[bgcolor] td {
-              padding: 6px 12px !important;
-              font-size: 11px !important;
-              font-weight: 800 !important;
-              letter-spacing: 0.04em !important;
-              text-transform: uppercase !important;
-              color: var(--mantine-color-text) !important;
-            }
-
-            [data-mantine-color-scheme="dark"] .clinical-summary-html table[bgcolor] {
-              background-color: rgba(255, 255, 255, 0.05) !important;
-              border-left: 4px solid var(--mantine-color-primary) !important;
-            }
-
-            [data-mantine-color-scheme="dark"] .clinical-summary-html table[bgcolor] td {
-              color: var(--mantine-color-dark-0) !important;
-            }
-
-            .clinical-section-title {
-              display: block !important;
-              margin-top: 10px !important;
-              margin-bottom: 4px !important;
-              font-weight: 700 !important;
-              font-size: 11.5px !important;
-              letter-spacing: 0.02em !important;
-              text-transform: uppercase !important;
-              color: var(--mantine-color-primary) !important;
-            }
-
-            [data-mantine-color-scheme="dark"] .clinical-section-title {
-              color: var(--mantine-color-primary) !important;
-            }
-
-            .clinical-line-break {
-              display: block !important;
-              height: 6px !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-
-            .clinical-summary-html br + br {
-              display: none !important;
-            }
-
-            .clinical-summary-html br {
-              margin: 2px 0 !important;
-            }
-
-            .clinical-summary-html hr {
-              border: none !important;
-              height: 1px !important;
-              background-color: var(--mantine-color-default-border) !important;
-              margin: 10px 0 !important;
-            }
-
-            [data-mantine-color-scheme="dark"] .clinical-summary-html hr {
-              background-color: var(--mantine-color-dark-4) !important;
-            }
-
-            .clinical-summary-html b, .clinical-summary-html strong {
-              color: var(--mantine-color-text) !important;
-            }
-
-            [data-mantine-color-scheme="dark"] .clinical-summary-html b, 
-            [data-mantine-color-scheme="dark"] .clinical-summary-html strong {
-              color: var(--mantine-color-dark-0) !important;
-            }
-          `
-            }}
-          />
-
           {!summaryHtml ? (
             <Stack align="center" justify="center" p="xl" style={{ flex: 1, minHeight: '320px' }}>
               <div
@@ -243,12 +187,138 @@ export default function SummaryPanel({
           ) : (
             <Box style={{ flex: 1, overflow: 'hidden', height: '100%', minHeight: '600px' }}>
               <ScrollArea h="100%" p="md">
-                <div
-                  className="clinical-summary-html"
-                  dangerouslySetInnerHTML={{
-                    __html: processedHtml
-                  }}
-                />
+                <Stack gap="xs">
+                  {/* Patient Metadata Card */}
+                  <Paper withBorder p="xs" radius="sm">
+                    <Grid bg="transparent" {...({ gutter: 'xs' } as any)}>
+                      <Grid.Col span={4}>
+                        <Group gap={4} wrap="nowrap">
+                          <User size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Patient Name</Text>
+                        </Group>
+                        <Text size="xs" fw={800} truncate>{nativeData.patientName || 'N/A'}</Text>
+                      </Grid.Col>
+
+                      <Grid.Col span={2}>
+                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">Gender</Text>
+                        <Text size="xs" fw={700}>{nativeData.gender || 'N/A'}</Text>
+                      </Grid.Col>
+
+                      <Grid.Col span={3}>
+                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">DOB / Age</Text>
+                        <Text size="xs" fw={700}>{nativeData.dob || 'N/A'}</Text>
+                      </Grid.Col>
+
+                      <Grid.Col span={3}>
+                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">MPI</Text>
+                        <Text size="xs" fw={700}>{nativeData.mpi || 'N/A'}</Text>
+                      </Grid.Col>
+
+                      <Grid.Col span={6}>
+                        <Group gap={4} wrap="nowrap">
+                          <Stethoscope size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Doctor / Dept</Text>
+                        </Group>
+                        <Text size="xs" fw={700} truncate>{nativeData.doctor || 'N/A'}</Text>
+                      </Grid.Col>
+
+                      <Grid.Col span={6}>
+                        <Group gap={4} wrap="nowrap">
+                          <Calendar size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Encounter Date</Text>
+                        </Group>
+                        <Text size="xs" fw={700}>{nativeData.date || 'N/A'}</Text>
+                      </Grid.Col>
+                    </Grid>
+                  </Paper>
+
+                  {/* Known Allergy */}
+                  {nativeData.allergy && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
+                      <Group gap={6} mb={2}>
+                        <AlertCircle size={13} color="var(--mantine-color-orange-6)" />
+                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">Known Allergy</Text>
+                      </Group>
+                      <Text size="xs">{nativeData.allergy}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Chief Complaints */}
+                  {nativeData.complaints && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
+                      <Group gap={6} mb={2}>
+                        <Activity size={13} color="var(--mantine-color-orange-6)" />
+                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">Chief Complaints</Text>
+                      </Group>
+                      <Text size="xs">{nativeData.complaints}</Text>
+                    </Paper>
+                  )}
+
+                  {/* HPI */}
+                  {nativeData.hpi && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
+                      <Group gap={6} mb={2}>
+                        <ClipboardList size={13} color="var(--mantine-color-orange-6)" />
+                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">History of Present Illness (HPI)</Text>
+                      </Group>
+                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.hpi}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Family History */}
+                  {nativeData.familyHistory && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
+                      <Text size="11px" fw={800} c="orange.7" tt="uppercase" mb={2}>Family History</Text>
+                      <Text size="xs">{nativeData.familyHistory}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Vital Signs */}
+                  {nativeData.vitals && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-blue-5)' }}>
+                      <Group gap={6} mb={2}>
+                        <HeartPulse size={13} color="var(--mantine-color-blue-6)" />
+                        <Text size="11px" fw={800} c="blue.7" tt="uppercase">Vital Signs</Text>
+                      </Group>
+                      <Text size="xs">{nativeData.vitals}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Diagnosed Problems */}
+                  {nativeData.diagnoses && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-red-5)' }}>
+                      <Group gap={6} mb={2}>
+                        <FileCheck size={13} color="var(--mantine-color-red-6)" />
+                        <Text size="11px" fw={800} c="red.7" tt="uppercase">Diagnosed Problems</Text>
+                      </Group>
+                      <Text size="xs" fw={700}>{nativeData.diagnoses}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Plan Notes */}
+                  {nativeData.planNotes && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
+                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Plan Notes</Text>
+                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.planNotes}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Procedure Orders */}
+                  {nativeData.procedureOrders && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
+                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Procedure Orders</Text>
+                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.procedureOrders}</Text>
+                    </Paper>
+                  )}
+
+                  {/* Procedure Notes */}
+                  {nativeData.procedureNotes && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
+                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Procedure Notes</Text>
+                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.procedureNotes}</Text>
+                    </Paper>
+                  )}
+                </Stack>
               </ScrollArea>
             </Box>
           )}
