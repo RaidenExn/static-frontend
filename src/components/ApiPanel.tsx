@@ -38,11 +38,13 @@ interface ILovePdfSettings {
   uploadMethod?: 'auto' | 'multipart' | 'cloud_pull'
   workflowMethod?: 'auto' | 'pool_only' | 'parallel_only' | 'sequential_only'
   keys: ILovePdfKey[]
-  compressionService?: 'ilovepdf' | 'python_extreme'
+  compressionService?: 'ilovepdf' | 'python_extreme' | 'cli_extreme'
   pythonDpi?: number
   pythonQuality?: number
   pythonNoCheck?: boolean
   pythonPath?: string
+  cliPdfMode?: 'low' | 'recommended' | 'extreme'
+  cliPdfPath?: string
 }
 interface ApiPanelProps {
   showToast: (text: string, tone: string) => void
@@ -63,7 +65,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
     pythonDpi: 150,
     pythonQuality: 50,
     pythonNoCheck: false,
-    pythonPath: ''
+    pythonPath: '',
+    cliPdfMode: 'extreme',
+    cliPdfPath: ''
   })
   const [flags, setFlags] = useState({
     loadingPdf: true,
@@ -78,6 +82,8 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
   const [progressLog, setProgressLog] = useState<{ stage: string; message: string }[]>([])
 
   const updateFlag = (key: keyof typeof flags, val: boolean) => setFlags((p) => ({ ...p, [key]: val }))
+
+  const isMac = typeof navigator !== 'undefined' && (navigator.platform.startsWith('Mac') || navigator.platform === 'MacIntel')
 
   const fetchILovePdfSettings = async () => {
     try {
@@ -95,7 +101,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
         pythonDpi: data.pythonDpi ?? 150,
         pythonQuality: data.pythonQuality ?? 50,
         pythonNoCheck: !!data.pythonNoCheck,
-        pythonPath: data.pythonPath || ''
+        pythonPath: data.pythonPath || '',
+        cliPdfMode: data.cliPdfMode || 'extreme',
+        cliPdfPath: data.cliPdfPath || ''
       })
     } catch {
       showToast('Failed to load iLovePDF settings', 'error')
@@ -286,7 +294,8 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
                 }
                 data={[
                   { value: 'ilovepdf', label: 'iLovePDF Cloud API (External Keys Required)' },
-                  { value: 'python_extreme', label: 'Local Python Extreme Compressor (Offline/Free)' }
+                  { value: 'python_extreme', label: 'Local Python Extreme Compressor (Offline/Free)' },
+                  { value: 'cli_extreme', label: 'macOS CLI Extreme Compressor (4-Heights SDK via Rosetta)', disabled: !isMac }
                 ]}
                 size="sm"
               />
@@ -352,6 +361,37 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
                     onChange={(e) => handleSaveILovePdfSettings({ ...ilovepdfSettings, pythonPath: e.target.value })}
                     size="xs"
                   />
+                </Stack>
+              ) : ilovepdfSettings.compressionService === 'cli_extreme' ? (
+                <Stack gap="md">
+                  {!isMac && (
+                    <Paper p="sm" bg="var(--mantine-color-yellow-0)" style={{ borderRadius: '8px' }}>
+                      <Text size="sm" c="yellow.8">
+                        This compressor requires macOS with Rosetta 2. Select another engine.
+                      </Text>
+                    </Paper>
+                  )}
+                  <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xs" p="sm" bg="var(--panel)" style={{ borderRadius: '8px' }}>
+                    <Select
+                      label="Compression Mode"
+                      value={ilovepdfSettings.cliPdfMode || 'extreme'}
+                      onChange={(val) => val && handleSaveILovePdfSettings({ ...ilovepdfSettings, cliPdfMode: val as any })}
+                      data={[
+                        { value: 'low', label: 'Low — 75% quality, 200 DPI' },
+                        { value: 'recommended', label: 'Recommended — 60% quality, 150 DPI' },
+                        { value: 'extreme', label: 'Extreme — 60% quality, 72 DPI, aggressive' }
+                      ]}
+                      size="xs"
+                    />
+                    <TextInput
+                      label="Custom Binary Path"
+                      placeholder="Defaults to ilovepdf-cli/compress-pdf"
+                      description="Specify an absolute path to a custom compress-pdf script if needed."
+                      value={ilovepdfSettings.cliPdfPath || ''}
+                      onChange={(e) => handleSaveILovePdfSettings({ ...ilovepdfSettings, cliPdfPath: e.target.value })}
+                      size="xs"
+                    />
+                  </SimpleGrid>
                 </Stack>
               ) : (
                 <>
