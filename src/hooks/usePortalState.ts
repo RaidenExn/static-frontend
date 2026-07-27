@@ -453,7 +453,13 @@ export function usePortalState() {
     })
     try {
       const activeEnc = String(
-        summaryResult?.Ok?.encounterInput || rcmResult?.Ok?.encounterInput || encounterInput || ''
+        rcmResult?.Ok?.rcm?.selected?.display_encounter_configno ||
+        rcmResult?.Ok?.rcm?.query?.encounter ||
+        rcmResult?.Ok?.selected?.display_encounter_configno ||
+        summaryResult?.Ok?.encounterInput ||
+        rcmResult?.Ok?.encounterInput ||
+        encounterInput ||
+        ''
       ).trim()
       const res = await fetch('/api/rcm/resubmission-reason', {
         method: 'DELETE',
