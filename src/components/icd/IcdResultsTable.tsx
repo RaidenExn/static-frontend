@@ -57,15 +57,15 @@ export function IcdResultsTable({
         ) : (
           diagnoses.map((diag) => {
             const isDiagPrimary = Number(diag.is_primary) === 1
-            const isDiagDeleted = Number(diag.disease_addendum_status_id) === 2
+            const isDiagDeleted = Number(diag.disease_addendum_status_id) === 2 || Number((diag as any).is_active) === 0
             return (
-              <Table.Tr key={diag.patient_diseases_id} style={{ opacity: isDiagDeleted ? 0.6 : 1 }}>
+              <Table.Tr key={diag.patient_diseases_id} style={{ opacity: isDiagDeleted ? 0.5 : 1 }}>
                 <Table.Td style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '11px' }}>
                   {diag.icd_code}
                 </Table.Td>
                 <Table.Td style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}>
                   <Tooltip label={diag.disease_desc} position="top" withArrow>
-                    <Text size="xs" style={{ cursor: 'help' }}>
+                    <Text size="xs" style={{ cursor: 'help', textDecoration: isDiagDeleted ? 'line-through' : 'none' }}>
                       {diag.disease_desc}
                     </Text>
                   </Tooltip>
@@ -92,8 +92,8 @@ export function IcdResultsTable({
                   </Table.Td>
                 )}
                 <Table.Td>
-                  <Badge size="xs" variant="light" color={isDiagDeleted ? 'red' : 'green'}>
-                    {isDiagDeleted ? 'Deleted' : 'Active'}
+                  <Badge size="xs" variant="light" color={isDiagDeleted ? 'gray' : 'green'}>
+                    {isDiagDeleted ? 'Struck Out' : 'Active'}
                   </Badge>
                 </Table.Td>
                 <Table.Td style={{ textAlign: 'center' }}>

@@ -17,83 +17,87 @@ interface SummaryPanelProps {
   theme: string
 }
 
-export interface ClinicalSummaryData {
-  patientName: string
-  gender: string
-  dob: string
-  date: string
-  doctor: string
-  mpi: string
-  printedOn: string
-  allergy: string
-  complaints: string
-  hpi: string
-  familyHistory: string
-  vitals: string
-  diagnoses: string
-  planNotes: string
-  procedureOrders: string
-  procedureNotes: string
+interface SummaryItem {
+  label?: string
+  content: string
 }
 
-export function parseSummaryToNativeData(htmlString: string): ClinicalSummaryData {
-  const result: ClinicalSummaryData = {
-    patientName: '',
-    gender: '',
-    dob: '',
-    date: '',
-    doctor: '',
-    mpi: '',
-    printedOn: '',
-    allergy: '',
-    complaints: '',
-    hpi: '',
-    familyHistory: '',
-    vitals: '',
-    diagnoses: '',
-    planNotes: '',
-    procedureOrders: '',
-    procedureNotes: ''
+interface SummaryCategory {
+  title: string
+  fields: SummaryItem[]
+}
+
+export function parseEmrSummaryHtml(htmlString: string) {
+  if (!htmlString) return { metadata: [], categories: [] }
+  try {
+    const doc = new DOMParser().parseFromString(htmlString, 'text/html')
+    const metadata: { label: string; value: string }[] = []
+    const tables = Array.from(doc.querySelectorAll('table'))
+
+    for (const tbl of tables) {
+      if (tbl.textContent?.includes('Patient Name') || tbl.textContent?.includes('MPI')) {
+        const tds = Array.from(tbl.querySelectorAll('td'))
+        for (let i = 0; i < tds.length; i++) {
+          const bTag = tds[i].querySelector('b, strong')?.textContent?.trim()
+          if (bTag && i + 1 < tds.length) {
+            const cleanLabel = bTag.replace(/:$/, '').trim()
+            let val = tds[i + 1].textContent?.trim() || ''
+            if (val.startsWith(':')) val = val.substring(1).trim()
+            if (!cleanLabel.toUpperCase().includes('PRINTED')) {
+              metadata.push({ label: cleanLabel, value: val.replace(/^&nbsp;/g, '').trim() })
+            }
+            i++
+          }
+        }
+        break
+      }
+    }
+
+    let doctorSignature = ''
+    for (let i = tables.length - 1; i >= 0; i--) {
+      const tText = tables[i].textContent?.trim() || ''
+      if (tText.includes('Signature') || tText.includes('Dr.') || tText.includes('Doctor')) {
+        doctorSignature = (tables[i].textContent || '').split('\n').map((s) => s.trim()).filter(Boolean).join('\n')
+        break
+      }
+    }
+
+    const categories: SummaryCategory[] = []
+    const catTables = tables.filter((t) => t.getAttribute('bgcolor') || t.getAttribute('style')?.includes('background') || t.textContent?.includes('Notes'))
+
+    if (catTables.length > 0) {
+      const bodyHtml = doc.body.innerHTML
+      const matches: { title: string; index: number }[] = []
+      const reg = /<table[^>]*bgcolor=["']?[^"'>]+["']?[^>]*>[\s\S]*?<b>\s*([^<]+)\s*<\/b>[\s\S]*?<\/table>/gi
+      let m: RegExpExecArray | null
+      while ((m = reg.exec(bodyHtml)) !== null) {
+        matches.push({ title: m[1].replace(/&nbsp;/g, ' ').trim(), index: m.index + m[0].length })
+      }
+
+      for (let idx = 0; idx < matches.length; idx++) {
+        const cur = matches[idx]
+        const nextIdx = idx + 1 < matches.length ? matches[idx + 1].index : bodyHtml.length
+        const block = bodyHtml.substring(cur.index, nextIdx)
+        const fields: SummaryItem[] = []
+        const parts = block.split(/<b>\s*([^:<]+?)\s*:\s*<\/b>/gi)
+
+        if (parts.length > 1) {
+          for (let fIdx = 1; fIdx < parts.length; fIdx += 2) {
+            const clean = new DOMParser().parseFromString(parts[fIdx + 1] || '', 'text/html').body.textContent?.trim() || ''
+            if (clean) fields.push({ label: parts[fIdx].trim(), content: clean })
+          }
+        } else {
+          const clean = new DOMParser().parseFromString(block, 'text/html').body.textContent?.trim() || ''
+          if (clean) fields.push({ content: clean })
+        }
+        if (fields.length > 0) categories.push({ title: cur.title, fields })
+      }
+    }
+
+    return { metadata, categories, doctorSignature, rawFallbackHtml: categories.length === 0 ? htmlString : undefined }
+  } catch {
+    return { metadata: [], categories: [], rawFallbackHtml: htmlString }
   }
-
-  if (!htmlString) return result
-
-  const cleanText = htmlString
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<hr[^>]*>/gi, '\n---\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/[ \t]+/g, ' ')
-
-  const getMatch = (pattern: RegExp): string => {
-    const match = cleanText.match(pattern)
-    return match ? match[1].trim() : ''
-  }
-
-  result.patientName = getMatch(/Patient\s+Name\s*:\s*([^:\n]+?)(?=\s*Gender|\s*Date|\s*Doctor|$)/i)
-  result.gender = getMatch(/Gender\s*:\s*([^:\n]+?)(?=\s*Date|\s*Doctor|\s*Printed|$)/i)
-  result.dob = getMatch(/Date\s+of\s+Birth\s*:\s*([^:\n]+?)(?=\s*Date|\s*Doctor|\s*Printed|$)/i)
-  result.date = getMatch(/Date\s*:\s*(\d{2}-\d{2}-\d{4}[^\n]*?)(?=\s*Doctor|\s*Printed|$)/i)
-  result.doctor = getMatch(/Doctor\/Dept\s*:\s*([^:\n]+?)(?=\s*Printed|\s*MPI|$)/i)
-  result.printedOn = getMatch(/Printed\s+On\s*:\s*([^:\n]+?)(?=\s*MPI|$)/i)
-  result.mpi = getMatch(/MPI\s*:\s*(\d+)/i)
-
-  result.allergy = getMatch(/Known\s+Allergy\s*:\s*([\s\S]*?)(?=Patient\s+Complaints|History\s+of|Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
-  result.complaints = getMatch(/Patient\s+Complaints\s*:\s*([\s\S]*?)(?=History\s+of|Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
-  result.hpi = getMatch(/History\s+of\s+Present\s+illness\s*\(HPI\)\s*:\s*([\s\S]*?)(?=Family\s+History|Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
-  result.familyHistory = getMatch(/Family\s+History\s*:\s*([\s\S]*?)(?=Objective|Vitals|Assessment|Diagnosed|Plan|$)/i)
-  result.vitals = getMatch(/Vitals\s*:\s*([\s\S]*?)(?=Assessment|Diagnosed|Plan|$)/i)
-  result.diagnoses = getMatch(/Diagnosed\s+Problems\s*:\s*([\s\S]*?)(?=Plan\s+Notes|Procedure|$)/i)
-  result.planNotes = getMatch(/Plan\s+Notes\s*:\s*([\s\S]*?)(?=Procedure\s+Orders|Procedure\s+Notes|$)/i)
-  result.procedureOrders = getMatch(/Procedure\s+Orders\s*:\s*([\s\S]*?)(?=Procedure\s+Notes|$)/i)
-  result.procedureNotes = getMatch(/Procedure\s+Notes\s*:\s*([\s\S]*?)(?=Dr\.|\b\d{2}:\d{2}\b|$)/i)
-
-  return result
 }
 
 export default function SummaryPanel({
@@ -107,8 +111,8 @@ export default function SummaryPanel({
 }: SummaryPanelProps) {
   const icdState = useIcdState({ encounter, active, showToast })
 
-  const nativeData = useMemo(() => {
-    return parseSummaryToNativeData(summaryHtml)
+  const parsed = useMemo(() => {
+    return parseEmrSummaryHtml(summaryHtml)
   }, [summaryHtml])
 
   if (!active) return null
@@ -187,135 +191,70 @@ export default function SummaryPanel({
           ) : (
             <Box style={{ flex: 1, overflow: 'hidden', height: '100%', minHeight: '600px' }}>
               <ScrollArea h="100%">
-                <Stack gap="xs" p="md">
-                  {/* Patient Metadata Card */}
-                  <Paper withBorder p="xs" radius="sm">
-                    <Grid bg="transparent" {...({ gutter: 'xs' } as any)}>
-                      <Grid.Col span={4}>
-                        <Group gap={4} wrap="nowrap">
-                          <User size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
-                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Patient Name</Text>
+                <Stack gap="md" p="md">
+                  {/* Patient Metadata Grid */}
+                  {parsed.metadata.length > 0 && (
+                    <Paper withBorder p="xs" radius="sm" bg="var(--panel-soft, rgba(255, 255, 255, 0.02))">
+                      <Group gap="md" align="flex-start" wrap="wrap">
+                        {parsed.metadata.map((item, idx) => (
+                          <Box key={idx} style={{ flex: '1 1 120px', minWidth: '110px' }}>
+                            <Text size="10px" c="dimmed" fw={700} tt="uppercase">
+                              {item.label}
+                            </Text>
+                            <Text size="xs" fw={800}>
+                              {item.value || '-'}
+                            </Text>
+                          </Box>
+                        ))}
+                      </Group>
+                    </Paper>
+                  )}
+
+                  {/* Dynamic Summary Categories or Raw Fallback */}
+                  {parsed.categories.length > 0 ? (
+                    parsed.categories.map((cat, catIdx) => (
+                      <Paper key={catIdx} withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5, #f59f00)' }}>
+                        <Group gap="xs" align="center" mb={6}>
+                          <Box style={{ width: '3px', height: '14px', backgroundColor: 'var(--mantine-color-orange-5, #f59f00)', borderRadius: '2px' }} />
+                          <Text size="xs" fw={800} tt="uppercase" c="orange">
+                            {cat.title}
+                          </Text>
                         </Group>
-                        <Text size="xs" fw={800} truncate>{nativeData.patientName || 'N/A'}</Text>
-                      </Grid.Col>
-
-                      <Grid.Col span={2}>
-                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">Gender</Text>
-                        <Text size="xs" fw={700}>{nativeData.gender || 'N/A'}</Text>
-                      </Grid.Col>
-
-                      <Grid.Col span={3}>
-                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">DOB / Age</Text>
-                        <Text size="xs" fw={700}>{nativeData.dob || 'N/A'}</Text>
-                      </Grid.Col>
-
-                      <Grid.Col span={3}>
-                        <Text size="10px" c="dimmed" fw={700} tt="uppercase">MPI</Text>
-                        <Text size="xs" fw={700}>{nativeData.mpi || 'N/A'}</Text>
-                      </Grid.Col>
-
-                      <Grid.Col span={6}>
-                        <Group gap={4} wrap="nowrap">
-                          <Stethoscope size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
-                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Doctor / Dept</Text>
-                        </Group>
-                        <Text size="xs" fw={700} truncate>{nativeData.doctor || 'N/A'}</Text>
-                      </Grid.Col>
-
-                      <Grid.Col span={6}>
-                        <Group gap={4} wrap="nowrap">
-                          <Calendar size={12} style={{ color: 'var(--mantine-color-dimmed)' }} />
-                          <Text size="10px" c="dimmed" fw={700} tt="uppercase">Encounter Date</Text>
-                        </Group>
-                        <Text size="xs" fw={700}>{nativeData.date || 'N/A'}</Text>
-                      </Grid.Col>
-                    </Grid>
-                  </Paper>
-
-                  {/* Known Allergy */}
-                  {nativeData.allergy && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
-                      <Group gap={6} mb={2}>
-                        <AlertCircle size={13} color="var(--mantine-color-orange-6)" />
-                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">Known Allergy</Text>
-                      </Group>
-                      <Text size="xs">{nativeData.allergy}</Text>
+                        <Stack gap="xs" pl="sm">
+                          {cat.fields.map((field, fieldIdx) => (
+                            <Box key={fieldIdx}>
+                              {field.label && (
+                                <Text size="10px" fw={700} c="dimmed" tt="uppercase">
+                                  {field.label}
+                                </Text>
+                              )}
+                              <Text size="xs" style={{ whiteSpace: 'pre-wrap' }}>
+                                {field.content}
+                              </Text>
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Paper>
+                    ))
+                  ) : parsed.rawFallbackHtml ? (
+                    <Paper withBorder p="xs" radius="sm">
+                      <Box style={{ fontSize: '12px' }} dangerouslySetInnerHTML={{ __html: parsed.rawFallbackHtml }} />
                     </Paper>
+                  ) : (
+                    <Text size="xs" c="dimmed" ta="center">
+                      No clinical summary recorded.
+                    </Text>
                   )}
 
-                  {/* Chief Complaints */}
-                  {nativeData.complaints && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
-                      <Group gap={6} mb={2}>
-                        <Activity size={13} color="var(--mantine-color-orange-6)" />
-                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">Chief Complaints</Text>
-                      </Group>
-                      <Text size="xs">{nativeData.complaints}</Text>
-                    </Paper>
-                  )}
-
-                  {/* HPI */}
-                  {nativeData.hpi && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
-                      <Group gap={6} mb={2}>
-                        <ClipboardList size={13} color="var(--mantine-color-orange-6)" />
-                        <Text size="11px" fw={800} c="orange.7" tt="uppercase">History of Present Illness (HPI)</Text>
-                      </Group>
-                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.hpi}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Family History */}
-                  {nativeData.familyHistory && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
-                      <Text size="11px" fw={800} c="orange.7" tt="uppercase" mb={2}>Family History</Text>
-                      <Text size="xs">{nativeData.familyHistory}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Vital Signs */}
-                  {nativeData.vitals && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-blue-5)' }}>
-                      <Group gap={6} mb={2}>
-                        <HeartPulse size={13} color="var(--mantine-color-blue-6)" />
-                        <Text size="11px" fw={800} c="blue.7" tt="uppercase">Vital Signs</Text>
-                      </Group>
-                      <Text size="xs">{nativeData.vitals}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Diagnosed Problems */}
-                  {nativeData.diagnoses && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-red-5)' }}>
-                      <Group gap={6} mb={2}>
-                        <FileCheck size={13} color="var(--mantine-color-red-6)" />
-                        <Text size="11px" fw={800} c="red.7" tt="uppercase">Diagnosed Problems</Text>
-                      </Group>
-                      <Text size="xs" fw={700}>{nativeData.diagnoses}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Plan Notes */}
-                  {nativeData.planNotes && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
-                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Plan Notes</Text>
-                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.planNotes}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Procedure Orders */}
-                  {nativeData.procedureOrders && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
-                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Procedure Orders</Text>
-                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.procedureOrders}</Text>
-                    </Paper>
-                  )}
-
-                  {/* Procedure Notes */}
-                  {nativeData.procedureNotes && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-teal-5)' }}>
-                      <Text size="11px" fw={800} c="teal.7" tt="uppercase" mb={2}>Procedure Notes</Text>
-                      <Text size="xs" style={{ whiteSpace: 'pre-line' }}>{nativeData.procedureNotes}</Text>
+                  {/* Doctor Signature Block */}
+                  {parsed.doctorSignature && (
+                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-blue-5, #339af0)' }}>
+                      <Text size="10px" fw={700} c="dimmed" tt="uppercase" mb={2}>
+                        Doctor / Physician Signature
+                      </Text>
+                      <Text size="xs" style={{ whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
+                        {parsed.doctorSignature}
+                      </Text>
                     </Paper>
                   )}
                 </Stack>

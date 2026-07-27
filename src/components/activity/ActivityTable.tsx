@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Table, Group, Text, Badge, Button, Popover, TextInput, Card, Loader, Tooltip } from '@mantine/core'
 import { RefreshCw, Download, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { RcmActivity } from '../../types'
@@ -188,6 +188,7 @@ function ActivityTable({
   const [activePopover, setActivePopover] = useState<'start' | 'expiry' | 'activityStart' | null>(null)
   const [raErrorExpanded, setRaErrorExpanded] = useState<Record<number, boolean>>({})
 
+  const tableContainerRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const containerHeight = 650
   const rowHeight = 39
@@ -196,6 +197,34 @@ function ActivityTable({
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop)
   }
+
+  const isRejectionRow = (row: RcmActivity): boolean => {
+    if (!row) return false
+    const raStatus = activityRaStatus(row)
+    const mappedStatus = mapStatusDisplayName(raStatus)
+    const isDeniedOrPartial = ['Denied', 'Rejected', 'Partial RA', 'Partial Remittance', 'RA Error', 'Recovery'].includes(mappedStatus)
+    const hasRejAmt = Number(row.total_rej_amount || 0) > 0
+    const hasDenialCode = String(row.claim_denial_code || '').trim() !== ''
+    return isDeniedOrPartial || hasRejAmt || hasDenialCode
+  }
+
+  useEffect(() => {
+    if (!loading && sortedRows.length > 0) {
+      const firstRejectionIndex = sortedRows.findIndex(isRejectionRow)
+      if (firstRejectionIndex > 0) {
+        const targetScrollTop = firstRejectionIndex * rowHeight
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollTop = targetScrollTop
+        }
+        setScrollTop(targetScrollTop)
+      } else {
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollTop = 0
+        }
+        setScrollTop(0)
+      }
+    }
+  }, [sortedRows, loading])
 
   const getActionButtonProps = (actionType: 're-sub' | 'w-off', currentAction: string, isDisabled: boolean) => {
     const isActive = currentAction === actionType
@@ -417,7 +446,7 @@ function ActivityTable({
           <CellText text={row.code || ''} />
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap', minWidth: '35ch' }}>
-          <CellText text={row.order_name || ''} style={{ minWidth: '35ch' }} />
+          <CellText text={row.order_name || ''} maxChars={40} style={{ minWidth: '35ch' }} />
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap' }}>
           <Badge size="xs" variant="none" style={badgeStyle}>
@@ -580,6 +609,7 @@ function ActivityTable({
       bg="var(--panel-soft, rgba(255, 255, 255, 0.02))" style={{ overflow: "visible", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
     >
       <div
+        ref={tableContainerRef}
         style={{
           overflowX: 'auto',
           width: '100%',

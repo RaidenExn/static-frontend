@@ -236,6 +236,9 @@ export function useIcdState({ encounter, active: _active, showToast }: UseIcdSta
       is_primary: targetIsPrimary ? 1 : 0,
       comment: commentInput || `Changed status of ${diag.icd_code} to ${targetIsPrimary ? 'Primary' : 'Secondary'}`,
       patdiseaseId: diag.patient_diseases_id,
+      patientDiseaseId: diag.patient_diseases_id,
+      pat_disease_id: diag.patient_diseases_id,
+      patient_diseases_id: diag.patient_diseases_id,
       addendumId: isBypassMode ? null : addendumId
     }
 
@@ -296,7 +299,7 @@ export function useIcdState({ encounter, active: _active, showToast }: UseIcdSta
       return
     }
 
-    showToast(`Soft-deleting diagnosis ${diag.icd_code}...`, 'loading')
+    showToast(`Hard-deleting diagnosis ${diag.icd_code}...`, 'loading')
     try {
       const res = await fetch('/api/encounter/diagnoses/add', {
         method: 'POST',
@@ -305,7 +308,7 @@ export function useIcdState({ encounter, active: _active, showToast }: UseIcdSta
       })
       const data = await res.json()
       if (data.success) {
-        showToast(`Successfully soft-deleted diagnosis ${diag.icd_code}!`, 'ok')
+        showToast(`Successfully deleted diagnosis ${diag.icd_code}!`, 'ok')
         setResubmitType('1')
         fetchDiagnoses()
       } else {

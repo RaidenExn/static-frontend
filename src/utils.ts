@@ -122,6 +122,22 @@ export async function openPdfInExtension(
 ): Promise<void> {
   const finalName = fileName
   const { showToast, toastId = 'pdf-open' } = options || {}
+
+  // Direct EHR link check: Open direct remote EHR links without blobs or serving compressed cached PDFs
+  if (!isBase64 && /^https?:\/\//i.test(urlOrBase64)) {
+    if (showToast) {
+      showToast({
+        id: toastId,
+        title: '📄 Opening Direct EHR Link',
+        message: `Opening direct remote document link for ${finalName}...`,
+        tone: 'ok',
+        duration: 3000
+      })
+    }
+    window.open(urlOrBase64, '_blank', 'noopener')
+    return
+  }
+
   if (showToast) {
     showToast({
       id: toastId,
@@ -149,7 +165,7 @@ export async function openPdfInExtension(
       const response = await fetch('/api/download-to-temp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ downloadUrl: urlOrBase64, fileName: finalName, preferCompressed: true })
+        body: JSON.stringify({ downloadUrl: urlOrBase64, fileName: finalName, preferCompressed: false })
       })
       if (!response.ok) {
         throw new Error((await response.text()) || `HTTP ${response.status}`)
@@ -194,7 +210,8 @@ export async function compressPdfOnBackend(
   downloadUrl: string,
   fileName: string,
   showToast?: (textOrPayload: any, tone?: string) => void,
-  skipFinalToast = false
+  skipFinalToast = false,
+  compressionLevel?: string
 ): Promise<{
   filePath: string
   fileUrl: string
@@ -257,7 +274,7 @@ export async function compressPdfOnBackend(
     const response = await fetch('/api/compress-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ downloadUrl, fileName: finalName })
+      body: JSON.stringify({ downloadUrl, fileName: finalName, compressionLevel })
     })
 
     if (!response.ok || !response.body) {

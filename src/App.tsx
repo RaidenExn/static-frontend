@@ -391,9 +391,9 @@ function AppInner() {
     openPdfInExtension(downloadUrl, fileName, false, { showToast })
   }
 
-  const handleCompressPdf = async (downloadUrl: string, fileName: string) => {
+  const handleCompressPdf = async (downloadUrl: string, fileName: string, compressionLevel?: string) => {
     const startTime = Date.now()
-    const result = await compressPdfOnBackend(downloadUrl, fileName, showToast, true)
+    const result = await compressPdfOnBackend(downloadUrl, fileName, showToast, true, compressionLevel)
     if (result && result.base64) {
       setAttachedFileBase64(result.base64)
       setAttachedFileName(result.fileName)

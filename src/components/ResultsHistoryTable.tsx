@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Card,
   Group,
@@ -11,7 +11,8 @@ import {
   Modal,
   ActionIcon,
   Tooltip,
-  Loader
+  Loader,
+  Select
 } from '@mantine/core'
 import { Eye } from 'lucide-react'
 import { Attachment } from '../types'
@@ -24,7 +25,7 @@ interface ResultsHistoryTableProps {
   encounterDate: string
   onCopyLink: (_downloadUrl: string) => void
   onCopyPdfPrompt: (_downloadUrl: string) => void
-  onCompressPdf: (_downloadUrl: string, fileName: string) => void
+  onCompressPdf: (_downloadUrl: string, fileName: string, compressionLevel?: string) => void
   onOpenPdf: (_downloadUrl: string, fileName: string) => void
   recommendedUrls?: Set<string>
   recommendationReasons?: Record<string, string>
@@ -46,6 +47,43 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
   const [loadingMeta, setLoadingMetadata] = React.useState<boolean>(false)
   const [fileSizeStr, setFileSizeFormatted] = React.useState<string | null>(null)
   const [pagesCount, setPageCount] = React.useState<number | null>(null)
+  const [compressionLevel, setCompressionLevel] = React.useState<string>('extreme')
+
+  useEffect(() => {
+    let isMounted = true
+    fetch('/api/ilovepdf-settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data) {
+          const level = data.compressionLevel || data.cliPdfMode || 'extreme'
+          setCompressionLevel(level)
+        }
+      })
+      .catch((err) => console.error('Failed loading ilovepdf settings:', err))
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const handleCompressionLevelChange = async (val: string | null) => {
+    if (!val) return
+    setCompressionLevel(val)
+    try {
+      const currentRes = await fetch('/api/ilovepdf-settings')
+      const current = await currentRes.json()
+      await fetch('/api/ilovepdf-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...current,
+          compressionLevel: val,
+          cliPdfMode: val
+        })
+      })
+    } catch (err) {
+      console.error('Failed saving compression level setting:', err)
+    }
+  }
 
   const handleOpenPreview = async (url: string, name: string) => {
     setPreviewUrl(url)
@@ -135,12 +173,12 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
           <Table.Thead>
             <Table.Tr style={{ borderBottom: '1px solid var(--line)' }}>
               {[
-                { label: '#', w: 45 },
-                { label: 'Reported', w: 120 },
-                { label: 'Uploaded file', w: undefined },
-                { label: 'Encounter', w: 160 },
-                { label: 'Category', w: 120 },
-                { label: 'Open', w: 180 }
+                { label: '#', w: 45, isSelect: false },
+                { label: 'Reported', w: 120, isSelect: false },
+                { label: 'Uploaded file', w: undefined, isSelect: false },
+                { label: 'Encounter', w: 160, isSelect: false },
+                { label: 'Category', w: 120, isSelect: false },
+                { label: 'Open', w: 230, isSelect: true }
               ].map((h, i) => (
                 <Table.Th
                   key={i}
@@ -153,7 +191,32 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                     textTransform: 'uppercase'
                   }}
                 >
-                  {h.label}
+                  {h.isSelect ? (
+                    <Group gap="xs" align="center" wrap="nowrap">
+                      <span>{h.label}</span>
+                      <Select
+                        size="xs"
+                        value={compressionLevel}
+                        onChange={handleCompressionLevelChange}
+                        data={[
+                          { value: 'extreme', label: 'Extreme (Default)' },
+                          { value: 'recommended', label: 'High (Recommended)' }
+                        ]}
+                        styles={{
+                          input: {
+                            height: '22px',
+                            minHeight: '22px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            padding: '0 6px',
+                            width: '135px'
+                          }
+                        }}
+                      />
+                    </Group>
+                  ) : (
+                    h.label
+                  )}
                 </Table.Th>
               ))}
             </Table.Tr>
@@ -213,6 +276,13 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
 
                 const displayCategory = row.category?.trim() === 'Non OT Procedure' ? 'Non OT' : row.category || ''
 
+                const uploaderName =
+                  row.uploadedBy ||
+                  (row as any).raw?.created_by ||
+                  (row as any).raw?.created_by_name ||
+                  (row as any).raw?.uploaded_by ||
+                  ''
+
                 const fileName = row.name || ''
                 const midPoint = Math.floor(fileName.length / 2)
                 const firstHalf = fileName.slice(0, midPoint)
@@ -246,9 +316,17 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                       </Tooltip>
                     </Table.Td>
                     <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)' }}>
-                      <Text size="sm" truncate="end">
-                        {row.reportedDate || ''}
-                      </Text>
+                      {uploaderName ? (
+                        <Tooltip label={`Uploaded by: ${uploaderName}`} position="top" withArrow>
+                          <Text size="sm" truncate="end" style={{ cursor: 'help' }}>
+                            {row.reportedDate || ''}
+                          </Text>
+                        </Tooltip>
+                      ) : (
+                        <Text size="sm" truncate="end">
+                          {row.reportedDate || ''}
+                        </Text>
+                      )}
                     </Table.Td>
                     <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', maxWidth: 0 }}>
                       <Group gap="xs" wrap="nowrap" w="100%" style={{ overflow: 'hidden' }}>
@@ -338,7 +416,7 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                           </Tooltip>
                           <Tooltip label="Compress PDF via iLovePDF (backend)" position="top" withArrow>
                             <Button
-                              onClick={() => onCompressPdf(row.downloadUrl!, row.name || '')}
+                              onClick={() => onCompressPdf(row.downloadUrl!, row.name || '', compressionLevel)}
                               size="xs"
                               variant={hasAlert ? 'filled' : 'light'}
                               color={
