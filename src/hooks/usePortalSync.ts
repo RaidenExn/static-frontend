@@ -180,6 +180,41 @@ export function usePortalSync() {
     }
   }, [rcmResult, repeatTrackerLoaded, loadingRepeatTracker])
 
+  // Real-time WebSocket live sync for encounter writes
+  const { updateRcmResultLive, showToast } = usePortal() as any
+  useEffect(() => {
+    if (!activeEncounterNo) return
+
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`
+
+    let ws: WebSocket | null = null
+    try {
+      ws = new WebSocket(wsUrl)
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data)
+          if (msg.type === 'encounter_updated') {
+            const updatedEnc = String(msg.encounter || '').trim().toUpperCase()
+            if (updatedEnc && (updatedEnc === activeEncounterNo || activeEncounterNo.includes(updatedEnc))) {
+              if (msg.data && typeof updateRcmResultLive === 'function') {
+                updateRcmResultLive(msg.data)
+                const aspectsStr = Array.isArray(msg.aspects) ? msg.aspects.join(', ') : 'details'
+                if (typeof showToast === 'function') {
+                  showToast(`Live Update: Encounter ${updatedEnc} updated (${aspectsStr} refreshed)`, 'ok')
+                }
+              }
+            }
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    return () => {
+      if (ws) ws.close()
+    }
+  }, [activeEncounterNo, updateRcmResultLive, showToast])
+
   return {
     suggestions,
     activeEncounterNo

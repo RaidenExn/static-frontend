@@ -196,6 +196,7 @@ export function usePortalState() {
     setRepeatTrackerLookbackYears,
     reloadRcmOnly,
     reloadResubmissionsOnly,
+    updateRcmResultLive,
     handleLoadRepeatTracker,
     loadEncounter,
     loadSubmissionFile

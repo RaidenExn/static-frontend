@@ -80,6 +80,23 @@ export function usePortalQueries({
     }
   }
 
+  const updateRcmResultLive = (newData: any) => {
+    if (!newData) return
+    setRcmResult((prev: any) => {
+      const existingOk = prev?.Ok || {}
+      const newOk = newData?.Ok || newData || {}
+      const mergedOk = {
+        ...existingOk,
+        ...newOk,
+        rcm: {
+          ...(existingOk.rcm || {}),
+          ...(newOk.rcm || {})
+        }
+      }
+      return { Ok: mergedOk }
+    })
+  }
+
   const buildRepeatTrackerDateRange = (years: number) => {
     const safeYears = [1, 2, 3].includes(Number(years)) ? Number(years) : 2
     const today = new Date()
@@ -712,6 +729,7 @@ export function usePortalQueries({
     initializedEncounterRef,
     reloadRcmOnly,
     reloadResubmissionsOnly,
+    updateRcmResultLive,
     handleLoadRepeatTracker,
     loadEncounter,
     loadSubmissionFile
