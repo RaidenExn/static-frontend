@@ -182,6 +182,12 @@ export function usePortalSync() {
 
   // Real-time WebSocket live sync for encounter writes
   const { updateRcmResultLive, showToast } = usePortal() as any
+  const updateRcmResultLiveRef = useRef(updateRcmResultLive)
+  updateRcmResultLiveRef.current = updateRcmResultLive
+
+  const showToastRef = useRef(showToast)
+  showToastRef.current = showToast
+
   useEffect(() => {
     if (!activeEncounterNo) return
 
@@ -197,11 +203,11 @@ export function usePortalSync() {
           if (msg.type === 'encounter_updated') {
             const updatedEnc = String(msg.encounter || '').trim().toUpperCase()
             if (updatedEnc && (updatedEnc === activeEncounterNo || activeEncounterNo.includes(updatedEnc))) {
-              if (msg.data && typeof updateRcmResultLive === 'function') {
-                updateRcmResultLive(msg.data)
+              if (msg.data && typeof updateRcmResultLiveRef.current === 'function') {
+                updateRcmResultLiveRef.current(msg.data)
                 const aspectsStr = Array.isArray(msg.aspects) ? msg.aspects.join(', ') : 'details'
-                if (typeof showToast === 'function') {
-                  showToast(`Live Update: Encounter ${updatedEnc} updated (${aspectsStr} refreshed)`, 'ok')
+                if (typeof showToastRef.current === 'function') {
+                  showToastRef.current(`Live Update: Encounter ${updatedEnc} updated (${aspectsStr} refreshed)`, 'ok')
                 }
               }
             }
@@ -213,7 +219,7 @@ export function usePortalSync() {
     return () => {
       if (ws) ws.close()
     }
-  }, [activeEncounterNo, updateRcmResultLive, showToast])
+  }, [activeEncounterNo])
 
   return {
     suggestions,

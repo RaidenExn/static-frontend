@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { SubmissionFileResponse } from '../types'
 import { openBlobUrl, openPdfInExtension, rowHasRepeatTrackerMarker, isoDate } from '../utils'
 import { customFetch as fetch } from '../config/backend'
@@ -80,7 +80,7 @@ export function usePortalQueries({
     }
   }
 
-  const updateRcmResultLive = (newData: any) => {
+  const updateRcmResultLive = useCallback((newData: any) => {
     if (!newData) return
     setRcmResult((prev: any) => {
       const existingOk = prev?.Ok || {}
@@ -95,7 +95,7 @@ export function usePortalQueries({
       }
       return { Ok: mergedOk }
     })
-  }
+  }, [])
 
   const buildRepeatTrackerDateRange = (years: number) => {
     const safeYears = [1, 2, 3].includes(Number(years)) ? Number(years) : 2
