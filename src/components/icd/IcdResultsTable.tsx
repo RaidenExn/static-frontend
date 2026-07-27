@@ -1,13 +1,13 @@
 import React from 'react'
-import { Table, SegmentedControl, Badge, ActionIcon, Group, Text, Tooltip } from '@mantine/core'
+import { Table, SegmentedControl, Badge, ActionIcon, Text, Tooltip } from '@mantine/core'
 import { Trash2 } from 'lucide-react'
 import { Diagnosis } from '../../hooks/useIcdState'
 
 interface IcdResultsTableProps {
   diagnoses: Diagnosis[]
   compact: boolean
-  handleTogglePrimary: (diag: Diagnosis, targetIsPrimary: boolean) => void
-  handleDeleteDiagnosis: (diag: Diagnosis) => void
+  handleTogglePrimary: (_diag: Diagnosis, targetIsPrimary: boolean) => void
+  handleDeleteDiagnosis: (_diag: Diagnosis) => void
 }
 
 export function IcdResultsTable({

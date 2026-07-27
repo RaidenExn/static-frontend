@@ -118,10 +118,10 @@ export async function openPdfInExtension(
   urlOrBase64: string,
   fileName: string,
   isBase64: boolean,
-  showToast?: (textOrPayload: any, tone?: string) => void,
-  toastId = 'pdf-open'
+  options?: { showToast?: (textOrPayload: any, tone?: string) => void; toastId?: string }
 ): Promise<void> {
   const finalName = fileName
+  const { showToast, toastId = 'pdf-open' } = options || {}
   if (showToast) {
     showToast({
       id: toastId,
@@ -287,15 +287,21 @@ export async function compressPdfOnBackend(
             try {
               const data = JSON.parse(message)
               sourceVal = data.source
-            } catch (_) {}
+            } catch (_) {
+              // JSON parse may fail for non-JSON messages
+            }
           } else if (stage === 'info') {
             try {
               compressInfo = JSON.parse(message)
-            } catch (_) {}
+            } catch (_) {
+              // JSON parse may fail for non-JSON messages
+            }
           } else if (stage === 'done') {
             try {
               resultPayload = JSON.parse(message)
-            } catch (_) {}
+            } catch (_) {
+              // JSON parse may fail for non-JSON messages
+            }
           } else if (stage === 'error') {
             if (showToast) {
               showToast({

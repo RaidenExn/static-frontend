@@ -64,9 +64,9 @@ export function usePortalToasts(initialSummaryLoading?: boolean, initialRcmLoadi
   }
 
   const showToast = (textOrPayload: string | ToastPayload, toneOrOptions?: string, onUndo?: () => void) => {
-    let rawMessage = ''
+    let rawMessage
     let rawTitle: string | undefined = undefined
-    let tone: 'ok' | 'error' | 'warning' | 'info' | 'loading' = 'info'
+    let tone
     let duration = 4000
     let action: ToastAction | undefined = undefined
     let id = ''

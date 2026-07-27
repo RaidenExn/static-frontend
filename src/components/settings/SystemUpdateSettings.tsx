@@ -16,7 +16,6 @@ import {
   Switch,
   SegmentedControl,
   Collapse,
-  ThemeIcon,
   Timeline
 } from '@mantine/core'
 import {
@@ -36,7 +35,7 @@ import { customFetch as fetch } from '../../config/backend'
 import { FRONTEND_VERSION } from '../../version'
 
 interface SystemUpdateSettingsProps {
-  showToast: (text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
+  showToast: (_text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
 }
 
 interface UpdateCheckInfo {

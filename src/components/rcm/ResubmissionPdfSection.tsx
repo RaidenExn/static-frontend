@@ -4,11 +4,11 @@ import { Button } from '@mantine/core'
 interface ResubmissionPdfSectionProps {
   canSaveResubmission: boolean
   isDragOver: boolean
-  onDragOver: (e: React.DragEvent) => void
-  onDragLeave: (e: React.DragEvent) => void
-  onDrop: (e: React.DragEvent) => void
+  onDragOver: (_e: React.DragEvent) => void
+  onDragLeave: (_e: React.DragEvent) => void
+  onDrop: (_e: React.DragEvent) => void
   fileInputRef: React.RefObject<HTMLInputElement | null>
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onFileChange: (_e: React.ChangeEvent<HTMLInputElement>) => void
   attachedFileName: string
   attachedFileBase64?: string
   serverAttachments?: any[]
@@ -26,7 +26,7 @@ export default function ResubmissionPdfSection({
   attachedFileName,
   attachedFileBase64,
   serverAttachments,
-  onRemoveAttachment
+  onRemoveAttachment: _onRemoveAttachment
 }: ResubmissionPdfSectionProps) {
   const [showGlare, setShowGlare] = useState(false)
   const prevAttachedRef = useRef(attachedFileName)

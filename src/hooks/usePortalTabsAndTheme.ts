@@ -20,7 +20,6 @@ export function usePortalTabsAndTheme() {
     return localStorage.getItem('lifetrenz.lastResultToDate') || currentUsDate()
   })
   const [activeTab, setActiveTab] = useState<Tab>(() => {
-    const params = new URLSearchParams(window.location.search)
     const localTab = localStorage.getItem('lifetrenz.lastTab') as Tab | null
     if (
       localTab &&

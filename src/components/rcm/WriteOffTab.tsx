@@ -4,7 +4,7 @@ import { Card, Group, Text, Textarea, Button, Stack } from '@mantine/core'
 interface WriteOffTabProps {
   loading?: boolean
   writeOffRemarks: string
-  setWriteOffRemarks: (val: string) => void
+  setWriteOffRemarks: (_val: string) => void
   isSavingWriteOff: boolean
   onSaveWriteOff: () => void
   onClearWriteOff: () => void

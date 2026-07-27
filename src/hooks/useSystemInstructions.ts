@@ -15,6 +15,7 @@ export function useSystemInstructions() {
         setSystemInstructions(data.systemInstructions || '')
       }
     } catch {
+      // System instructions fetch may fail
     } finally {
       setLoading(false)
     }

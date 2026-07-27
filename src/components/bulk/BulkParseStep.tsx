@@ -3,16 +3,16 @@ import { Tooltip } from '@mantine/core'
 
 interface BulkParseStepProps {
   inputText: string
-  setInputText: (val: string) => void
+  setInputText: (_val: string) => void
   encountersCount: number
   collectFromStorage: boolean
-  setCollectFromStorage: (val: boolean) => void
+  setCollectFromStorage: (_val: boolean) => void
   isExporting: boolean
   handleExportTemplate: () => void
   isProcessing: boolean
   handleForceResubmit: () => void
   isUploading: boolean
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleFileUpload: (_e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export function BulkParseStep({
@@ -23,7 +23,7 @@ export function BulkParseStep({
   setCollectFromStorage,
   isExporting,
   handleExportTemplate,
-  isProcessing,
+  isProcessing: _isProcessing,
   handleForceResubmit,
   isUploading,
   handleFileUpload

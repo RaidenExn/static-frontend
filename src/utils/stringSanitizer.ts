@@ -16,7 +16,7 @@ export function sanitizeExcelInput(text: string): string[] {
       // Filter out empty strings or falsy values
       .filter((token) => !!token)
       // Filter out non-encounter strings (e.g., must contain 'ENC' and at least one number)
-      .filter((token) => /ENC[-\/]?\d+/i.test(token))
+      .filter((token) => /ENC[-/]?\d+/i.test(token))
       // Normalize format: Replace ENC/ with ENC- and uppercase the prefix/year/encounter structure
       .map((token) => normalizeEncounterValue(token))
   )

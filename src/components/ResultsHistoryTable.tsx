@@ -22,10 +22,10 @@ interface ResultsHistoryTableProps {
   resultsLoading: boolean
   attachments: Attachment[]
   encounterDate: string
-  onCopyLink: (downloadUrl: string) => void
-  onCopyPdfPrompt: (downloadUrl: string) => void
-  onCompressPdf: (downloadUrl: string, fileName: string) => void
-  onOpenPdf: (downloadUrl: string, fileName: string) => void
+  onCopyLink: (_downloadUrl: string) => void
+  onCopyPdfPrompt: (_downloadUrl: string) => void
+  onCompressPdf: (_downloadUrl: string, fileName: string) => void
+  onOpenPdf: (_downloadUrl: string, fileName: string) => void
   recommendedUrls?: Set<string>
   recommendationReasons?: Record<string, string>
 }
@@ -35,7 +35,7 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
   attachments,
   encounterDate,
   onCopyLink,
-  onCopyPdfPrompt,
+  onCopyPdfPrompt: _onCopyPdfPrompt,
   onCompressPdf,
   onOpenPdf,
   recommendedUrls = new Set<string>(),
@@ -189,6 +189,7 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                 const encMs = parseDateLikeJs(encounterDate)
                 let rowBgColor = undefined
                 let closenessType: 'green' | 'orange' | null = null
+                const hasAlert = closenessType === 'green' || closenessType === 'orange'
 
                 if (attMs && encMs) {
                   const attDate = new Date(attMs)
@@ -211,12 +212,6 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                 const recReason = row.downloadUrl ? recommendationReasons[row.downloadUrl] : ''
 
                 const displayCategory = row.category?.trim() === 'Non OT Procedure' ? 'Non OT' : row.category || ''
-
-                // Adaptive configurations for modern text-button controls
-                const hasAlert = closenessType === 'green' || closenessType === 'orange'
-                const compressBg =
-                  closenessType === 'green' ? '#16a34a' : closenessType === 'orange' ? '#ea580c' : 'transparent'
-                const compressColor = hasAlert ? '#ffffff' : 'var(--muted, #6b7280)'
 
                 const fileName = row.name || ''
                 const midPoint = Math.floor(fileName.length / 2)

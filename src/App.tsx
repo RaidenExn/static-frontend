@@ -270,7 +270,7 @@ function AppInner() {
     activityRows.forEach((r: any) => {
       const str = r.auth_item_exp_date || r.auth_item_date || r.activity_start_date_time
       if (!str) return
-      const match = str.trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})/)
+      const match = str.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})\s+(\d{1,2}):(\d{2})/)
       if (match) {
         const [_, day, month, year, hour, minute] = match
         const d = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute))
@@ -348,7 +348,7 @@ function AppInner() {
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
       }
 
-      let statsString = ''
+      let statsString
       if (result.beforeBytes && result.afterBytes) {
         const beforeStr = formatBytes(result.beforeBytes)
         const afterStr = formatBytes(result.afterBytes)
@@ -388,7 +388,7 @@ function AppInner() {
   }, [patientHeader?.resolvedEncounter])
 
   const handleOpenPdf = (downloadUrl: string, fileName: string) => {
-    openPdfInExtension(downloadUrl, fileName, false, showToast)
+    openPdfInExtension(downloadUrl, fileName, false, { showToast })
   }
 
   const handleCompressPdf = async (downloadUrl: string, fileName: string) => {

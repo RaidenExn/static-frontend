@@ -5,7 +5,7 @@ import { customFetch as fetch } from '../config/backend'
 
 interface RaExcelPanelProps {
   active: boolean
-  showToast: (msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
+  showToast: (_msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
 }
 
 export default function RaExcelPanel({ active, showToast }: RaExcelPanelProps) {

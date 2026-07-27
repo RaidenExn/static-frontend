@@ -16,8 +16,8 @@ interface ProviderSettings {
 
 interface AiProviderPipelineProps {
   providerKey: 'openrouter' | 'gemini'
-  showToast: (text: string, tone: string) => void
-  onModelChange?: (model: string) => void
+  showToast: (_text: string, tone: string) => void
+  onModelChange?: (_model: string) => void
 }
 
 const PROVIDER_MAP: Record<string, { title: string; apiKeyLabel: string; apiKeyPlaceholder: string; customModelPlaceholder: string; customModelDescription: string; fetchEndpoint: string; saveEndpoint: string }> = {

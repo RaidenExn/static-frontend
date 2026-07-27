@@ -16,10 +16,10 @@ export interface Diagnosis {
 interface UseIcdStateProps {
   encounter: string
   active: boolean
-  showToast: (text: string, tone: 'ok' | 'error' | 'loading' | 'info' | 'warning', durationMs?: number) => void
+  showToast: (_text: string, tone: 'ok' | 'error' | 'loading' | 'info' | 'warning', durationMs?: number) => void
 }
 
-export function useIcdState({ encounter, active, showToast }: UseIcdStateProps) {
+export function useIcdState({ encounter, active: _active, showToast }: UseIcdStateProps) {
   const { setResubmitType } = usePortal()
   const [loading, setLoading] = useState(false)
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([])

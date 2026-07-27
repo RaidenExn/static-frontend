@@ -38,7 +38,7 @@ interface ExportProgress {
 }
 
 export function useBulkResubmission(
-  showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void
+  showToast: (_message: string, type?: 'success' | 'error' | 'info' | 'warning') => void
 ) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [inputText, setInputText] = useState('')

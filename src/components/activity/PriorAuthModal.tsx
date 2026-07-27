@@ -5,14 +5,14 @@ interface PriorAuthModalProps {
   editingAuthId: number | null
   onClose: () => void
   tempAuthCode: string
-  setTempAuthCode: (val: string) => void
+  setTempAuthCode: (_val: string) => void
   tempAuthStartDate: string
-  setTempAuthStartDate: (val: string) => void
+  setTempAuthStartDate: (_val: string) => void
   tempAuthExpiryDate: string
-  setTempAuthExpiryDate: (val: string) => void
+  setTempAuthExpiryDate: (_val: string) => void
   isSavingAuth: boolean
-  handleSavePriorAuth: (authId: number, code: string, startDate?: string, expiryDate?: string) => void
-  formatToDisplayDatetime: (str: string) => string
+  handleSavePriorAuth: (_authId: number, code: string, startDate?: string, expiryDate?: string) => void
+  formatToDisplayDatetime: (_str: string) => string
 }
 
 export default function PriorAuthModal({

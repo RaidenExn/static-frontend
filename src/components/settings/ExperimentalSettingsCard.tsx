@@ -4,8 +4,8 @@ import { FlaskConical } from 'lucide-react'
 import { customFetch as fetch } from '../../config/backend'
 
 export const ExperimentalSettingsCard: React.FC = () => {
-  const [expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
-  const [savingExp, setSavingExp] = useState<boolean>(false)
+  const [_expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
+  const [_savingExp] = useState<boolean>(false)
 
   const fetchExperimentalSettings = useCallback(async () => {
     try {
@@ -14,27 +14,14 @@ export const ExperimentalSettingsCard: React.FC = () => {
         const data = await res.json()
         setExpEhrVerification(data.experimentalEhrVerification !== false)
       }
-    } catch (_) {}
+    } catch  {
+      // Settings fetch may fail
+    }
   }, [])
 
   useEffect(() => {
     fetchExperimentalSettings()
   }, [fetchExperimentalSettings])
-
-  const handleToggleExp = async (checked: boolean) => {
-    setExpEhrVerification(checked)
-    setSavingExp(true)
-    try {
-      await fetch('/api/settings/experimental-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experimentalEhrVerification: checked })
-      })
-    } catch (_) {
-    } finally {
-      setSavingExp(false)
-    }
-  }
 
   return (
     <Card

@@ -19,12 +19,12 @@ import { customFetch as fetch } from '../config/backend'
 interface EncounterActionsProps {
   onDownloadXml: () => void
   dateEditMode: boolean
-  setDateEditMode: (val: boolean) => void
+  setDateEditMode: (_val: boolean) => void
   onForceReload: () => void
   aiModel?: string
-  setAiModel?: (val: string) => void
+  setAiModel?: (_val: string) => void
   aiProvider?: string
-  setAiProvider?: (val: string) => void
+  setAiProvider?: (_val: string) => void
   onOpenCeedValidator: () => void
   onAutoPrompt?: () => void
   onCopyPrompt?: () => void

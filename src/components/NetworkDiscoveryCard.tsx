@@ -19,7 +19,7 @@ import { useNetworkDiscovery } from '../hooks/useNetworkDiscovery'
 import { DiscoveredServer } from '../services/discoveryService'
 
 interface NetworkDiscoveryCardProps {
-  onSelectServer: (ip: string) => void
+  onSelectServer: (_ip: string) => void
   compact?: boolean
 }
 

@@ -58,7 +58,7 @@ export function useUiTracing({ activeEncounter, activeTab }: UseUiTracingProps =
             keepalive: true
           }).catch(() => {})
         }
-      } catch (_) {
+      } catch  {
         // Silently swallow UI tracing errors to ensure core app never breaks
       }
     }

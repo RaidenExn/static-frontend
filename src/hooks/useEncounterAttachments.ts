@@ -3,7 +3,7 @@ import { customFetch as fetch } from '../config/backend'
 
 interface UseEncounterAttachmentsProps {
   encounterInput: string
-  showToast: (textOrPayload: any, tone?: string) => void
+  showToast: (_textOrPayload: any, tone?: string) => void
 }
 
 export function useEncounterAttachments({ encounterInput, showToast }: UseEncounterAttachmentsProps) {

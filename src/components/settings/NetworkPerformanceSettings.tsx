@@ -4,7 +4,7 @@ import { TextInput, Card, Title, SimpleGrid } from '@mantine/core'
 interface NetworkPerformanceSettingsProps {
   settings: any
   validationErrors: Record<string, any>
-  updateNestedSetting: (keyPath: string[], value: any) => void
+  updateNestedSetting: (_keyPath: string[], value: any) => void
 }
 
 export function NetworkPerformanceSettings({

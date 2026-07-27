@@ -18,10 +18,10 @@ import { customFetch as fetch } from '../config/backend'
 
 interface BulkExtractionPanelProps {
   active: boolean
-  showToast: (msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
+  showToast: (_msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
   type: 'mnec' | 'repeatTracker'
   lookbackYears: number
-  setLookbackYears: (val: number) => void
+  setLookbackYears: (_val: number) => void
 }
 
 interface JobStatus {

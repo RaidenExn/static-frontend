@@ -15,14 +15,14 @@ const encounterDataCache = new Map<string, EncounterCacheEntry>()
 
 interface UsePortalQueriesProps {
   encounterInput: string
-  setEncounterInput: (val: string) => void
+  setEncounterInput: (_val: string) => void
   searchFromDate: string
   searchToDate: string
   resultFromDate: string
   resultToDate: string
-  showToast: (textOrPayload: any, tone?: string) => void
-  addRecentEncounter: (enc: string) => void
-  fetchServerAttachments: (enc: string) => void
+  showToast: (_textOrPayload: any, tone?: string) => void
+  addRecentEncounter: (_enc: string) => void
+  fetchServerAttachments: (_enc: string) => void
   resetDrafts: () => void
 }
 
@@ -286,34 +286,48 @@ export function usePortalQueries({
     return doLoadEncounter(targetEnc, 'force')
   }
 
+  const tryCacheLookup = async (encKey: string, targetEnc: string): Promise<boolean> => {
+    const dbCached = await getEncounterFromIndexedDb(encKey)
+    if (!dbCached) return false
+    encounterDataCache.set(encKey, {
+      summaryResult: dbCached.summaryResult,
+      rcmResult: dbCached.rcmResult,
+      ts: dbCached.timestamp
+    })
+    setEncounterInput(targetEnc)
+    addRecentEncounter(targetEnc)
+    setSummaryResult(dbCached.summaryResult)
+    setRcmResult(dbCached.rcmResult)
+    setSummaryLoading(false)
+    setRcmLoading(false)
+    setResultsLoading(false)
+    setHistoricLoading(false)
+    setRepeatTrackerLoaded(!!dbCached.rcmResult?.Ok?.detail?.activityWiseStatus?.length)
+    fetchServerAttachments(targetEnc)
+    return true
+  }
+
+  const updatePersistedState = (targetEnc: string) => {
+    localStorage.setItem('lifetrenz.lastEncounter', targetEnc)
+    localStorage.setItem('lifetrenz.lastSearchFromDate', searchFromDate)
+    localStorage.setItem('lifetrenz.lastSearchToDate', searchToDate)
+    localStorage.setItem('lifetrenz.lastResultFromDate', resultFromDate)
+    localStorage.setItem('lifetrenz.lastResultToDate', resultToDate)
+    const params = new URLSearchParams(window.location.search)
+    params.set('encounter', targetEnc)
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`)
+  }
+
   const doLoadEncounter = async (targetEnc: string, mode: 'force' | 'cache-first') => {
     const currentLoadId = ++activeLoadIdRef.current
     const encKey = targetEnc.toUpperCase()
     const isForce = mode === 'force'
 
     if (!isForce) {
-      const dbCached = await getEncounterFromIndexedDb(encKey)
-      if (dbCached) {
-        encounterDataCache.set(encKey, {
-          summaryResult: dbCached.summaryResult,
-          rcmResult: dbCached.rcmResult,
-          ts: dbCached.timestamp
-        })
-        setEncounterInput(targetEnc)
-        addRecentEncounter(targetEnc)
-        setSummaryResult(dbCached.summaryResult)
-        setRcmResult(dbCached.rcmResult)
-        setSummaryLoading(false)
-        setRcmLoading(false)
-        setResultsLoading(false)
-        setHistoricLoading(false)
-        setRepeatTrackerLoaded(!!dbCached.rcmResult?.Ok?.detail?.activityWiseStatus?.length)
-        fetchServerAttachments(targetEnc)
-        return
-      }
+      const usedCache = await tryCacheLookup(encKey, targetEnc)
+      if (usedCache) return
     }
 
-    // Force path (or cache-first miss — clear + fetch fresh)
     encounterDataCache.delete(encKey)
     pdfCache.clear()
 
@@ -404,15 +418,7 @@ export function usePortalQueries({
 
     updateLoadToast()
 
-    localStorage.setItem('lifetrenz.lastEncounter', targetEnc)
-    localStorage.setItem('lifetrenz.lastSearchFromDate', searchFromDate)
-    localStorage.setItem('lifetrenz.lastSearchToDate', searchToDate)
-    localStorage.setItem('lifetrenz.lastResultFromDate', resultFromDate)
-    localStorage.setItem('lifetrenz.lastResultToDate', resultToDate)
-
-    const params = new URLSearchParams(window.location.search)
-    params.set('encounter', targetEnc)
-    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`)
+    updatePersistedState(targetEnc)
 
     const autoAttachSummary = localStorage.getItem('lifetrenz.autoAttachSummary') !== 'false'
     const payload = {
@@ -654,7 +660,7 @@ export function usePortalQueries({
           duration: 4000
         })
       } else if (!isViewXml && data.pdfBase64) {
-        await openPdfInExtension(data.pdfBase64, fileName, true, showToast, toastId)
+        await openPdfInExtension(data.pdfBase64, fileName, true, { showToast, toastId })
         showToast({
           id: toastId,
           title: 'PDF Document Opened',

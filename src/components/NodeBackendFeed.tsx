@@ -16,7 +16,7 @@ interface NodeBackendFeedProps {
   terminalBodyRef: React.RefObject<HTMLDivElement | null>
   onTerminalScroll: () => void
   autoScroll: boolean
-  onToggleAutoScroll: (val: boolean) => void
+  onToggleAutoScroll: (_val: boolean) => void
 }
 
 // Convert ANSI escape codes into colored React spans for native pino-pretty rendering
@@ -24,7 +24,7 @@ function renderAnsiString(text: string) {
   if (!text) return null
 
   // Strip or parse ANSI escape sequences
-  const parts = text.split(/\u001b\[([0-9;]*)m/)
+  const parts = text.split(new RegExp(String.fromCharCode(27) + '\\[([0-9;]*)m'))
   let currentColor = ''
   let isBold = false
 

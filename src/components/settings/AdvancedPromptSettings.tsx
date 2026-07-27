@@ -5,14 +5,14 @@ interface AdvancedPromptSettingsProps {
   wsStatus: 'connected' | 'disconnected' | 'connecting'
   theme: string
   toggleTheme: () => void
-  setTheme: (theme: string) => void
+  setTheme: (_theme: string) => void
   onStopServer: () => void
 }
 
 export function AdvancedPromptSettings({
   wsStatus,
   theme,
-  toggleTheme,
+  toggleTheme: _toggleTheme,
   setTheme,
   onStopServer
 }: AdvancedPromptSettingsProps) {

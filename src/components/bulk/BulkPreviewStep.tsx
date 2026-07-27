@@ -4,7 +4,7 @@ import { RowData, ParseError } from './hooks/useBulkResubmission'
 interface BulkPreviewStepProps {
   rows: RowData[]
   errors: ParseError[]
-  setStep: (step: 1 | 2 | 3) => void
+  setStep: (_step: 1 | 2 | 3) => void
   handleStartProcessing: () => void
 }
 

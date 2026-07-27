@@ -5,12 +5,12 @@ import { useIcdSearch } from '../../hooks/useIcdSearch'
 
 interface IcdSearchFormProps {
   compact: boolean
-  handleAddDiagnosis: (icdCode: string, disDesc: string, isPrimary: boolean, onSaved: () => void) => void
+  handleAddDiagnosis: (_icdCode: string, disDesc: string, isPrimary: boolean, onSaved: () => void) => void
   commentInput: string
-  setCommentInput: (v: string) => void
+  setCommentInput: (_v: string) => void
 }
 
-export function IcdSearchForm({ compact, handleAddDiagnosis, commentInput, setCommentInput }: IcdSearchFormProps) {
+export function IcdSearchForm({ compact: _compact, handleAddDiagnosis, commentInput, setCommentInput }: IcdSearchFormProps) {
   const { searchQuery, setSearchQuery, searchResults, showDropdown, setShowDropdown, searching, searchContainerRef } =
     useIcdSearch()
 

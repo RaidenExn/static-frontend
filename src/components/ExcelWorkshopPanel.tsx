@@ -34,7 +34,7 @@ import { customFetch as fetch } from '../config/backend'
 
 interface ExcelWorkshopPanelProps {
   active: boolean
-  showToast: (msg: any, type?: any) => void
+  showToast: (_msg: any, type?: any) => void
 }
 
 interface FileItem {
