@@ -15,7 +15,7 @@ interface ProviderSettings {
 }
 
 interface AiProviderPipelineProps {
-  providerKey: 'openrouter' | 'gemini'
+  providerKey: 'openrouter'
   showToast: (_text: string, tone: string) => void
   onModelChange?: (_model: string) => void
 }
@@ -27,17 +27,8 @@ const PROVIDER_MAP: Record<string, { title: string; apiKeyLabel: string; apiKeyP
     apiKeyPlaceholder: 'sk-or-v1-...',
     customModelPlaceholder: 'google/gemini-2.5-pro',
     customModelDescription: 'Input the official string ID (e.g. author/model-name or similar)',
-    fetchEndpoint: '/api/settings/openrouter',
-    saveEndpoint: '/api/settings/openrouter'
-  },
-  gemini: {
-    title: 'Google AI Studio (Gemini) Pipeline',
-    apiKeyLabel: 'Gemini API Key',
-    apiKeyPlaceholder: 'AIzaSy...',
-    customModelPlaceholder: 'models/gemini-2.5-pro',
-    customModelDescription: 'Input the official string ID (e.g. models/gemini-2.5-pro or similar)',
-    fetchEndpoint: '/api/settings/gemini',
-    saveEndpoint: '/api/settings/gemini'
+    fetchEndpoint: '/api/openrouter-settings',
+    saveEndpoint: '/api/openrouter-settings'
   }
 }
 
@@ -47,18 +38,14 @@ export default function AiProviderPipeline({
   onModelChange
 }: AiProviderPipelineProps) {
   const info = PROVIDER_MAP[providerKey]
-  const presets = providerKey === 'gemini' ? GEMINI_MODEL_PRESETS : MODEL_PRESETS
+  const presets = MODEL_PRESETS
   const { title, apiKeyLabel, apiKeyPlaceholder, customModelPlaceholder, customModelDescription, fetchEndpoint, saveEndpoint } = info
 
   const [settings, setSettings] = useState<ProviderSettings>({ apiKey: '', model: '', maxTokens: 4096 })
   const [customModels, setCustomModels] = useState<string[]>([])
   const [selectedDropdown, setSelectedDropdown] = useState('')
   const [customModelInput, setCustomModelInput] = useState('')
-  const [testPrompt, setTestPrompt] = useState(
-    providerKey === 'openrouter'
-      ? 'Say "OpenRouter is working!" in a single short sentence.'
-      : 'Say "Google AI Studio is working!" in a single short sentence.'
-  )
+  const [testPrompt, setTestPrompt] = useState('Say "OpenRouter is working!" in a single short sentence.')
   const [testResult, setTestResult] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -122,9 +109,9 @@ export default function AiProviderPipeline({
   }
 
   const handleTest = async () => {
-    if (!settings.apiKey.trim() || !testPrompt.trim()) return showToast('Check API Key and Prompt', 'error')
+    if (!settings.apiKey.trim() || !testPrompt.trim()) return showToast('Enter API Key and Prompt first', 'warning')
     setTesting(true)
-    setTestResult('Connecting...')
+    setTestResult('Connecting to OpenRouter...')
     try {
       const res = await fetch('/api/gpt-automate', {
         method: 'POST',
@@ -132,12 +119,18 @@ export default function AiProviderPipeline({
         body: JSON.stringify({ prompt: testPrompt.trim(), provider: providerKey, model: settings.model })
       })
       const data = await res.json()
-      if (data.responseText) {
+      if (res.ok && data.responseText) {
         setTestResult(data.responseText)
-        showToast('Response captured!', 'ok')
-      } else throw new Error()
-    } catch {
-      setTestResult('Error Executing Test')
+        showToast('OpenRouter response captured!', 'ok')
+      } else {
+        const errMsg = data.message || data.error || 'OpenRouter request failed'
+        setTestResult(`[Error] ${errMsg}`)
+        showToast(`Test failed: ${errMsg}`, 'error')
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Execution Error'
+      setTestResult(`[Error] ${msg}`)
+      showToast(`Execution failed: ${msg}`, 'error')
     } finally {
       setTesting(false)
     }
@@ -212,7 +205,7 @@ export default function AiProviderPipeline({
               size="xs"
               leftSection={<Play size={14} />}
             >
-              Run {providerKey === 'openrouter' ? 'OpenRouter' : 'Gemini'} Test
+              Run OpenRouter Test
             </Button>
             {testResult && (
               <Code block p="xs" bg="var(--panel-soft)">{testResult}</Code>

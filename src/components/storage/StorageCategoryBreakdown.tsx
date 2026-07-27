@@ -25,7 +25,6 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { customFetch as fetch } from '../../config/backend'
-import { ExperimentalSettingsCard } from '../settings/ExperimentalSettingsCard'
 
 
 
@@ -108,19 +107,16 @@ export const StorageCategoryBreakdown: React.FC = () => {
 
   if (!overview) {
     return (
-      <Stack gap="md">
-        <Card withBorder radius="sm" padding="sm">
-          <Group justify="space-between" align="center">
-            <Text size="xs" fw={700}>
-              Loading Storage Breakdown...
-            </Text>
-            <Button variant="subtle" size="xs" loading onClick={fetchOverview} leftSection={<RefreshCw size={12} />}>
-              Refresh
-            </Button>
-          </Group>
-        </Card>
-        <ExperimentalSettingsCard />
-      </Stack>
+      <Card withBorder radius="sm" padding="sm">
+        <Group justify="space-between" align="center">
+          <Text size="xs" fw={700}>
+            Loading Storage Breakdown...
+          </Text>
+          <Button variant="subtle" size="xs" loading onClick={fetchOverview} leftSection={<RefreshCw size={12} />}>
+            Refresh
+          </Button>
+        </Group>
+      </Card>
     )
   }
 
@@ -293,9 +289,6 @@ export const StorageCategoryBreakdown: React.FC = () => {
             )
           })}
         </SimpleGrid>
-
-        {/* Experimental Features Section */}
-        <ExperimentalSettingsCard />
       </Stack>
 
 

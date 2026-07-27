@@ -186,8 +186,8 @@ export default function SummaryPanel({
             </Stack>
           ) : (
             <Box style={{ flex: 1, overflow: 'hidden', height: '100%', minHeight: '600px' }}>
-              <ScrollArea h="100%" p="md">
-                <Stack gap="xs">
+              <ScrollArea h="100%">
+                <Stack gap="xs" p="md">
                   {/* Patient Metadata Card */}
                   <Paper withBorder p="xs" radius="sm">
                     <Grid bg="transparent" {...({ gutter: 'xs' } as any)}>

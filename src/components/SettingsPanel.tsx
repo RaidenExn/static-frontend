@@ -12,29 +12,37 @@ import {
   SegmentedControl,
   Select,
   Switch,
-  TextInput
+  TextInput,
+  Grid,
+  NavLink,
+  Paper
 } from '@mantine/core'
-import { Settings, ShieldCheck, Database, Unlink, Activity } from 'lucide-react'
+import {
+  Settings,
+  Database,
+  Unlink,
+  Activity,
+  UserCheck,
+  Palette,
+  Zap,
+  Bot
+} from 'lucide-react'
 
-type SettingsSubTab = 'infrastructure' | 'hospital' | 'system' | 'appearance' | 'advanced'
 import { useSettings } from '../hooks/useSettings'
 import { HospitalCredentialsSettings } from './settings/HospitalCredentialsSettings'
-import { AdvancedPromptSettings } from './settings/AdvancedPromptSettings'
-import { NetworkPerformanceSettings } from './settings/NetworkPerformanceSettings'
-import { SystemUpdateSettings } from './settings/SystemUpdateSettings'
 import { ShortcodesSettings } from './settings/ShortcodesSettings'
-import { ExperimentalSettingsCard } from './settings/ExperimentalSettingsCard'
-
 import ApiPanel from './ApiPanel'
 import { setBackendUrl } from '../config/runtime'
 import { normalizeIpToBackendUrl, extractIpFromBackendUrl, validateIpOrHost } from '../config/backend'
 import NetworkDiscoveryCard from './NetworkDiscoveryCard'
 
+type SettingsCategory = 'connection' | 'session' | 'theme' | 'shortcodes' | 'ai'
+
 function ConnectionSettingsCard({ showToast }: { showToast: any }) {
   const currentUrl = localStorage.getItem('lt-local-backend-url') || ''
   const [ipInput, setIpInput] = useState(extractIpFromBackendUrl(currentUrl) || 'localhost')
   const [testing, setTesting] = useState(false)
-  
+
   const handleUpdate = async (rawIp?: string) => {
     const targetIp = (rawIp || ipInput).trim()
     if (!targetIp) {
@@ -45,7 +53,7 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
       showToast('Invalid IP address or hostname format.', 'error')
       return
     }
-    
+
     const val = normalizeIpToBackendUrl(targetIp)
     setTesting(true)
     try {
@@ -69,7 +77,7 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
       setTesting(false)
     }
   }
-  
+
   const handleDisconnect = () => {
     setBackendUrl(null)
     showToast('Disconnected from LT-Local backend. Redirecting to connection screen...', 'info')
@@ -79,7 +87,16 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
   }
 
   return (
-    <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+    <Card
+      withBorder
+      radius="sm"
+      padding="md"
+      bg="var(--panel-soft)"
+      style={{
+        backdropFilter: 'var(--backdrop-filter, blur(16px))',
+        WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
+      }}
+    >
       <Title
         order={3}
         style={{
@@ -99,7 +116,7 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
       </Title>
       <Stack gap="sm">
         <Text size="xs" c="dimmed">
-          Your browser is currently linked to the following local EHR caching middleware.
+          Your browser is currently linked to the following local EHR caching middleware instance.
         </Text>
         <TextInput
           label="Backend Server IP Address"
@@ -130,16 +147,18 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
         </Group>
 
         <Box mt="xs">
-          <NetworkDiscoveryCard onSelectServer={(selectedIp) => {
-            setIpInput(selectedIp)
-            handleUpdate(selectedIp)
-          }} compact />
+          <NetworkDiscoveryCard
+            onSelectServer={(selectedIp) => {
+              setIpInput(selectedIp)
+              handleUpdate(selectedIp)
+            }}
+            compact
+          />
         </Box>
       </Stack>
     </Card>
   )
 }
-
 
 interface SettingsPanelProps {
   active: boolean
@@ -172,15 +191,9 @@ export default function SettingsPanel({
   active,
   showToast,
   theme,
-  toggleTheme,
   setTheme,
-  onStopServer,
   aiModel,
   setAiModel,
-  primaryColor = 'dark',
-  setPrimaryColor,
-  bgPalette = 'charcoal',
-  setBgPalette,
   cornerRadius = 'sm',
   setCornerRadius,
   activeFont = 'Inter',
@@ -189,8 +202,6 @@ export default function SettingsPanel({
   setFontScale,
   spacingScale = 'xs',
   setSpacingScale,
-  visualStyle = 'glassmorphic',
-  setVisualStyle,
   adaptiveCardColors = true,
   setAdaptiveCardColors
 }: SettingsPanelProps) {
@@ -198,18 +209,15 @@ export default function SettingsPanel({
     settings,
     loading,
     saving,
-    fixingPermissions,
     wsStatus,
-    permissionStatus,
     validationErrors,
     employees,
     updateNestedSetting,
     handleSave,
-    handleResetDefaults,
-    handleFixPermissions
+    handleResetDefaults
   } = useSettings({ active, showToast })
 
-  const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>('infrastructure')
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('connection')
 
   if (!active) return null
 
@@ -224,9 +232,27 @@ export default function SettingsPanel({
     )
   }
 
+  const categories = [
+    { key: 'connection', label: 'Connection & Server', icon: Database, description: 'Middleware IP & Discovery' },
+    { key: 'session', label: 'Operator Session', icon: UserCheck, description: 'Active Clinician Account' },
+    { key: 'theme', label: 'Theme & Appearance', icon: Palette, description: 'Typography & Layout Rules' },
+    { key: 'shortcodes', label: 'Shortcodes & Snippets', icon: Zap, description: 'Custom Expansion Rules' },
+    { key: 'ai', label: 'AI & Compactor Services', icon: Bot, description: 'OpenRouter & iLovePDF Engine' }
+  ]
+
   return (
     <Box>
-      <Card withBorder mb="md" padding="md" style={{ background: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+      {/* Control Center Header */}
+      <Card
+        withBorder
+        mb="md"
+        padding="md"
+        style={{
+          background: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
+          backdropFilter: 'var(--backdrop-filter, blur(16px))',
+          WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
+        }}
+      >
         <Group justify="space-between" align="center" wrap="wrap" gap="md">
           <Box>
             <Group gap="xs" align="center" mb={4}>
@@ -241,22 +267,17 @@ export default function SettingsPanel({
               </Title>
             </Group>
             <Text size="xs" c="dimmed">
-              Configure ICD payor default parameters, Level-1 demographic wrappers, Advanced Prompts, and third-party
-              API gateway keys concurrently.
+              Configure local connection endpoints, active clinician sessions, personal themes, and AI compression integrations.
             </Text>
           </Box>
           <Group gap="xs">
             <Button
               variant="outline"
               color="gray"
-              onClick={handleFixPermissions}
-              disabled={fixingPermissions}
+              onClick={handleResetDefaults}
               size="xs"
               style={{ fontWeight: 600 }}
             >
-              {fixingPermissions ? 'Checking...' : '🔒 Fix Permissions'}
-            </Button>
-            <Button variant="outline" color="gray" onClick={handleResetDefaults} size="xs" style={{ fontWeight: 600 }}>
               🔄 Reset Defaults
             </Button>
             <Button variant="filled" onClick={handleSave} disabled={saving} size="xs" style={{ fontWeight: 600 }}>
@@ -264,363 +285,263 @@ export default function SettingsPanel({
             </Button>
           </Group>
         </Group>
-
-        <Box mt="md">
-          <SegmentedControl
-            value={settingsSubTab}
-            onChange={(val) => setSettingsSubTab(val as SettingsSubTab)}
-            fullWidth
-            size="xs"
-            data={[
-              { value: 'infrastructure', label: 'Infrastructure' },
-              { value: 'hospital', label: 'Hospital' },
-              { value: 'system', label: 'System' },
-              { value: 'appearance', label: 'Appearance' },
-              { value: 'advanced', label: 'Advanced' }
-            ]}
-          />
-        </Box>
       </Card>
 
-      {settingsSubTab === 'infrastructure' && (
-        <Stack gap="md">
-          <ConnectionSettingsCard showToast={showToast} />
-
-          <NetworkPerformanceSettings
-            settings={settings}
-            validationErrors={validationErrors}
-            updateNestedSetting={updateNestedSetting}
-          />
-
-          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-            <Title
-              order={3}
-              style={{
-                fontSize: '12px',
-                fontWeight: 800,
-                color: 'var(--mantine-color-text)',
-                margin: '0 0 16px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}
+      {/* Lite Dual-Pane Layout */}
+      <Grid>
+        {/* Left Navigation Sidebar */}
+        <Grid.Col span={{ base: 12, md: 3.5 }}>
+          <Paper
+            withBorder
+            p="xs"
+            radius="sm"
+            bg="var(--panel-soft)"
+            style={{
+              backdropFilter: 'var(--backdrop-filter, blur(16px))',
+              WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
+            }}
+          >
+            <Text
+              size="10px"
+              fw={800}
+              c="dimmed"
+              p="xs"
+              style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}
             >
-              🔒 System & Browser Diagnostics
-            </Title>
-            <Stack gap="sm">
-              <Group
-                justify="space-between"
-                align="center"
-                p="sm"
-                bg="var(--panel)"
-                style={{ border: '1px solid var(--line)', borderRadius: 'var(--mantine-radius-sm)' }}
-              >
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Clipboard Reader
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    Enables fast encounter parsing on paste
-                  </Text>
-                </Box>
-                <Group gap="xs">
-                  <ShieldCheck size={16} color="var(--mantine-color-green-filled)" />
-                  <Text size="xs" fw="bold">
-                    {permissionStatus.clipboard}
-                  </Text>
-                </Group>
-              </Group>
-
-              <Group
-                justify="space-between"
-                align="center"
-                p="sm"
-                bg="var(--panel)"
-                style={{ border: '1px solid var(--line)', borderRadius: 'var(--mantine-radius-sm)' }}
-              >
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    System Notifications
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    Enables background task completion alerts
-                  </Text>
-                </Box>
-                <Group gap="xs">
-                  <ShieldCheck size={16} color="var(--mantine-color-green-filled)" />
-                  <Text size="xs" fw="bold">
-                    {permissionStatus.notifications}
-                  </Text>
-                </Group>
-              </Group>
-            </Stack>
-          </Card>
-        </Stack>
-      )}
-
-      {settingsSubTab === 'hospital' && (
-        <Stack gap="md">
-          <HospitalCredentialsSettings
-            settings={settings}
-            validationErrors={validationErrors}
-            employees={employees}
-            updateNestedSetting={updateNestedSetting}
-          />
-        </Stack>
-      )}
-
-      {settingsSubTab === 'system' && (
-        <Stack gap="md">
-          <SystemUpdateSettings showToast={showToast} />
-          <ShortcodesSettings showToast={showToast} />
-          <ExperimentalSettingsCard />
-        </Stack>
-      )}
-
-      {settingsSubTab === 'appearance' && (
-        <Stack gap="md">
-          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-            <Title
-              order={3}
-              style={{
-                fontSize: '12px',
-                fontWeight: 800,
-                color: 'var(--mantine-color-text)',
-                margin: '0 0 16px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}
-            >
-              ⚡ Theme & Environment
-            </Title>
-            <Stack gap="sm">
-              <Box
-                p="sm"
-                bg="var(--panel)"
-                style={{ border: '1px solid var(--line)', borderRadius: 'var(--mantine-radius-sm)' }}
-              >
-                <Box mb="xs">
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Active System Theme
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    Raw DOM sub-millisecond swapping
-                  </Text>
-                </Box>
-                <SegmentedControl
-                  value={theme}
-                  onChange={(val) => setTheme(val)}
-                  data={[
-                    { label: 'Light', value: 'light' },
-                    { label: 'Dark', value: 'dark' }
-                  ]}
-                  fullWidth
-                  styles={{
-                    root: {
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid var(--line)',
-                      borderRadius: 'var(--mantine-radius-sm)',
-                      height: '32px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    },
-                    control: { border: 'none' },
-                    indicator: {
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: 'var(--mantine-radius-sm)'
+              Configuration Category
+            </Text>
+            <Stack gap={4}>
+              {categories.map((cat) => {
+                const Icon = cat.icon
+                const isActive = activeCategory === cat.key
+                return (
+                  <NavLink
+                    key={cat.key}
+                    active={isActive}
+                    label={cat.label}
+                    description={cat.description}
+                    leftSection={
+                      <Icon
+                        size={16}
+                        color={
+                          isActive
+                            ? 'var(--mantine-color-blue-filled)'
+                            : 'var(--mantine-color-dimmed)'
+                        }
+                      />
                     }
-                  }}
-                />
-              </Box>
+                    onClick={() => setActiveCategory(cat.key as SettingsCategory)}
+                    styles={{
+                      root: {
+                        borderRadius: 'var(--mantine-radius-sm)',
+                        padding: '8px 12px',
+                        transition: 'all 0.15s ease'
+                      },
+                      label: {
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '12px'
+                      },
+                      description: {
+                        fontSize: '10px'
+                      }
+                    }}
+                  />
+                )
+              })}
             </Stack>
-          </Card>
+          </Paper>
+        </Grid.Col>
 
-          <Card withBorder radius="sm" padding="md" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-            <Title
-              order={3}
-              style={{
-                fontSize: '12px',
-                fontWeight: 800,
-                color: 'var(--mantine-color-text)',
-                margin: '0 0 16px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}
-            >
-              🎨 Real-Time Personalization Center
-            </Title>
+        {/* Right Content Workspace */}
+        <Grid.Col span={{ base: 12, md: 8.5 }}>
+          {activeCategory === 'connection' && (
             <Stack gap="md">
-              <SimpleGrid cols={2} spacing="xs">
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Accent Palette
-                  </Text>
-                  <Select
-                    size="xs"
-                    value={primaryColor}
-                    onChange={(val) => setPrimaryColor?.(val || 'dark')}
-                    data={[
-                      { value: 'dark', label: 'Monochrome (Dark)' },
-                      { value: 'violet', label: 'Sleek Violet' },
-                      { value: 'teal', label: 'Clinical Teal' },
-                      { value: 'blue', label: 'Professional Blue' },
-                      { value: 'orange', label: 'Energetic Orange' },
-                      { value: 'green', label: 'Organic Green' }
-                    ]}
-                  />
-                </Box>
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Background Tone
-                  </Text>
-                  <Select
-                    size="xs"
-                    value={bgPalette}
-                    onChange={(val) => setBgPalette?.(val || 'charcoal')}
-                    data={[
-                      { value: 'charcoal', label: 'Classic Charcoal' },
-                      { value: 'slate', label: 'Slate Steel' },
-                      { value: 'warm', label: 'Warm Amber' },
-                      { value: 'forest', label: 'Cool Pine' }
-                    ]}
-                  />
-                </Box>
-              </SimpleGrid>
+              <ConnectionSettingsCard showToast={showToast} />
+            </Stack>
+          )}
 
-              <SimpleGrid cols={2} spacing="xs">
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Corner Radius
-                  </Text>
-                  <SegmentedControl
-                    size="xs"
-                    fullWidth
-                    value={cornerRadius}
-                    onChange={(val) => setCornerRadius?.(val)}
-                    data={[
-                      { value: 'xs', label: 'Sharp' },
-                      { value: 'sm', label: 'Normal' },
-                      { value: 'md', label: 'Modern' },
-                      { value: 'lg', label: 'Curved' },
-                      { value: 'xl', label: 'Round' }
-                    ]}
-                  />
-                </Box>
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Spacing & Margins
-                  </Text>
-                  <SegmentedControl
-                    size="xs"
-                    fullWidth
-                    value={spacingScale}
-                    onChange={(val) => setSpacingScale?.(val)}
-                    data={[
-                      { value: 'xs', label: 'XS' },
-                      { value: 'sm', label: 'SM' },
-                      { value: 'md', label: 'MD' },
-                      { value: 'lg', label: 'LG' },
-                      { value: 'xl', label: 'XL' }
-                    ]}
-                  />
-                </Box>
-              </SimpleGrid>
+          {activeCategory === 'session' && (
+            <Stack gap="md">
+              <HospitalCredentialsSettings
+                settings={settings}
+                validationErrors={validationErrors}
+                employees={employees}
+                updateNestedSetting={updateNestedSetting}
+              />
+            </Stack>
+          )}
 
-              <SimpleGrid cols={2} spacing="xs">
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Typography Family
-                  </Text>
-                  <Select
-                    size="xs"
-                    value={activeFont}
-                    onChange={(val) => setActiveFont?.(val || 'Inter')}
-                    data={[
-                      { value: 'Inter', label: 'Inter UI' },
-                      { value: 'Outfit', label: 'Outfit (Premium)' },
-                      { value: 'Roboto', label: 'Roboto (Clinical)' },
-                      { value: 'JetBrains Mono', label: 'JetBrains Mono' }
-                    ]}
-                  />
-                </Box>
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Font Size Scale
-                  </Text>
-                  <SegmentedControl
-                    size="xs"
-                    fullWidth
-                    value={fontScale}
-                    onChange={(val) => setFontScale?.(val)}
-                    data={[
-                      { value: 'compact', label: 'Compact' },
-                      { value: 'standard', label: 'Standard' },
-                      { value: 'comfortable', label: 'Medium' },
-                      { value: 'large', label: 'Large' }
-                    ]}
-                  />
-                </Box>
-              </SimpleGrid>
-
-              <SimpleGrid cols={2} spacing="xs">
-                <Box>
-                  <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                    Visual Style Overlay
-                  </Text>
-                  <SegmentedControl
-                    size="xs"
-                    fullWidth
-                    value={visualStyle}
-                    onChange={(val) => setVisualStyle?.(val)}
-                    data={[
-                      { value: 'glassmorphic', label: 'Glass' },
-                      { value: 'flat', label: 'Flat' }
-                    ]}
-                  />
-                </Box>
-                <Box
+          {activeCategory === 'theme' && (
+            <Stack gap="md">
+              <Card
+                withBorder
+                radius="sm"
+                padding="md"
+                bg="var(--panel-soft)"
+                style={{
+                  backdropFilter: 'var(--backdrop-filter, blur(16px))',
+                  WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
+                }}
+              >
+                <Title
+                  order={3}
                   style={{
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: 'var(--mantine-color-text)',
+                    margin: '0 0 16px 0',
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    height: '100%',
-                    paddingTop: '16px'
+                    alignItems: 'center',
+                    gap: '8px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  <Switch
-                    label="Adaptive Card Backgrounds"
-                    description="Colors cards based on submission state"
-                    checked={adaptiveCardColors}
-                    onChange={(event) => setAdaptiveCardColors?.(event.currentTarget.checked)}
-                    size="xs"
-                  />
-                </Box>
-              </SimpleGrid>
-            </Stack>
-          </Card>
-        </Stack>
-      )}
+                  <Palette size={14} color="var(--mantine-color-blue-filled)" />
+                  Theme & Environment
+                </Title>
+                <Stack gap="md">
+                  <Box
+                    p="sm"
+                    bg="var(--panel)"
+                    style={{ border: '1px solid var(--line)', borderRadius: 'var(--mantine-radius-sm)' }}
+                  >
+                    <Box mb="xs">
+                      <Text size="xs" fw={700} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Active System Theme
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Instant zero-re-render DOM theme swapper
+                      </Text>
+                    </Box>
+                    <SegmentedControl
+                      value={theme}
+                      onChange={(val) => setTheme(val)}
+                      data={[
+                        { label: 'Light Mode', value: 'light' },
+                        { label: 'Dark Mode', value: 'dark' }
+                      ]}
+                      fullWidth
+                      size="xs"
+                    />
+                  </Box>
 
-      {settingsSubTab === 'advanced' && (
-        <Stack gap="md">
-          <AdvancedPromptSettings
-            wsStatus={wsStatus}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            setTheme={setTheme}
-            onStopServer={onStopServer}
-          />
-          <ApiPanel showToast={showToast as any} aiModel={aiModel} setAiModel={setAiModel} />
-        </Stack>
-      )}
+                  <SimpleGrid cols={2} spacing="xs">
+                    <Box>
+                      <Text
+                        size="xs"
+                        fw={700}
+                        style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
+                      >
+                        Corner Radius
+                      </Text>
+                      <SegmentedControl
+                        size="xs"
+                        fullWidth
+                        value={cornerRadius}
+                        onChange={(val) => setCornerRadius?.(val)}
+                        data={[
+                          { value: 'xs', label: 'Sharp' },
+                          { value: 'sm', label: 'Normal' },
+                          { value: 'md', label: 'Modern' },
+                          { value: 'lg', label: 'Curved' }
+                        ]}
+                      />
+                    </Box>
+                    <Box>
+                      <Text
+                        size="xs"
+                        fw={700}
+                        style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
+                      >
+                        Spacing & Margins
+                      </Text>
+                      <SegmentedControl
+                        size="xs"
+                        fullWidth
+                        value={spacingScale}
+                        onChange={(val) => setSpacingScale?.(val)}
+                        data={[
+                          { value: 'xs', label: 'XS' },
+                          { value: 'sm', label: 'SM' },
+                          { value: 'md', label: 'MD' },
+                          { value: 'lg', label: 'LG' }
+                        ]}
+                      />
+                    </Box>
+                  </SimpleGrid>
+
+                  <SimpleGrid cols={2} spacing="xs">
+                    <Box>
+                      <Text
+                        size="xs"
+                        fw={700}
+                        style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
+                      >
+                        Typography Family
+                      </Text>
+                      <Select
+                        size="xs"
+                        value={activeFont}
+                        onChange={(val) => setActiveFont?.(val || 'Inter')}
+                        data={[
+                          { value: 'Inter', label: 'Inter UI' },
+                          { value: 'Outfit', label: 'Outfit (Premium)' },
+                          { value: 'Roboto', label: 'Roboto (Clinical)' },
+                          { value: 'JetBrains Mono', label: 'JetBrains Mono' }
+                        ]}
+                      />
+                    </Box>
+                    <Box>
+                      <Text
+                        size="xs"
+                        fw={700}
+                        style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}
+                      >
+                        Font Size Scale
+                      </Text>
+                      <SegmentedControl
+                        size="xs"
+                        fullWidth
+                        value={fontScale}
+                        onChange={(val) => setFontScale?.(val)}
+                        data={[
+                          { value: 'compact', label: 'Compact' },
+                          { value: 'standard', label: 'Standard' },
+                          { value: 'comfortable', label: 'Medium' },
+                          { value: 'large', label: 'Large' }
+                        ]}
+                      />
+                    </Box>
+                  </SimpleGrid>
+
+                  <Box p="xs" bg="var(--panel)" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                    <Switch
+                      label="Adaptive Card Backgrounds"
+                      description="Dynamically colors encounter cards based on activity submission states"
+                      checked={adaptiveCardColors}
+                      onChange={(event) => setAdaptiveCardColors?.(event.currentTarget.checked)}
+                      size="xs"
+                    />
+                  </Box>
+                </Stack>
+              </Card>
+            </Stack>
+          )}
+
+          {activeCategory === 'shortcodes' && (
+            <Stack gap="md">
+              <ShortcodesSettings showToast={showToast} />
+            </Stack>
+          )}
+
+          {activeCategory === 'ai' && (
+            <Stack gap="md">
+              <ApiPanel showToast={showToast as any} aiModel={aiModel} setAiModel={setAiModel} />
+            </Stack>
+          )}
+        </Grid.Col>
+      </Grid>
     </Box>
   )
 }

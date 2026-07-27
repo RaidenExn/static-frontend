@@ -264,10 +264,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
         </Group>
       </Group>
 
-      <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl" mb="xl">
+      <Box mb="xl">
         <AiProviderPipeline providerKey="openrouter" showToast={showToast} />
-        <AiProviderPipeline providerKey="gemini" showToast={showToast} />
-      </SimpleGrid>
+      </Box>
 
       {/* iLovePDF Compactor panel */}
       <Paper p="xl" bg="var(--panel-soft)" mb="xl" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
