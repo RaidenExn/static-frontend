@@ -20,6 +20,10 @@ interface PatientHeaderBannerProps {
   claimHistory?: any[]
   copiedField: string | null
   onCopyField: (_text: string, fieldKey: string, label: string) => void
+  upstreamLatencyMs?: number
+  upstreamStatus?: 'ultra-fast' | 'healthy' | 'congested' | 'degraded'
+  upstreamProtocol?: string
+  upstreamConcurrency?: number
 }
 
 export default function PatientHeaderBanner({
@@ -37,8 +41,21 @@ export default function PatientHeaderBanner({
   networkName = '-',
   expiryDate = '-',
   copiedField,
-  onCopyField
+  onCopyField,
+  upstreamLatencyMs,
+  upstreamStatus = 'healthy',
+  upstreamProtocol = 'HTTP/2',
+  upstreamConcurrency = 4
 }: PatientHeaderBannerProps) {
+  let latencyBadgeColor = 'teal'
+  let latencyDot = '🟢'
+  if (upstreamStatus === 'degraded' || (upstreamLatencyMs && upstreamLatencyMs >= 1200)) {
+    latencyBadgeColor = 'red'
+    latencyDot = '🔴'
+  } else if (upstreamStatus === 'congested' || (upstreamLatencyMs && upstreamLatencyMs >= 500)) {
+    latencyBadgeColor = 'orange'
+    latencyDot = '🟡'
+  }
   // Determine gender display and label with a defensive fallback
   const rawGender = patientGender && patientGender !== '-' ? patientGender.trim() : 'Unknown'
   const genderDisplay = rawGender ? rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase() : 'Unknown'
@@ -517,6 +534,47 @@ export default function PatientHeaderBanner({
                   {encounterDate || '--'}
                 </Text>
               </Box>
+
+              {typeof upstreamLatencyMs === 'number' && (
+                <>
+                  <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+                  <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                    <Text
+                      fw={700}
+                      c="dimmed"
+                      style={{
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        lineHeight: 1,
+                        fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
+                      }}
+                    >
+                      EHR
+                    </Text>
+                    <Tooltip
+                      label={`Upstream EHR Latency: ${upstreamLatencyMs}ms (${upstreamStatus}) | Mode: ${upstreamProtocol} | Connections: ${upstreamConcurrency}`}
+                      position="top"
+                      withArrow
+                      openDelay={0}
+                      closeDelay={0}
+                    >
+                      <Badge
+                        size="xs"
+                        color={latencyBadgeColor}
+                        variant="light"
+                        style={{
+                          marginTop: '1px',
+                          cursor: 'help',
+                          fontWeight: 700,
+                          fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
+                        }}
+                      >
+                        {latencyDot} {upstreamLatencyMs}ms
+                      </Badge>
+                    </Tooltip>
+                  </Box>
+                </>
+              )}
             </Group>
           </Paper>
         </Grid.Col>

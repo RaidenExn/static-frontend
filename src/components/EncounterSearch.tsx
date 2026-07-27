@@ -113,7 +113,7 @@ export default function EncounterSearch({
   onCopyPrompt,
   onNewChat
 }: EncounterSearchProps) {
-  const { theme, toggleTheme, summaryResult, rcmResult } = usePortal()
+  const { theme, toggleTheme, summaryResult, rcmResult, upstreamHealth } = usePortal()
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
   const selected = summaryResult?.Ok?.selected || rcmResult?.Ok?.rcm?.selected
@@ -181,6 +181,8 @@ export default function EncounterSearch({
         claimHistory={claimHistory}
         copiedField={copiedField}
         onCopyField={handleCopyField}
+        upstreamLatencyMs={upstreamHealth?.latencyMs}
+        upstreamStatus={upstreamHealth?.status}
       />
 
       {/* ROW 2: Left Actions & Right Loader Controls inside native component form */}

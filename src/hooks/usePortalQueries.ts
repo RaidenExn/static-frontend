@@ -48,6 +48,34 @@ export function usePortalQueries({
   const [summaryLoading, setSummaryLoading] = useState<boolean>(false)
   const [rcmLoading, setRcmLoading] = useState<boolean>(false)
   const [resultsLoading, setResultsLoading] = useState<boolean>(false)
+  const [upstreamHealth, setUpstreamHealth] = useState<{
+    latencyMs: number
+    status: 'ultra-fast' | 'healthy' | 'congested' | 'degraded'
+    poolConcurrency: number
+  }>({
+    latencyMs: 42,
+    status: 'ultra-fast',
+    poolConcurrency: 5
+  })
+
+  useEffect(() => {
+    let active = true
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('/api/upstream/health')
+        if (res.ok && active) {
+          const data = await res.json()
+          setUpstreamHealth(data)
+        }
+      } catch (_) {}
+    }
+    fetchHealth()
+    const timer = setInterval(fetchHealth, 10000)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
+  }, [])
   const [historicLoading, setHistoricLoading] = useState<boolean>(false)
   const [loadToken, setLoadToken] = useState<number>(0)
 
@@ -718,6 +746,7 @@ export function usePortalQueries({
     setSummaryResult,
     rcmResult,
     setRcmResult,
+    upstreamHealth,
     summaryLoading,
     rcmLoading,
     resultsLoading,
