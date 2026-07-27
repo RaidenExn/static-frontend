@@ -168,6 +168,7 @@ export interface RcmResubmission {
   resubmit_reason_id?: any
   resubmitReasonId?: any
   id?: any
+  attachment?: any
 }
 
 export interface RcmData {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, Group, Text, Badge, Table, Stack, Button, Box, ActionIcon, Tooltip } from '@mantine/core'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Paperclip } from 'lucide-react'
 import { RcmRemark, RcmResubmission } from '../../types'
 import { remarkText, rcmStrVal, parseDateLikeJs } from '../../utils'
 import dayjs from 'dayjs'
@@ -554,9 +554,10 @@ export default function RemarksAndResubmissionsPanel({
               ) : (
                 resubmissionsRows.map((row, idx) => {
                   const reason = row.reason || ''
-                  const fileIdStr = rcmStrVal(row.file_id) || ''
+                  const fileIdStr = rcmStrVal(row.file_id) || rcmStrVal(row.resubmit_reason_id) || rcmStrVal(row.id) || ''
                   const siteIdStr = rcmStrVal(row.site_id) || ''
-                  const fileNameStr = row.ra_file_name || ''
+                  const fileNameStr = row.ra_file_name || row.attachment || ''
+                  const hasAttachment = !!(fileIdStr || fileNameStr || row.source === 'Saved Comment' || row.attachment)
 
                   return (
                     <Table.Tr key={idx} style={{ borderBottom: '1px solid var(--line)' }}>
@@ -602,38 +603,44 @@ export default function RemarksAndResubmissionsPanel({
                             {row._encounter || '—'}
                           </Text>
                           <Box style={{ height: '18px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {fileIdStr ? (
+                            {hasAttachment ? (
                               <Group gap="xs" wrap="nowrap">
-                                <Button
-                                  size="xs"
-                                  variant="light"
-                                  color="gray"
-                                  onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr, true)}
-                                  style={{
-                                    padding: '0 8px',
-                                    fontSize: 'var(--mantine-font-size-xs)',
-                                    height: '18px',
-                                    minHeight: '0',
-                                    lineHeight: '16px'
-                                  }}
-                                >
-                                  XML
-                                </Button>
-                                <Button
-                                  size="xs"
-                                  variant="light"
-                                  color="gray"
-                                  onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr, false)}
-                                  style={{
-                                    padding: '0 8px',
-                                    fontSize: 'var(--mantine-font-size-xs)',
-                                    height: '18px',
-                                    minHeight: '0',
-                                    lineHeight: '16px'
-                                  }}
-                                >
-                                  PDF
-                                </Button>
+                                {fileIdStr && (
+                                  <Button
+                                    size="xs"
+                                    variant="light"
+                                    color="gray"
+                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr, true)}
+                                    style={{
+                                      padding: '0 8px',
+                                      fontSize: 'var(--mantine-font-size-xs)',
+                                      height: '18px',
+                                      minHeight: '0',
+                                      lineHeight: '16px'
+                                    }}
+                                  >
+                                    XML
+                                  </Button>
+                                )}
+                                <Tooltip label="Open Attached PDF Document" openDelay={0} closeDelay={0}>
+                                  <Button
+                                    size="xs"
+                                    variant="light"
+                                    color="blue"
+                                    leftSection={<Paperclip size={11} style={{ color: 'var(--mantine-color-blue-6)' }} />}
+                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr || 'resubmission_attachment.pdf', false)}
+                                    style={{
+                                      padding: '0 8px',
+                                      fontSize: 'var(--mantine-font-size-xs)',
+                                      height: '18px',
+                                      minHeight: '0',
+                                      lineHeight: '16px',
+                                      fontWeight: 600
+                                    }}
+                                  >
+                                    PDF
+                                  </Button>
+                                </Tooltip>
                               </Group>
                             ) : (
                               <Text size="xs" c="var(--muted)">
