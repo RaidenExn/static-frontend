@@ -11,8 +11,7 @@ import {
   Modal,
   Box,
   Progress,
-  Divider,
-  Switch
+  Divider
 } from '@mantine/core'
 import {
   HardDrive,
@@ -23,9 +22,7 @@ import {
   Clock,
   Trash2,
   RefreshCw,
-  AlertTriangle,
-  FlaskConical,
-  ShieldCheck
+  AlertTriangle
 } from 'lucide-react'
 import { customFetch as fetch } from '../../config/backend'
 import { ExperimentalSettingsCard } from '../settings/ExperimentalSettingsCard'
@@ -54,8 +51,8 @@ export const StorageCategoryBreakdown: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [purgingTarget, setPurgingTarget] = useState<string | null>(null)
   const [confirmModalTarget, setConfirmModalTarget] = useState<{ target: string; title: string } | null>(null)
-  const [expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
-  const [savingExp, setSavingExp] = useState<boolean>(false)
+  const [_expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
+  const [_savingExp] = useState<boolean>(false)
 
   const fetchOverview = useCallback(async () => {
     setLoading(true)
@@ -65,7 +62,8 @@ export const StorageCategoryBreakdown: React.FC = () => {
         const data = await res.json()
         setOverview(data)
       }
-    } catch (_) {
+    } catch  {
+      // Overview fetch may fail
     } finally {
       setLoading(false)
     }
@@ -78,28 +76,15 @@ export const StorageCategoryBreakdown: React.FC = () => {
         const data = await res.json()
         setExpEhrVerification(data.experimentalEhrVerification !== false)
       }
-    } catch (_) {}
+    } catch  {
+      // Settings fetch may fail
+    }
   }, [])
 
   useEffect(() => {
     fetchOverview()
     fetchExperimentalSettings()
   }, [fetchOverview, fetchExperimentalSettings])
-
-  const handleToggleExp = async (checked: boolean) => {
-    setExpEhrVerification(checked)
-    setSavingExp(true)
-    try {
-      await fetch('/api/settings/experimental-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experimentalEhrVerification: checked })
-      })
-    } catch (_) {
-    } finally {
-      setSavingExp(false)
-    }
-  }
 
   const handlePurge = async (target: string) => {
 
@@ -115,6 +100,7 @@ export const StorageCategoryBreakdown: React.FC = () => {
         await fetchOverview()
       }
     } catch (_) {
+      // Purge request may fail
     } finally {
       setPurgingTarget(null)
     }

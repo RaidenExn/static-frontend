@@ -4,11 +4,11 @@ import { Copy, Trash2, Zap, ChevronDown, History } from 'lucide-react'
 
 interface EncounterLoaderProps {
   encounterInput: string
-  setEncounterInput: (val: string) => void
+  setEncounterInput: (_val: string) => void
   recentEncounters: string[]
   clearRecentEncounters: () => void
   onLoadEncounter: (val?: string, mode?: 'force' | 'cache-first') => void
-  showToast?: (text: string, tone: string) => void
+  showToast?: (_text: string, tone: string) => void
 }
 
 export default function EncounterLoader({

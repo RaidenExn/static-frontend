@@ -14,34 +14,34 @@ interface ResubmissionTabProps {
   canSaveResubmission: boolean
   canSaveRaRemarks: boolean
   resubmitType: string
-  setResubmitType: (val: string) => void
+  setResubmitType: (_val: string) => void
   selectedRaFileId: string
-  setSelectedRaFileId: (val: string) => void
+  setSelectedRaFileId: (_val: string) => void
   raFilesList: RaFile[]
   onAttachSummary?: () => void
   attachedFileName: string
   attachedFileBase64?: string
   fileInputRef: React.RefObject<HTMLInputElement | null>
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onFileChange: (_e: React.ChangeEvent<HTMLInputElement>) => void
   isDragOver: boolean
-  onDragOver: (e: React.DragEvent) => void
-  onDragLeave: (e: React.DragEvent) => void
-  onDrop: (e: React.DragEvent) => void
+  onDragOver: (_e: React.DragEvent) => void
+  onDragLeave: (_e: React.DragEvent) => void
+  onDrop: (_e: React.DragEvent) => void
   resubComments: string
-  setResubComments: (val: string) => void
+  setResubComments: (_val: string) => void
   isSavingResub: boolean
   onSaveResubmissionAndUpload: () => void
   onClearResubmission: () => void
   onRemoveAttachment?: () => void
-  showToast?: (text: string, tone: string) => void
+  showToast?: (_text: string, tone: string) => void
   serverAttachments?: any[]
-  onDeleteServerAttachment: (id: number) => void
+  onDeleteServerAttachment: (_id: number) => void
   suggestions?: string[]
   autoAttachSummary: boolean
-  setAutoAttachSummary: (val: boolean) => void
+  setAutoAttachSummary: (_val: boolean) => void
   onAutoPrompt?: () => void
   followUpReply: string
-  onFollowUpReplyChange: (val: string) => void
+  onFollowUpReplyChange: (_val: string) => void
   onSendFollowUpReply: () => void
   allActivitiesWriteOff: boolean
   adaptiveCardColors?: boolean
@@ -74,7 +74,7 @@ export default function ResubmissionTab({
   onRemoveAttachment,
   showToast,
   serverAttachments = [],
-  onDeleteServerAttachment,
+  onDeleteServerAttachment: _onDeleteServerAttachment,
   suggestions = [],
   autoAttachSummary,
   setAutoAttachSummary,

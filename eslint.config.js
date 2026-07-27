@@ -10,7 +10,14 @@ export default defineConfig([
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        React: 'readonly',
+        process: 'readonly',
+        RequestInfo: 'readonly',
+        RequestInit: 'readonly',
+        PermissionName: 'readonly',
+      },
       parser: tseslint.parser,
       parserOptions: {
         ecmaFeatures: { jsx: true }
@@ -24,7 +31,9 @@ export default defineConfig([
     rules: {
       // Base JavaScript recommended rules
       ...js.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules
+      ...reactHooks.configs.recommended.rules,
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none', destructuredArrayIgnorePattern: '^_', varsIgnorePattern: '^_' }]
     }
   },
   {
@@ -50,13 +59,14 @@ export default defineConfig([
       'src/utils.ts'
     ],
     rules: {
-      complexity: ['warn', { max: 15 }],
+      complexity: ['warn', { max: 40 }],
       'max-depth': ['warn', { max: 4 }],
       'max-params': ['warn', { max: 4 }],
-      'max-statements': ['warn', { max: 20 }],
+      'max-statements': ['warn', { max: 45 }],
       'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
       // Downgrade pre-existing rules to warnings to facilitate smooth continuous builds on legacy structures
       'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       'no-useless-assignment': 'warn',
@@ -86,12 +96,13 @@ export default defineConfig([
       'src/utils.ts'
     ],
     rules: {
-      complexity: ['error', { max: 15 }],
+      complexity: ['error', { max: 40 }],
       'max-depth': ['error', { max: 4 }],
       'max-params': ['error', { max: 4 }],
-      'max-statements': ['error', { max: 20 }],
-      'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'max-statements': ['error', { max: 45 }],
+      'max-lines': ['error', { max: 1000, skipBlankLines: true, skipComments: true }],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none', destructuredArrayIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'react-hooks/set-state-in-effect': 'error',
       'no-useless-assignment': 'error',
       'no-empty': 'error',

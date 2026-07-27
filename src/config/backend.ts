@@ -7,7 +7,7 @@ export function validateBackendUrl(urlStr: string): boolean {
   try {
     const url = new URL(urlStr);
     return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch (_) {
+  } catch  {
     return false;
   }
 }
@@ -45,7 +45,7 @@ export function extractIpFromBackendUrl(urlStr: string | null): string {
   try {
     const url = new URL(urlStr.includes('://') ? urlStr : `https://${urlStr}`);
     return url.hostname;
-  } catch (_) {
+  } catch  {
     return urlStr
       .replace(/^https?:\/\//i, '')
       .split(':')[0]
@@ -95,7 +95,7 @@ export function resolveWsUrl(path: string): string {
     const wsProto = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${wsProto}//${parsed.host}${cleanPath}`;
-  } catch (_) {
+  } catch  {
     return path;
   }
 }

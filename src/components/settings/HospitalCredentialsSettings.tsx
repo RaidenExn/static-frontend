@@ -5,7 +5,7 @@ interface HospitalCredentialsSettingsProps {
   settings: any
   validationErrors: Record<string, any>
   employees: any[]
-  updateNestedSetting: (keyPath: string[], value: any) => void
+  updateNestedSetting: (_keyPath: string[], value: any) => void
 }
 
 export function HospitalCredentialsSettings({

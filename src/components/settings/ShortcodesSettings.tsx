@@ -4,7 +4,7 @@ import { Download, Upload, CheckCircle, RefreshCw } from 'lucide-react'
 import { resolveApiUrl, customFetch as fetch } from '../../config/backend'
 
 interface ShortcodesSettingsProps {
-  showToast: (text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
+  showToast: (_text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
 }
 
 export function ShortcodesSettings({ showToast }: ShortcodesSettingsProps) {

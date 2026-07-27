@@ -51,12 +51,12 @@ export function useActivityState({
   activityRows,
   rowActions,
   setRowActions,
-  canSaveRaRemarks,
+  canSaveRaRemarks: _canSaveRaRemarks,
   encounter,
   encounterStartDate,
   encounterEndDate,
   showToast,
-  shortcodes = {}
+  shortcodes: _shortcodes = {}
 }: UseActivityStateProps) {
   const { setResubmitType } = usePortal()
   const [denialCodesMap, setDenialCodesMap] = React.useState<Record<string, string>>({})
@@ -75,7 +75,7 @@ export function useActivityState({
   const [batchAuthStartInput, setBatchAuthStartInput] = React.useState('')
   const [batchAuthExpiryInput, setBatchAuthExpiryInput] = React.useState('')
   const [batchActivityStartInput, setBatchActivityStartInput] = React.useState('')
-  const [isSavingBatchAuthDates, setIsSavingBatchAuthDates] = React.useState(false)
+  const [isSavingBatchAuthDates] = React.useState(false)
 
   // Double-Click Inline Editing and Highlighting States
   const [editingCell, setEditingCell] = React.useState<{

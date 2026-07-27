@@ -5,7 +5,7 @@
 export async function compressAndMergePdfsOnBackend(
   pdfs: { downloadUrl: string; fileName: string }[],
   encounter: string,
-  showToast: (textOrPayload: any, tone?: string) => void,
+  showToast: (_textOrPayload: any, tone?: string) => void,
   uploadEncounter?: string
 ): Promise<{ fileName: string; base64?: string; success?: boolean; beforeBytes?: number; afterBytes?: number } | null> {
   const toastId = 'pdf-compress-merge'
@@ -82,7 +82,9 @@ export async function compressAndMergePdfsOnBackend(
           } else if (stage === 'done') {
             try {
               resultPayload = JSON.parse(message)
-            } catch (_) {}
+            } catch  {
+              // JSON parse may fail for non-JSON messages
+            }
           } else if (stage === 'error') {
             showToast({
               id: toastId,
@@ -93,7 +95,7 @@ export async function compressAndMergePdfsOnBackend(
             })
             return null
           }
-        } catch (_) {
+        } catch  {
           // Ignore invalid parse chunks
         }
       }

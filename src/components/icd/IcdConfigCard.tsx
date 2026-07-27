@@ -9,19 +9,19 @@ interface IcdConfigCardProps {
   handleCloseAddendum: () => void
   handleOpenAddendum: () => void
   addendumRemark: string
-  setAddendumRemark: (v: string) => void
+  setAddendumRemark: (_v: string) => void
   creatingUserId: string
-  setCreatingUserId: (v: string) => void
-  setAddendumCreatedBy: (v: string) => void
+  setCreatingUserId: (_v: string) => void
+  setAddendumCreatedBy: (_v: string) => void
   physicianId: number | null
   physicianName: string
   isBypassMode: boolean
-  setIsBypassMode: (v: boolean) => void
+  setIsBypassMode: (_v: boolean) => void
   currentOperatorId: string
 }
 
 export function IcdConfigCard({
-  compact,
+  compact: _compact,
   addendumId,
   addendumStatusText,
   handleCloseAddendum,

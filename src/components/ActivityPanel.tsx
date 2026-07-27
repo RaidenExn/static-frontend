@@ -14,14 +14,14 @@ const parseDateString = (str: string | null | undefined): Date | null => {
   const trimmed = str.trim()
   
   // 1. Try DD/MM/YYYY HH:mm (or with seconds) or DD-MM-YYYY HH:mm
-  const slashDmyMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  const slashDmyMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
   if (slashDmyMatch) {
     const [_, day, month, year, hour, minute] = slashDmyMatch
     return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute))
   }
 
   // 2. Try YYYY-MM-DD HH:mm (or with seconds / T separator)
-  const ymdMatch = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+|T)(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  const ymdMatch = trimmed.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:\s+|T)(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
   if (ymdMatch) {
     const [_, year, month, day, hour, minute] = ymdMatch
     return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute))

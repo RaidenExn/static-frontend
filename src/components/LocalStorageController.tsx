@@ -4,11 +4,11 @@ import { Database, Play } from 'lucide-react'
 
 interface LocalStorageControllerProps {
   storageInput: string
-  setStorageInput: (val: string) => void
+  setStorageInput: (_val: string) => void
   storageLoading: boolean
   storageJob: any
   storageConcurrency: number
-  setStorageConcurrency: (val: number) => void
+  setStorageConcurrency: (_val: number) => void
   onStartStorageCaching: () => void
 }
 

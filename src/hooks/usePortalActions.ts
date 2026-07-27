@@ -25,7 +25,7 @@ export function usePortalActions() {
     resubComments,
     setResubComments,
     raRemarks,
-    setRaRemarks,
+    setRaRemarks: _setRaRemarks,
     autoCopyRaRemarks,
     writeOffRemarks,
     setWriteOffRemarks,
@@ -601,7 +601,7 @@ export function usePortalActions() {
 
       const downloadUrl = `/download/summary/symfony?patientId=${patientId}&siteId=${siteId}&encounterId=${encounterId}&createdBy=${createdBy}`
 
-      await openPdfInExtension(downloadUrl, `${encName}-summary`, false, showToast)
+      await openPdfInExtension(downloadUrl, `${encName}-summary`, false, { showToast })
     } catch (e: any) {
       showToast(e.message, 'error')
     }

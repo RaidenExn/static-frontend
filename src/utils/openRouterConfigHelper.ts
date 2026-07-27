@@ -59,7 +59,7 @@ export function validateModelId(modelId: string): { isValid: boolean; error?: st
     return { isValid: false, error: 'Model ID cannot contain spaces.' }
   }
   // Standard format check: typically organization/model-name, but can be just a model name or contain a colon (e.g., :free)
-  const modelRegex = /^[a-zA-Z0-9_\-\.\/\:]+$/
+  const modelRegex = /^[a-zA-Z0-9_\-./:]+$/
   if (!modelRegex.test(trimmed)) {
     return {
       isValid: false,

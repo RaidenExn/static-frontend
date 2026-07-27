@@ -37,7 +37,7 @@ export interface VersionSnapshot {
 
 interface UsePromptConfigProps {
   active: boolean
-  showToast?: (msg: string, tone: 'ok' | 'error' | 'warning' | 'loading') => void
+  showToast?: (_msg: string, tone: 'ok' | 'error' | 'warning' | 'loading') => void
 }
 
 export function usePromptConfig({ active, showToast }: UsePromptConfigProps) {
@@ -106,13 +106,19 @@ export function usePromptConfig({ active, showToast }: UsePromptConfigProps) {
     }
   }
 
-  const handleSave = async (
+  const handleSave = async ({
     customInstructions = systemInstructions,
     customEncounter = encounterBlocks,
     customName = name,
     customDesc = description,
-    customModel = aiModel
-  ) => {
+    customModel = aiModel,
+  }: {
+    customInstructions?: string
+    customEncounter?: any
+    customName?: string
+    customDesc?: string
+    customModel?: string
+  } = {}) => {
     setSaving(true)
     showToast?.('Saving active configuration...', 'loading')
     try {

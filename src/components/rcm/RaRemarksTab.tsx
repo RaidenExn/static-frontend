@@ -9,14 +9,14 @@ interface RaRemarksTabProps {
   pendingResub: number
   pendingWriteOff: number
   raRemarks: string
-  setRaRemarks: (val: string) => void
+  setRaRemarks: (_val: string) => void
   autoCopyRaRemarks: boolean
-  setAutoCopyRaRemarks: (val: boolean) => void
+  setAutoCopyRaRemarks: (_val: boolean) => void
   isSavingRaRemarks: boolean
   onSaveRaRemarks: () => void
   onClearRaRemarks: () => void
   autoTransferToRaRemarks: boolean
-  setAutoTransferToRaRemarks: (val: boolean) => void
+  setAutoTransferToRaRemarks: (_val: boolean) => void
   hasPreExistingRemarksOrComments: boolean
 }
 

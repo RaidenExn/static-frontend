@@ -30,27 +30,27 @@ interface ObservationsModalProps {
   obsCodes: ObsCode[]
   editingObsvid: number | undefined
   obsType: number
-  setObsType: (val: number) => void
+  setObsType: (_val: number) => void
   obsValue: string
-  setObsValue: (val: string) => void
+  setObsValue: (_val: string) => void
   obsDesc: string
-  setObsDesc: (val: string) => void
+  setObsDesc: (_val: string) => void
   obsCode: number
-  setObsCode: (val: number) => void
+  setObsCode: (_val: number) => void
   obsCodeValue: string
-  setObsCodeValue: (val: string) => void
+  setObsCodeValue: (_val: string) => void
   obsValueType: number
-  setObsValueType: (val: number) => void
+  setObsValueType: (_val: number) => void
   uploadingObs: boolean
   dragActive: boolean
   fileNameDisplay: string
-  handleEditObs: (obs: Observation) => void
-  handleDeleteObs: (obsvid: number) => void
-  handleDrag: (e: React.DragEvent) => void
-  handleDrop: (e: React.DragEvent) => void
-  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleSubmitObs: (e: React.FormEvent) => void
-  handleDownloadObsFile: (obsvid: number, filename: string) => void
+  handleEditObs: (_obs: Observation) => void
+  handleDeleteObs: (_obsvid: number) => void
+  handleDrag: (_e: React.DragEvent) => void
+  handleDrop: (_e: React.DragEvent) => void
+  handleFileChange: (_e: React.ChangeEvent<HTMLInputElement>) => void
+  handleSubmitObs: (_e: React.FormEvent) => void
+  handleDownloadObsFile: (_obsvid: number, filename: string) => void
   resetForm: () => void
 }
 

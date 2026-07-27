@@ -9,11 +9,11 @@ import BypassPanel from './BypassPanel'
 
 interface BulkOperationsPanelProps {
   active: boolean
-  showToast: (msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
+  showToast: (_msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
   repeatTrackerLookbackYears: number
-  setRepeatTrackerLookbackYears: (val: number) => void
+  setRepeatTrackerLookbackYears: (_val: number) => void
   mnecLookbackYears: number
-  setMnecLookbackYears: (val: number) => void
+  setMnecLookbackYears: (_val: number) => void
 }
 
 export default function BulkOperationsPanel({

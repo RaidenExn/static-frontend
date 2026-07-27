@@ -71,7 +71,8 @@ export async function pingServer(
         };
       }
     }
-  } catch (_) {
+  } catch  {
+    // Timer cleanup on abort
     clearTimeout(timer);
   }
   return null;
@@ -79,9 +80,9 @@ export async function pingServer(
 
 export function scanNetwork(
   subnetPrefix: string,
-  onProgress: (currentIp: string, checkedCount: number, total: number) => void,
-  onFound: (server: DiscoveredServer) => void,
-  onComplete: (servers: DiscoveredServer[]) => void
+  onProgress: (_currentIp: string, checkedCount: number, total: number) => void,
+  onFound: (_server: DiscoveredServer) => void,
+  onComplete: (_servers: DiscoveredServer[]) => void
 ): { abort: () => void } {
   const ips = generateSubnetHosts(subnetPrefix);
   let checkedCount = 0;
@@ -122,7 +123,9 @@ export function scanNetwork(
       controllers.forEach((ctrl) => {
         try {
           ctrl.abort();
-        } catch (_) {}
+        } catch  {
+          // Abort may throw if already completed
+        }
       });
     }
   };
@@ -149,14 +152,18 @@ export function getCachedDiscoveredServers(): DiscoveredServer[] {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
     }
-  } catch (_) {}
+  } catch  {
+    // localStorage may be unavailable
+  }
   return [];
 }
 
 export function saveDiscoveredServersCache(servers: DiscoveredServer[]): void {
   try {
     localStorage.setItem(FOUND_SERVERS_KEY, JSON.stringify(servers));
-  } catch (_) {}
+  } catch  {
+    // localStorage may be unavailable
+  }
 }
 
 export function addDiscoveredServerToCache(server: DiscoveredServer): void {

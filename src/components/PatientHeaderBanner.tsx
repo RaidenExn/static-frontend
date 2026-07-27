@@ -19,7 +19,7 @@ interface PatientHeaderBannerProps {
   resubmissionCount?: number
   claimHistory?: any[]
   copiedField: string | null
-  onCopyField: (text: string, fieldKey: string, label: string) => void
+  onCopyField: (_text: string, fieldKey: string, label: string) => void
 }
 
 export default function PatientHeaderBanner({

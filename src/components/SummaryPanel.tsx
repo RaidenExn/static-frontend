@@ -12,7 +12,7 @@ interface SummaryPanelProps {
   onExportHtml: () => void
   onExportPdf: () => void
   onExportZip: () => void
-  showToast: (text: string, tone: 'ok' | 'error' | 'loading' | 'info' | 'warning', durationMs?: number) => void
+  showToast: (_text: string, tone: 'ok' | 'error' | 'loading' | 'info' | 'warning', durationMs?: number) => void
   encounter: string
   theme: string
 }

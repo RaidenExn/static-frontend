@@ -9,9 +9,6 @@ interface SubmissionBadgeGroupProps {
 }
 
 export default function SubmissionBadgeGroup({
-  isPaperClaim = false,
-  resubmissionCount = 0,
-  claimHistory = [],
   submissionState
 }: SubmissionBadgeGroupProps) {
   const [hovered, setHovered] = React.useState(false)

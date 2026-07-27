@@ -16,32 +16,34 @@ export default function BackendConnectionScreen() {
       // Proactively scavenge standard ports on localhost
       const ports = [8788, 8789, 8790, 8791]
       const protocols = ['https', 'http']
+      const checkUrl = async (url: string) => {
+        const controller = new AbortController()
+        const id = setTimeout(() => controller.abort(), 600)
+        try {
+          const res = await fetch(`${url}/lt-local/ping`, {
+            method: 'GET',
+            mode: 'cors',
+            signal: controller.signal
+          })
+          clearTimeout(id)
+          if (!res.ok) return false
+          const text = await res.text()
+          return text.trim() === 'LT_LOCAL_OK' || text.includes('OK')
+        } catch {
+          return false
+        }
+      }
       for (const port of ports) {
         for (const proto of protocols) {
-          try {
-            const url = `${proto}://localhost:${port}`
-            const controller = new AbortController()
-            const id = setTimeout(() => controller.abort(), 600)
-            const res = await fetch(`${url}/lt-local/ping`, {
-              method: 'GET',
-              mode: 'cors',
-              signal: controller.signal
-            })
-            clearTimeout(id)
-            if (res.ok) {
-              const text = await res.text()
-              if (text.trim() === 'LT_LOCAL_OK' || text.includes('OK')) {
-                console.log(`[AutoConnect] Successfully scavenged active local server at ${url}`)
-                setSuccess(true)
-                setBackendUrl(url)
-                setTimeout(() => {
-                  window.location.reload()
-                }, 600)
-                return
-              }
-            }
-          } catch (_) {
-            // Keep probing
+          const url = `${proto}://localhost:${port}`
+          if (await checkUrl(url)) {
+            console.log(`[AutoConnect] Successfully scavenged active local server at ${url}`)
+            setSuccess(true)
+            setBackendUrl(url)
+            setTimeout(() => {
+              window.location.reload()
+            }, 600)
+            return
           }
         }
       }

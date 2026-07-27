@@ -4,7 +4,7 @@ import { customFetch as fetch } from '../config/backend'
 
 interface UsePortalStorageProps {
   activeTab: string
-  showToast: (text: string, tone: string) => void
+  showToast: (_text: string, tone: string) => void
 }
 
 export function usePortalStorage({ activeTab, showToast }: UsePortalStorageProps) {

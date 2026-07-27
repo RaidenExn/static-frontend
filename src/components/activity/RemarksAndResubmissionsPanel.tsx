@@ -10,7 +10,7 @@ interface RemarksAndResubmissionsPanelProps {
   remarksRows: RcmRemark[]
   resubmissionsCount: number
   resubmissionsRows: RcmResubmission[]
-  onLoadSubmissionFile: (fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
+  onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
   adaptiveCardColors?: boolean
   submissionStateColor?: string
   theme?: string

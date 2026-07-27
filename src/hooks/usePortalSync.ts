@@ -6,34 +6,26 @@ import { usePortal } from '../context/PortalContext'
 export function usePortalSync() {
   const {
     rcmResult,
-    setRcmResult,
     encounterInput,
     shortcodes,
     shortcodesLoaded,
     resubmitType,
     setResubmitType,
-    selectedRaFileId,
     setSelectedRaFileId,
     resubComments,
     setResubComments,
     raRemarks,
     setRaRemarks,
     setWriteOffRemarks,
-    rowActions,
     setRowActionsState,
 
-    autoTransferToRaRemarks,
     setAutoTransferToRaRemarks,
-    hasPreExistingRemarksOrComments,
     setHasPreExistingRemarksOrComments,
-    doubleAccumulationMode,
     repeatTrackerLoaded,
     setRepeatTrackerLoaded,
     loadingRepeatTracker,
     handleLoadRepeatTracker,
-    showToast,
-    isSavingInPlaceRef,
-    syncSourceRef
+    isSavingInPlaceRef
   } = usePortal()
   const lastSuggestedRef = useRef<string>('')
   const lastInitializedEncounterRef = useRef<string>('')

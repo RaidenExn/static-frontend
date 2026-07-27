@@ -35,7 +35,7 @@ interface UseObservationsProps {
   active: boolean
   rcmResult: RcmResult | null
   encounterInput: string
-  showToast: (text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
+  showToast: (_text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
 }
 
 export function useObservations({ active, rcmResult, encounterInput, showToast }: UseObservationsProps) {

@@ -5,7 +5,7 @@ import { resolveWsUrl, customFetch as fetch } from '../config/backend'
 
 interface UseSettingsProps {
   active: boolean
-  showToast: (text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
+  showToast: (_text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
 }
 
 export function useSettings({ active, showToast }: UseSettingsProps) {

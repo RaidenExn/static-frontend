@@ -13,8 +13,6 @@ interface BulkResubmissionPanelProps {
 }
 
 export default function BulkResubmissionPanel({ active, showToast }: BulkResubmissionPanelProps) {
-  if (!active) return null
-
   const {
     step,
     setStep,
@@ -39,6 +37,8 @@ export default function BulkResubmissionPanel({ active, showToast }: BulkResubmi
     handleStartProcessing,
     resetState
   } = useBulkResubmission(showToast)
+
+  if (!active) return null
 
   return (
     <Card withBorder padding="md">

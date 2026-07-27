@@ -5,7 +5,7 @@ import { customFetch as fetch } from '../config/backend'
 
 interface BulkXmlPanelProps {
   active: boolean
-  showToast: (msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
+  showToast: (_msg: string, type: 'ok' | 'error' | 'warning' | 'info' | 'loading') => void
 }
 
 export default function BulkXmlPanel({ active, showToast }: BulkXmlPanelProps) {
@@ -21,7 +21,7 @@ export default function BulkXmlPanel({ active, showToast }: BulkXmlPanelProps) {
 
     // Regex to match encounter IDs (e.g. BJ/2026/ENC-100 or BJ-2026-ENC-100)
     // Slashes and hyphens are normalized or accepted
-    const regex = /BJ[/\-]\d{4}[/\-]ENC-\d+/gi
+    const regex = /BJ[/-]\d{4}[/-]ENC-\d+/gi
     const matches = text.match(regex) || []
     const unique = [...new Set(matches.map((m) => m.toUpperCase().replace(/-/g, '/')))]
     setParsedEncounters(unique)

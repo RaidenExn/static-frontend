@@ -35,6 +35,7 @@ export function useEncounterBlocks() {
         setEnabledIds(data.enabledIds || [])
       }
     } catch {
+      // Blocks fetch may fail
     } finally {
       setLoading(false)
     }
