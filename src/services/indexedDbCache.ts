@@ -78,6 +78,17 @@ export async function getEncounterFromIndexedDb(encounterId: string): Promise<Ca
   }
 }
 
+export async function deleteEncounterFromIndexedDb(encounterId: string): Promise<void> {
+  if (!encounterId) return
+  try {
+    const db = await openDb()
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    tx.objectStore(STORE_NAME).delete(encounterId.trim())
+  } catch (err) {
+    console.warn('[IndexedDB] Failed to delete encounter bundle:', err)
+  }
+}
+
 export async function clearIndexedDbCache(): Promise<void> {
   try {
     const db = await openDb()

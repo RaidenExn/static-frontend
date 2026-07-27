@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { SubmissionFileResponse } from '../types'
 import { openBlobUrl, openPdfInExtension, rowHasRepeatTrackerMarker, isoDate } from '../utils'
 import { customFetch as fetch } from '../config/backend'
-import { saveEncounterToIndexedDb, getEncounterFromIndexedDb } from '../services/indexedDbCache'
+import { saveEncounterToIndexedDb, getEncounterFromIndexedDb, deleteEncounterFromIndexedDb } from '../services/indexedDbCache'
 import { pdfCache } from '../services/pdfMemoryCache'
 
 
@@ -82,6 +82,10 @@ export function usePortalQueries({
 
   const updateRcmResultLive = useCallback((newData: any) => {
     if (!newData) return
+    const encounterId = newData?.selected?.display_encounter_configno || newData?.Ok?.selected?.display_encounter_configno || newData?.encounterInput || ''
+    if (encounterId) {
+      deleteEncounterFromIndexedDb(String(encounterId).toUpperCase()).catch(() => {})
+    }
     setRcmResult((prev: any) => {
       const existingOk = prev?.Ok || {}
       const newOk = newData?.Ok || newData || {}
