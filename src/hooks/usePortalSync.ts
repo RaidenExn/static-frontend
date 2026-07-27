@@ -188,38 +188,53 @@ export function usePortalSync() {
   const showToastRef = useRef(showToast)
   showToastRef.current = showToast
 
-  useEffect(() => {
-    if (!activeEncounterNo) return
+  const activeEncounterNoRef = useRef(activeEncounterNo)
+  activeEncounterNoRef.current = activeEncounterNo
 
+  useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const wsUrl = `${wsProtocol}//${window.location.host}/ws`
 
     let ws: WebSocket | null = null
-    try {
-      ws = new WebSocket(wsUrl)
-      ws.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data)
-          if (msg.type === 'encounter_updated') {
-            const updatedEnc = String(msg.encounter || '').trim().toUpperCase()
-            if (updatedEnc && (updatedEnc === activeEncounterNo || activeEncounterNo.includes(updatedEnc))) {
-              if (msg.data && typeof updateRcmResultLiveRef.current === 'function') {
-                updateRcmResultLiveRef.current(msg.data)
-                const aspectsStr = Array.isArray(msg.aspects) ? msg.aspects.join(', ') : 'details'
-                if (typeof showToastRef.current === 'function') {
-                  showToastRef.current(`Live Update: Encounter ${updatedEnc} updated (${aspectsStr} refreshed)`, 'ok')
+    let reconnectTimer: any = null
+
+    const connectWS = () => {
+      try {
+        ws = new WebSocket(wsUrl)
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data)
+            if (msg.type === 'encounter_updated') {
+              const updatedEnc = String(msg.encounter || '').trim().toUpperCase()
+              const currentActive = activeEncounterNoRef.current
+              if (updatedEnc && currentActive && (updatedEnc === currentActive || currentActive.includes(updatedEnc))) {
+                if (msg.data && typeof updateRcmResultLiveRef.current === 'function') {
+                  updateRcmResultLiveRef.current(msg.data)
+                  const aspectsStr = Array.isArray(msg.aspects) ? msg.aspects.join(', ') : 'details'
+                  if (typeof showToastRef.current === 'function') {
+                    showToastRef.current(`Live Update: Encounter ${updatedEnc} updated (${aspectsStr} refreshed)`, 'ok')
+                  }
                 }
               }
             }
-          }
-        } catch (_) {}
-      }
-    } catch (_) {}
+          } catch (_) {}
+        }
+        ws.onclose = () => {
+          reconnectTimer = setTimeout(connectWS, 5000)
+        }
+      } catch (_) {}
+    }
+
+    connectWS()
 
     return () => {
-      if (ws) ws.close()
+      if (ws) {
+        ws.onclose = null
+        ws.close()
+      }
+      if (reconnectTimer) clearTimeout(reconnectTimer)
     }
-  }, [activeEncounterNo])
+  }, [])
 
   return {
     suggestions,
