@@ -640,15 +640,16 @@ export default function RemarksAndResubmissionsPanel({
                                 —
                               </Text>
                             )}
-                            {typeof onDeleteResubmissionReason === 'function' && row.resubmit_reason_id && (
+                            {typeof onDeleteResubmissionReason === 'function' && (row.resubmit_reason_id || row.source === 'Saved Comment') && (
                               <Tooltip label="Delete this resubmission comment from EMR & local cache" openDelay={0} closeDelay={0}>
                                 <ActionIcon
                                   size="xs"
                                   color="red"
                                   variant="subtle"
                                   onClick={() => {
+                                    const reasonId = Number(row.resubmit_reason_id || row.id || row.resubmitReasonId || 0)
                                     if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
-                                      onDeleteResubmissionReason(Number(row.resubmit_reason_id))
+                                      onDeleteResubmissionReason(reasonId)
                                     }
                                   }}
                                   style={{ height: '18px', width: '18px', minHeight: 0 }}
