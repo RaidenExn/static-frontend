@@ -695,7 +695,7 @@ export function usePortalQueries({
       const response = await fetch('/api/rcm/submission-file', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileId, siteId, typeId: 1 })
+        body: JSON.stringify({ fileId, siteId, typeId: 1, encounter: encounterInput, fileName })
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data: SubmissionFileResponse = await response.json()
