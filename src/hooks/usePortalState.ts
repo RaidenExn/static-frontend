@@ -352,12 +352,14 @@ export function usePortalState() {
     }
   }
 
+  const autoAttachedEncRef = useRef<string>('')
+
   const handleAttachSummary = async () => {
-    if (!summaryResult?.Ok) {
+    if (!summaryResult?.Ok && !rcmResult?.Ok) {
       showToast('Summary not loaded.', 'error')
       return
     }
-    const encName = safeFileName(summaryResult.Ok.encounterInput || encounterInput)
+    const encName = safeFileName(summaryResult?.Ok?.encounterInput || rcmResult?.Ok?.encounterInput || encounterInput)
     const fName = `${encName}-summary.pdf`
     const toastId = 'attach-summary'
     showToast({
@@ -367,35 +369,63 @@ export function usePortalState() {
       tone: 'loading'
     })
     try {
-      const selected = summaryResult.Ok.selected
-      const patientId = selected?.patient_id
-      const encounterId = selected?.encounterid
-      const siteId = selected?._site_id
+      let base64 = ''
+      let finalFileName = fName
 
-      const summaryPdfUrl = summaryResult.Ok.pdfs?.summaryPdf || ''
-      const createdByMatch = summaryPdfUrl.match(/createdby\/(\d+)/)
-      const createdBy = createdByMatch ? createdByMatch[1] : '0'
+      // Try dedicated backend attach-summary endpoint first
+      try {
+        const res = await fetch('/api/encounter/attach-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ encounter: encName || encounterInput })
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.base64) {
+            base64 = data.base64
+            if (data.fileName) finalFileName = data.fileName
+          }
+        }
+      } catch (attachErr: any) {
+        console.warn('[Attach Summary] Backend attach route warning:', attachErr.message)
+      }
 
-      const downloadUrl = `/download/summary/symfony?patientId=${patientId}&siteId=${siteId}&encounterId=${encounterId}&createdBy=${createdBy}`
-      const response = await fetch(downloadUrl)
-      if (!response.ok) throw new Error(`HTTP ${response.status} downloading PDF`)
-      const buffer = await response.arrayBuffer()
+      // Fallback: Direct symfony summary fetch
+      if (!base64 && summaryResult?.Ok) {
+        const selected = summaryResult.Ok.selected || summaryResult.Ok.rcm?.selected || summaryResult.Ok.rows?.[0] || {}
+        const patientId = selected?.patient_id || selected?.patientId || selected?.patient || 0
+        const encounterId = selected?.encounterid || selected?.encounterId || selected?.encounter_id || selected?.id || 0
+        const siteId = selected?._site_id || selected?.siteId || selected?.customer_site_id || selected?.site_id || 0
 
-      const fileBytes = new Uint8Array(buffer)
-      let binary = ''
-      for (let i = 0; i < fileBytes.byteLength; i++) binary += String.fromCharCode(fileBytes[i])
-      const base64 = window.btoa(binary)
+        const summaryPdfUrl = summaryResult.Ok.pdfs?.summaryPdf || ''
+        const createdByMatch = summaryPdfUrl.match(/createdby\/(\d+)/)
+        const createdBy = createdByMatch ? createdByMatch[1] : '0'
+
+        const downloadUrl = `/download/summary/symfony?patientId=${patientId}&siteId=${siteId}&encounterId=${encounterId}&createdBy=${createdBy}`
+        const response = await fetch(downloadUrl)
+        if (!response.ok) throw new Error(`HTTP ${response.status} downloading PDF`)
+        const buffer = await response.arrayBuffer()
+
+        const fileBytes = new Uint8Array(buffer)
+        let binary = ''
+        for (let i = 0; i < fileBytes.byteLength; i++) binary += String.fromCharCode(fileBytes[i])
+        base64 = window.btoa(binary)
+      }
+
+      if (!base64) {
+        throw new Error('Could not download clinical summary PDF.')
+      }
 
       setAttachedFileBase64(base64)
-      setAttachedFileName(fName)
+      setAttachedFileName(finalFileName)
 
       // Upload using the same toastId
-      await uploadFileToServer(fName, base64, toastId)
+      await uploadFileToServer(finalFileName, base64, toastId)
 
       showToast({
         id: toastId,
         title: '📎 Summary Attached',
-        message: `Successfully attached and uploaded: ${fName}`,
+        message: `Successfully attached and uploaded: ${finalFileName}`,
         tone: 'ok',
         duration: 6000
       })
@@ -409,6 +439,28 @@ export function usePortalState() {
       })
     }
   }
+
+  // Automatic Attach Summary effect when autoAttachSummary is ON and summary loads
+  useEffect(() => {
+    if (!autoAttachSummary) return
+    const activeEnc = String(
+      summaryResult?.Ok?.rcm?.selected?.display_encounter_configno ||
+        summaryResult?.Ok?.encounterInput ||
+        rcmResult?.Ok?.encounterInput ||
+        encounterInput ||
+        ''
+    ).trim().toUpperCase()
+
+    if (
+      activeEnc &&
+      (summaryResult?.Ok || rcmResult?.Ok) &&
+      autoAttachedEncRef.current !== activeEnc &&
+      !attachedFileName
+    ) {
+      autoAttachedEncRef.current = activeEnc
+      handleAttachSummary()
+    }
+  }, [autoAttachSummary, summaryResult, rcmResult, encounterInput, attachedFileName])
 
   const handleStopServer = async () => {
     if (
