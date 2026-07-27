@@ -1,5 +1,6 @@
 import React from 'react'
-import { Card, Group, Text, Badge, Table, Stack, Button, Box } from '@mantine/core'
+import { Card, Group, Text, Badge, Table, Stack, Button, Box, ActionIcon, Tooltip } from '@mantine/core'
+import { Trash2 } from 'lucide-react'
 import { RcmRemark, RcmResubmission } from '../../types'
 import { remarkText, rcmStrVal, parseDateLikeJs } from '../../utils'
 import dayjs from 'dayjs'
@@ -11,6 +12,7 @@ interface RemarksAndResubmissionsPanelProps {
   resubmissionsCount: number
   resubmissionsRows: RcmResubmission[]
   onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
+  onDeleteResubmissionReason?: (resubmitReasonId: number) => void
   adaptiveCardColors?: boolean
   submissionStateColor?: string
   theme?: string
@@ -38,6 +40,7 @@ export default function RemarksAndResubmissionsPanel({
   resubmissionsCount,
   resubmissionsRows,
   onLoadSubmissionFile,
+  onDeleteResubmissionReason,
   adaptiveCardColors = true,
   submissionStateColor = 'gray',
   theme = 'light'
@@ -598,7 +601,7 @@ export default function RemarksAndResubmissionsPanel({
                           <Text size="xs" fw={600} style={{ color: 'var(--ink)' }}>
                             {row._encounter || '—'}
                           </Text>
-                          <Box style={{ height: '18px', display: 'flex', alignItems: 'center' }}>
+                          <Box style={{ height: '18px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {fileIdStr ? (
                               <Group gap="xs" wrap="nowrap">
                                 <Button
@@ -636,6 +639,23 @@ export default function RemarksAndResubmissionsPanel({
                               <Text size="xs" c="var(--muted)">
                                 —
                               </Text>
+                            )}
+                            {typeof onDeleteResubmissionReason === 'function' && row.resubmit_reason_id && (
+                              <Tooltip label="Delete this resubmission comment from EMR & local cache" openDelay={0} closeDelay={0}>
+                                <ActionIcon
+                                  size="xs"
+                                  color="red"
+                                  variant="subtle"
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
+                                      onDeleteResubmissionReason(Number(row.resubmit_reason_id))
+                                    }
+                                  }}
+                                  style={{ height: '18px', width: '18px', minHeight: 0 }}
+                                >
+                                  <Trash2 size={13} />
+                                </ActionIcon>
+                              </Tooltip>
                             )}
                           </Box>
                         </Stack>

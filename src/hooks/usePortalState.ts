@@ -8,6 +8,7 @@ import { usePortalToasts } from './usePortalToasts'
 import { usePortalQueries } from './usePortalQueries'
 import { usePortalLogs } from './usePortalLogs'
 import { usePortalStorage } from './usePortalStorage'
+import { deleteEncounterFromIndexedDb } from '../services/indexedDbCache'
 import { customFetch as fetch } from '../config/backend'
 
 export function usePortalState() {
@@ -441,6 +442,48 @@ export function usePortalState() {
     }
   }
 
+  const handleDeleteResubmissionReason = async (resubmitReasonId: number) => {
+    if (!resubmitReasonId) return
+    const toastId = 'delete-resubmission-comment'
+    showToast({
+      id: toastId,
+      title: '🗑️ Deleting Comment',
+      message: 'Removing resubmission comment...',
+      tone: 'loading'
+    })
+    try {
+      const activeEnc = String(
+        summaryResult?.Ok?.encounterInput || rcmResult?.Ok?.encounterInput || encounterInput || ''
+      ).trim()
+      const res = await fetch('/api/rcm/resubmission-reason', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ encounter: activeEnc, resubmitReasonId })
+      })
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText)
+      }
+      deleteEncounterFromIndexedDb(activeEnc.toUpperCase()).catch(() => {})
+      showToast({
+        id: toastId,
+        title: '🗑️ Comment Deleted',
+        message: 'Resubmission comment removed successfully.',
+        tone: 'ok',
+        duration: 4000
+      })
+      reloadResubmissionsOnly(activeEnc)
+    } catch (err: any) {
+      showToast({
+        id: toastId,
+        title: '❌ Deletion Failed',
+        message: err.message,
+        tone: 'error',
+        duration: 6000
+      })
+    }
+  }
+
   // Automatic Attach Summary effect when autoAttachSummary is ON and summary loads
   useEffect(() => {
     if (!autoAttachSummary) return
@@ -540,6 +583,7 @@ export function usePortalState() {
     raFilesList,
     handleAutoAttach,
     handleAttachSummary,
+    handleDeleteResubmissionReason,
     loadEncounter,
     loadSubmissionFile,
     theme,

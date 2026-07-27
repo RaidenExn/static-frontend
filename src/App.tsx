@@ -124,6 +124,7 @@ function AppInner() {
     raFilesList,
     handleAutoAttach,
     handleAttachSummary,
+    handleDeleteResubmissionReason,
     loadEncounter,
     loadSubmissionFile,
     theme,
@@ -713,6 +714,7 @@ function AppInner() {
                       resubmissionsCount={rcmResult?.Ok?.rcm?.flattened?.resubmissions?.length || 0}
                       resubmissionsRows={rcmResult?.Ok?.rcm?.flattened?.resubmissions || []}
                       onLoadSubmissionFile={loadSubmissionFile}
+                      onDeleteResubmissionReason={handleDeleteResubmissionReason}
                       adaptiveCardColors={adaptiveCardColors}
                       submissionStateColor={submissionStateColor}
                       theme={theme}

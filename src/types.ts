@@ -165,6 +165,7 @@ export interface RcmResubmission {
   payment_ref?: string
   file_id?: any
   site_id?: any
+  resubmit_reason_id?: any
 }
 
 export interface RcmData {
