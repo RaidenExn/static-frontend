@@ -151,7 +151,6 @@ export default function EncounterSearch({
 
   return (
     <Card
-      withBorder
       shadow="none"
       radius="sm"
       className="glass-panel"

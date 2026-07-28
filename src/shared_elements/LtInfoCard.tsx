@@ -42,7 +42,7 @@ export function LtInfoCard({
       radius="sm"
       px={padding}
       h={height}
-      bg="var(--mantine-color-body)"
+      bg="transparent"
       className={className}
       style={{
         display: 'inline-flex',
