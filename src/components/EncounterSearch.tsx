@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Tabs, Card, Box, Group, Paper, Text, Divider } from '@mantine/core'
+import { Tabs, Box, Group, Paper, Text, Divider } from '@mantine/core'
 import { LtChip } from '../shared_elements'
 import {
   FileText,
@@ -150,9 +150,7 @@ export default function EncounterSearch({
   }
 
   return (
-    <Card
-      shadow="none"
-      radius="sm"
+    <Box
       className="glass-panel"
       style={{
         display: 'flex',
@@ -324,6 +322,6 @@ export default function EncounterSearch({
           </Group>
         </Box>
       </Group>
-    </Card>
+    </Box>
   )
 }
