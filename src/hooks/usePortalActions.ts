@@ -502,10 +502,45 @@ export function usePortalActions() {
       return
     }
     const reader = new FileReader()
-    reader.onload = () => {
+    reader.onload = async () => {
       const result = reader.result as string
-      const base64 = result.split(',')[1]
-      setAttachedFileBase64(base64)
+      const rawBase64 = result.split(',')[1]
+
+      if (autoAttachSummary && encounterInput.trim()) {
+        try {
+          showToast({
+            id: toastId,
+            title: '⚡ Auto-Merging Summary',
+            message: `Merging ${file.name} with Clinical Summary PDF...`,
+            tone: 'loading'
+          })
+          const res = await fetch('/api/encounter/attach-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encounter: encounterInput.trim(), base64: rawBase64, fileName: file.name })
+          })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.base64) {
+              setAttachedFileBase64(data.base64)
+              setAttachedFileName(data.fileName)
+              showToast({
+                id: toastId,
+                title: '⚡ Instantly Merged',
+                message: `Merged ${file.name} with Clinical Summary PDF!`,
+                tone: 'ok',
+                duration: 4000
+              })
+              uploadFileToServer(data.fileName, data.base64)
+              return
+            }
+          }
+        } catch (mergeErr: any) {
+          console.warn('[processFile] Instant auto-merge warning:', mergeErr.message)
+        }
+      }
+
+      setAttachedFileBase64(rawBase64)
       setAttachedFileName(file.name)
       showToast({
         id: toastId,
@@ -514,7 +549,7 @@ export function usePortalActions() {
         tone: 'ok',
         duration: 4000
       })
-      uploadFileToServer(file.name, base64)
+      uploadFileToServer(file.name, rawBase64)
     }
     reader.onerror = () =>
       showToast({

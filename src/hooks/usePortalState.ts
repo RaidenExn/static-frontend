@@ -423,7 +423,11 @@ export function usePortalState() {
         const res = await fetch('/api/encounter/attach-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ encounter: encName || encounterInput })
+          body: JSON.stringify({
+            encounter: encName || encounterInput,
+            base64: attachedFileBase64,
+            fileName: attachedFileName
+          })
         })
         if (res.ok) {
           const data = await res.json()

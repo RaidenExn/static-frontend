@@ -397,10 +397,36 @@ function AppInner() {
     const startTime = Date.now()
     const result = await compressPdfOnBackend(downloadUrl, fileName, showToast, true, compressionLevel)
     if (result && result.base64) {
-      setAttachedFileBase64(result.base64)
-      setAttachedFileName(result.fileName)
+      let finalBase64 = result.base64
+      let finalFileName = result.fileName
 
-      await uploadFileToServer(result.fileName, result.base64, 'pdf-compression')
+      if (autoAttachSummary && patientHeader?.resolvedEncounter) {
+        try {
+          const res = await fetch('/api/encounter/attach-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              encounter: patientHeader.resolvedEncounter,
+              base64: result.base64,
+              fileName: result.fileName
+            })
+          })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.base64) {
+              finalBase64 = data.base64
+              finalFileName = data.fileName
+            }
+          }
+        } catch (mergeErr: any) {
+          console.warn('[handleCompressPdf] Instant auto-merge warning:', mergeErr.message)
+        }
+      }
+
+      setAttachedFileBase64(finalBase64)
+      setAttachedFileName(finalFileName)
+
+      await uploadFileToServer(finalFileName, finalBase64, 'pdf-compression')
 
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
       const formatBytes = (bytes: number): string => {
