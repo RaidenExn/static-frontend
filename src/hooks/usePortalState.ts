@@ -60,6 +60,7 @@ export function usePortalState() {
   const [resubmitType, setResubmitType] = useState<string>('2')
   const [selectedRaFileId, setSelectedRaFileId] = useState<string>('')
   const [resubComments, setResubCommentsState] = useState<string>('')
+  const [editingResubmitReasonId, setEditingResubmitReasonId] = useState<number | null>(null)
   const [autoTransferToRaRemarks, setAutoTransferToRaRemarks] = useState<boolean>(true)
   const [hasPreExistingRemarksOrComments, setHasPreExistingRemarksOrComments] = useState<boolean>(false)
   const [autoAttachSummary, setAutoAttachSummary] = useState<boolean>(() => {
@@ -179,6 +180,26 @@ export function usePortalState() {
     setSelectedRaFileId('')
     setResubmitType('2')
     setRowActionsState({})
+    setEditingResubmitReasonId(null)
+  }
+
+  const handleEditResubmissionReason = (row: any) => {
+    if (!row) return
+    const commentText = row.comments || row.reason || row.resubmit_reason_desc || row.ra_claim_comment || ''
+    const typeVal = String(row.resubmit_type || row.type_id || row.type || '2')
+    const reasonId = Number(row.resubmit_reason_id || row.id || row.resubmitReasonId || 0)
+
+    setResubCommentsState(commentText)
+    if (['1', '2', '3'].includes(typeVal)) setResubmitType(typeVal)
+    setEditingResubmitReasonId(reasonId || null)
+
+    showToast({
+      id: 'edit-resubmission-comment',
+      title: '✏️ Editing Resubmission Comment',
+      message: `Loaded comment #${reasonId || 'saved'} into editor.`,
+      tone: 'info',
+      duration: 4000
+    })
   }
 
   const {
@@ -590,6 +611,9 @@ export function usePortalState() {
     handleAutoAttach,
     handleAttachSummary,
     handleDeleteResubmissionReason,
+    handleEditResubmissionReason,
+    editingResubmitReasonId,
+    setEditingResubmitReasonId,
     loadEncounter,
     loadSubmissionFile,
     theme,

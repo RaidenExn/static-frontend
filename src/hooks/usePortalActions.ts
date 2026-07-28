@@ -40,7 +40,9 @@ export function usePortalActions() {
     showToast,
     raFilesList,
     uploadFileToServer,
-    autoAttachSummary
+    autoAttachSummary,
+    editingResubmitReasonId,
+    setEditingResubmitReasonId
   } = usePortal()
   const [isSavingResub, setIsSavingResub] = useState<boolean>(false)
   const [isSavingRaRemarks, setIsSavingRaRemarks] = useState<boolean>(false)
@@ -69,7 +71,7 @@ export function usePortalActions() {
         resubmitType: Number(resubmitType),
         comments: resubComments.trim(),
         raFileId: Number(selectedRaFileId),
-        resubmitReasonId: Number(writeContext.resubmitReasonId || 0),
+        resubmitReasonId: Number(editingResubmitReasonId || writeContext.resubmitReasonId || 0),
         attachmentBase64: attachedFileBase64,
         autoAttachSummary
       }
@@ -91,6 +93,10 @@ export function usePortalActions() {
         tone: 'ok',
         duration: 5000
       })
+
+      if (typeof setEditingResubmitReasonId === 'function') {
+        setEditingResubmitReasonId(null)
+      }
 
       const newReasonId =
         data.resubmit_reason_id ||

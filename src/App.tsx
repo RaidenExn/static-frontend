@@ -125,6 +125,7 @@ function AppInner() {
     handleAutoAttach,
     handleAttachSummary,
     handleDeleteResubmissionReason,
+    handleEditResubmissionReason,
     loadEncounter,
     loadSubmissionFile,
     theme,
@@ -715,6 +716,7 @@ function AppInner() {
                       resubmissionsRows={rcmResult?.Ok?.rcm?.flattened?.resubmissions || []}
                       onLoadSubmissionFile={loadSubmissionFile}
                       onDeleteResubmissionReason={handleDeleteResubmissionReason}
+                      onEditResubmissionReason={handleEditResubmissionReason}
                       adaptiveCardColors={adaptiveCardColors}
                       submissionStateColor={submissionStateColor}
                       theme={theme}

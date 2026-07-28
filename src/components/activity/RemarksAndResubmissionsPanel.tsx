@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, Group, Text, Badge, Table, Stack, Button, Box, ActionIcon, Tooltip } from '@mantine/core'
-import { Trash2, Paperclip } from 'lucide-react'
+import { Trash2, Paperclip, Pencil } from 'lucide-react'
 import { RcmRemark, RcmResubmission } from '../../types'
 import { remarkText, rcmStrVal, parseDateLikeJs } from '../../utils'
 import dayjs from 'dayjs'
@@ -13,6 +13,7 @@ interface RemarksAndResubmissionsPanelProps {
   resubmissionsRows: RcmResubmission[]
   onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
   onDeleteResubmissionReason?: (resubmitReasonId: number) => void
+  onEditResubmissionReason?: (row: RcmResubmission) => void
   adaptiveCardColors?: boolean
   submissionStateColor?: string
   theme?: string
@@ -41,6 +42,7 @@ export default function RemarksAndResubmissionsPanel({
   resubmissionsRows,
   onLoadSubmissionFile,
   onDeleteResubmissionReason,
+  onEditResubmissionReason,
   adaptiveCardColors = true,
   submissionStateColor = 'gray',
   theme = 'light'
@@ -605,23 +607,6 @@ export default function RemarksAndResubmissionsPanel({
                           <Box style={{ height: '18px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {hasAttachment ? (
                               <Group gap="xs" wrap="nowrap">
-                                {fileIdStr && (
-                                  <Button
-                                    size="xs"
-                                    variant="light"
-                                    color="gray"
-                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr, true)}
-                                    style={{
-                                      padding: '0 8px',
-                                      fontSize: 'var(--mantine-font-size-xs)',
-                                      height: '18px',
-                                      minHeight: '0',
-                                      lineHeight: '16px'
-                                    }}
-                                  >
-                                    XML
-                                  </Button>
-                                )}
                                 <Tooltip label="Open Attached PDF Document" openDelay={0} closeDelay={0}>
                                   <Button
                                     size="xs"
@@ -646,6 +631,19 @@ export default function RemarksAndResubmissionsPanel({
                               <Text size="xs" c="var(--muted)">
                                 —
                               </Text>
+                            )}
+                            {typeof onEditResubmissionReason === 'function' && (row.resubmit_reason_id || row.source === 'Saved Comment') && (
+                              <Tooltip label="Edit this resubmission comment" openDelay={0} closeDelay={0}>
+                                <ActionIcon
+                                  size="xs"
+                                  color="blue"
+                                  variant="subtle"
+                                  onClick={() => onEditResubmissionReason(row)}
+                                  style={{ height: '18px', width: '18px', minHeight: 0 }}
+                                >
+                                  <Pencil size={12} />
+                                </ActionIcon>
+                              </Tooltip>
                             )}
                             {typeof onDeleteResubmissionReason === 'function' && (row.resubmit_reason_id || row.source === 'Saved Comment') && (
                               <Tooltip label="Delete this resubmission comment from EMR & local cache" openDelay={0} closeDelay={0}>
