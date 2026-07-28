@@ -9,12 +9,12 @@ import {
   Group,
   SegmentedControl,
   Switch,
-  Badge,
   Table,
   Loader
 } from '@mantine/core'
 import { Repeat, UploadCloud, FileSpreadsheet, Play, Check, RefreshCw, X, Info } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 
 interface BulkExtractionPanelProps {
   active: boolean
@@ -358,13 +358,13 @@ export default function BulkExtractionPanel({
             </Text>
           </Group>
           {activeJob && (
-            <Badge
+            <LtChip
               size="sm"
               variant="filled"
               color={activeJob.status === 'completed' ? 'green' : activeJob.status === 'failed' ? 'red' : 'blue'}
             >
               {activeJob.status}
-            </Badge>
+            </LtChip>
           )}
         </Group>
 

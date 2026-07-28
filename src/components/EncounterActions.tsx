@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react'
 import {
-  Badge,
   Group,
   Text,
   SegmentedControl,
@@ -9,7 +8,7 @@ import {
   Stack,
   TextInput
 } from '@mantine/core'
-import { LtButton, LtIconButton, LtTooltip } from '../shared_elements'
+import { LtButton, LtIconButton, LtTooltip, LtChip } from '../shared_elements'
 import { FileText, Calendar, RefreshCw, ShieldCheck, Settings, Plus, Zap, Clipboard, RotateCcw } from 'lucide-react'
 import { mergeModelOptions } from '../utils/modelDefinitions'
 import { customFetch as fetch } from '../config/backend'
@@ -276,16 +275,14 @@ export default function EncounterActions({
                 </Group>
               )}
             </Stack>
-            <Badge
+            <LtChip
               size="xs"
-              variant="light"
               color={aiProvider === 'gemini' ? 'purple' : 'indigo'}
               fw={800}
-              fs="9px"
-              style={{ alignSelf: 'flex-start' }}
+              style={{ alignSelf: 'flex-start', fontSize: 9 }}
             >
               {aiProvider.toUpperCase()} · {aiModel.split('/').pop() || aiModel}
-            </Badge>
+            </LtChip>
           </Stack>
         </Popover.Dropdown>
       </Popover>

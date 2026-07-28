@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Tabs, Card, Box, Group, Badge, Paper, Text, Divider } from '@mantine/core'
+import { Tabs, Card, Box, Group, Paper, Text, Divider } from '@mantine/core'
+import { LtChip } from '../shared_elements'
 import {
   FileText,
   Clipboard,
@@ -256,9 +257,9 @@ export default function EncounterSearch({
                   <Group gap={4} align="center" wrap="nowrap">
                     <Text size="xs" fw={600}>{tab.label}</Text>
                     {'count' in tab && tab.count !== undefined && tab.count > 0 && (
-                      <Badge color="gray" size="xs" variant="light" h={14} p="0 4px" fs="9px">
+                      <LtChip color="gray" size="xs" style={{ height: 14, padding: '0 4px', fontSize: 9 }}>
                         {tab.count}
-                      </Badge>
+                      </LtChip>
                     )}
                   </Group>
                 </Tabs.Tab>

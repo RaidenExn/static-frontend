@@ -14,13 +14,13 @@ import {
   Text,
   Group,
   Stack,
-  Badge,
   Code,
   FileButton
 } from '@mantine/core'
 import { Download, Upload, RefreshCw, Plus, Play, Trash2 } from 'lucide-react'
 import { parseAndValidateImportConfig } from '../utils/openRouterConfigHelper'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 import AiProviderPipeline from './AiProviderPipeline'
 
 interface ILovePdfKey {
@@ -489,7 +489,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
                               </Stack>
                             </Group>
                             <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                              <Badge
+                              <LtChip
                                 size="xs"
                                 color={
                                   k.status === 'active'
@@ -498,10 +498,9 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
                                       ? 'red'
                                       : 'gray'
                                 }
-                                variant="light"
                               >
                                 {String(k.status).toUpperCase()}
-                              </Badge>
+                              </LtChip>
                               <ActionIcon
                                 variant="subtle"
                                 color="red"

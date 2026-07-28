@@ -4,7 +4,6 @@ import {
   Group,
   Stack,
   Text,
-  Badge,
   Button,
   SimpleGrid,
   Modal,
@@ -12,6 +11,7 @@ import {
   Progress,
   Divider
 } from '@mantine/core'
+import { LtChip } from '../../shared_elements'
 import {
   HardDrive,
   Paperclip,
@@ -198,12 +198,12 @@ export const StorageCategoryBreakdown: React.FC = () => {
                 <Text size="xs" fw={700}>
                   Total Disk Consumption:
                 </Text>
-                <Badge color="cyan" variant="filled" size="sm">
+                <LtChip color="cyan" variant="filled" size="sm">
                   {formatBytes(overview.total.sizeBytes)}
-                </Badge>
-                <Badge color="gray" variant="outline" size="sm">
+                </LtChip>
+                <LtChip color="gray" variant="outline" size="sm">
                   {overview.total.count} Total Items
-                </Badge>
+                </LtChip>
               </Group>
 
               {/* Disk usage distribution bar */}
@@ -244,9 +244,9 @@ export const StorageCategoryBreakdown: React.FC = () => {
                         {cat.title}
                       </Text>
                     </Group>
-                    <Badge color={cat.color} variant="light" size="xs">
+                    <LtChip color={cat.color} size="xs">
                       {cat.data.count} items
-                    </Badge>
+                    </LtChip>
                   </Group>
 
                   <Text size="10px" c="dimmed" style={{ fontFamily: 'monospace' }}>

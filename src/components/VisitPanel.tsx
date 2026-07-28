@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { Card, Table, Badge, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton } from '@mantine/core'
+import { Card, Table, Title, Group, Stack, Text, Button, Modal, Loader, Box, Skeleton } from '@mantine/core'
+import { LtChip } from '../shared_elements'
 import { Eye, Clock, Archive, BookOpen, Download, Copy, Check, FileSpreadsheet, ShieldCheck } from 'lucide-react'
 import { RcmVisit, PatientHistoricFile } from '../types'
 import { rcmStrVal } from '../utils'
@@ -213,9 +214,9 @@ export default function VisitPanel({
             >
               Visit History
             </Title>
-            <Badge size="xs" variant="light" color="gray">
+            <LtChip size="xs" color="gray">
               {visitCount} Visits
-            </Badge>
+            </LtChip>
           </Group>
         </Group>
 
@@ -283,9 +284,9 @@ export default function VisitPanel({
                       >
                         <Group gap="xs" wrap="nowrap">
                           {isCurrent && (
-                            <Badge size="xs" variant="filled" style={{ height: '14px', fontSize: '8px' }}>
+                            <LtChip size="xs" variant="filled" style={{ height: '14px', fontSize: '8px' }}>
                               Active
-                            </Badge>
+                            </LtChip>
                           )}
                           {row.display_encounter || ''}
                         </Group>
@@ -342,9 +343,9 @@ export default function VisitPanel({
             >
               Historic Patient Files
             </Title>
-            <Badge size="xs" variant="light" color="gray">
+            <LtChip size="xs" color="gray">
               {historicCount} Files
-            </Badge>
+            </LtChip>
           </Group>
         </Group>
 
@@ -505,19 +506,19 @@ export default function VisitPanel({
                 </Group>
 
                 <Group gap="sm">
-                  <Badge variant="light" color="blue" size="sm">
-                    Claim: AED {encounterData.totalClaimPayer}
-                  </Badge>
-                  <Badge variant="light" color="green" size="sm">
-                    RA: AED {encounterData.totalRaPayable}
-                  </Badge>
-                  <Badge
-                    variant="light"
-                    color={Number(encounterData.totalRejection) > 0 ? 'red' : 'gray'}
-                    size="sm"
-                  >
-                    Rej: AED {encounterData.totalRejection}
-                  </Badge>
+                <LtChip variant="light" color="blue" size="sm">
+                  Claim: AED {encounterData.totalClaimPayer}
+                </LtChip>
+                <LtChip variant="light" color="green" size="sm">
+                  RA: AED {encounterData.totalRaPayable}
+                </LtChip>
+                <LtChip
+                  variant="light"
+                  color={Number(encounterData.totalRejection) > 0 ? 'red' : 'gray'}
+                  size="sm"
+                >
+                  Rej: AED {encounterData.totalRejection}
+                </LtChip>
                 </Group>
               </Group>
             </Box>
@@ -593,7 +594,7 @@ export default function VisitPanel({
                         <Table.Td style={{ ...tdStyle, fontWeight: 700, fontFamily: 'monospace' }}>{act.code}</Table.Td>
                         <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.order_name}</Table.Td>
                         <Table.Td style={tdStyle}>
-                          <Badge
+                          <LtChip
                             size="xs"
                             variant="light"
                             color={
@@ -614,7 +615,7 @@ export default function VisitPanel({
                             style={{ height: '16px', fontSize: '8.5px' }}
                           >
                             {act.status}
-                          </Badge>
+                          </LtChip>
                         </Table.Td>
                         <Table.Td style={{ ...tdStyle, fontWeight: 700, fontFamily: 'monospace' }}>
                           <Group gap="4px" wrap="nowrap">
@@ -625,14 +626,14 @@ export default function VisitPanel({
                           </Group>
                         </Table.Td>
                         <Table.Td style={tdStyle}>
-                          <Badge
+                          <LtChip
                             size="xs"
                             variant="dot"
                             color={hasAuth ? 'teal' : 'gray'}
                             style={{ height: '16px', fontSize: '8.5px' }}
                           >
                             {act.prior_auth_status}
-                          </Badge>
+                          </LtChip>
                         </Table.Td>
                         <Table.Td style={{ ...tdStyle, textAlign: 'center' }}>{act.qty}</Table.Td>
                         <Table.Td style={{ ...tdStyle, fontWeight: 600 }}>{act.claim_payer_pay}</Table.Td>

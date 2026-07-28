@@ -4,11 +4,10 @@ import {
   Group,
   Text,
   Box,
-  Badge,
   TextInput
 } from '@mantine/core'
 import { Search, Trash2, Terminal, ArrowDown, Activity } from 'lucide-react'
-import { LtIconButton } from '../shared_elements'
+import { LtIconButton, LtChip } from '../shared_elements'
 
 interface NodeBackendFeedProps {
   logs: any[]
@@ -149,14 +148,13 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
             <Text size="sm" fw={700} style={{ color: 'var(--text-primary)' }}>
               Native Pino Stream Inspector
             </Text>
-            <Badge
+            <LtChip
               color={logsLoading ? 'yellow' : 'green'}
-              variant="light"
               size="sm"
               style={{ fontSize: '10px', padding: '2px 6px' }}
             >
               {logsLoading ? 'STREAMING' : 'ACTIVE'}
-            </Badge>
+            </LtChip>
           </Group>
 
           <Group gap="xs" wrap="nowrap">

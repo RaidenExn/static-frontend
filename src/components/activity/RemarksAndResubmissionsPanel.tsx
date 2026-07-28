@@ -1,5 +1,5 @@
 import React from 'react'
-import { Group, Text, Badge, Table, Stack, Skeleton } from '@mantine/core'
+import { Group, Text, Table, Stack, Skeleton } from '@mantine/core'
 import { Trash2, Paperclip, Pencil } from 'lucide-react'
 import { RcmRemark, RcmResubmission } from '../../types'
 import { remarkText, rcmStrVal, parseDateLikeJs } from '../../utils'

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { Card, Group, Text, Switch, Textarea, Stack, Badge } from '@mantine/core'
-import { LtButton, LtTooltip } from '../../shared_elements'
+import { Card, Group, Text, Switch, Textarea, Stack } from '@mantine/core'
+import { LtButton, LtTooltip, LtChip } from '../../shared_elements'
 
 interface RaRemarksTabProps {
   loading?: boolean
@@ -84,9 +84,9 @@ export default function RaRemarksTab({
           </Text>
           {hasDraftResub && (
             <LtTooltip label="Saving RA remarks will automatically commit your draft resubmission comments & attachment">
-              <Badge size="xs" variant="light" color="blue" style={{ cursor: 'help' }}>
+              <LtChip size="xs" color="blue" style={{ cursor: 'help' }}>
                 + Draft Resub
-              </Badge>
+              </LtChip>
             </LtTooltip>
           )}
           <Switch

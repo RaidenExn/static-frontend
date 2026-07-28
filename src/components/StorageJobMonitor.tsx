@@ -1,7 +1,7 @@
 import React from 'react'
-import { Card, Group, Stack, Text, Badge, Progress, SimpleGrid, Table, Box } from '@mantine/core'
+import { Card, Group, Stack, Text, Progress, SimpleGrid, Table, Box } from '@mantine/core'
 import { BarChart3, Database, Trash2, ShieldAlert } from 'lucide-react'
-import { LtMetricStatGrid, LtTooltip, LtButton, LtTableCard } from '../shared_elements'
+import { LtMetricStatGrid, LtTooltip, LtButton, LtTableCard, LtChip } from '../shared_elements'
 
 interface StorageJobMonitorProps {
   storedCount: number
@@ -33,9 +33,9 @@ export const StorageJobMonitor: React.FC<StorageJobMonitorProps> = ({
             Storage Job Monitor
           </Text>
         </Group>
-        <Badge color="gray" variant="light" size="xs">
+        <LtChip>
           Total Stored: {storedCount} encounters
-        </Badge>
+        </LtChip>
       </Group>
 
       {/* Main Body */}

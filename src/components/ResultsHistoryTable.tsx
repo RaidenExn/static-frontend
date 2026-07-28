@@ -3,7 +3,6 @@ import {
   Card,
   Group,
   Text,
-  Badge,
   Table,
   Button,
   ScrollArea,
@@ -18,6 +17,7 @@ import { Eye } from 'lucide-react'
 import { Attachment } from '../types'
 import { parseDateLikeJs } from '../utils'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 
 interface ResultsHistoryTableProps {
   resultsLoading: boolean
@@ -151,16 +151,12 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
         <Text size="sm" fw={800} tt="uppercase" style={{ letterSpacing: '0.5px' }} c="var(--mantine-color-text)">
           Results History
         </Text>
-        <Badge
+        <LtChip
           size="xs"
-          radius="xs"
-          fw={600}
-          bg="var(--badge-neutral-bg)"
-          c="var(--badge-neutral-text)"
-          bd="1px solid var(--badge-neutral-border)"
+          palette="neutral"
         >
           {attachments.length}
-        </Badge>
+        </LtChip>
       </Group>
 
       <ScrollArea w="100%" scrollbars={false}>
@@ -354,23 +350,20 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
                         </Tooltip>
                         {isRec && (
                           <Tooltip label={recReason || 'Auto-recommended clinical PDF'} position="top" withArrow>
-                            <Badge
+                            <LtChip
                               size="xs"
-                              radius="xs"
                               variant="filled"
                               color="green"
                               className="pulse-match-badge"
-                              styles={{
-                                root: {
-                                  cursor: 'help',
-                                  textTransform: 'none',
-                                  fontWeight: 700,
-                                  flexShrink: 0
-                                }
+                              style={{
+                                cursor: 'help',
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                flexShrink: 0
                               }}
                             >
                               Auto-Match ✨
-                            </Badge>
+                            </LtChip>
                           </Tooltip>
                         )}
                       </Group>
@@ -465,14 +458,14 @@ export const ResultsHistoryTable: React.FC<ResultsHistoryTableProps> = ({
               ) : (
                 <>
                   {fileSizeStr && (
-                    <Badge size="xs" variant="light" color="blue" radius="xs" style={{ textTransform: 'none' }}>
+                    <LtChip size="xs" color="blue">
                       SIZE: {fileSizeStr}
-                    </Badge>
+                    </LtChip>
                   )}
                   {pagesCount !== null && (
-                    <Badge size="xs" variant="light" color="teal" radius="xs" style={{ textTransform: 'none' }}>
+                    <LtChip size="xs" color="teal">
                       PAGES: {pagesCount}
-                    </Badge>
+                    </LtChip>
                   )}
                 </>
               )}

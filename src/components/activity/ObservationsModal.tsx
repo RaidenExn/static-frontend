@@ -10,7 +10,6 @@ import {
   Group,
   Stack,
   Text,
-  Badge,
   Grid,
   Card,
   Loader,
@@ -18,6 +17,7 @@ import {
   Box,
   Tooltip
 } from '@mantine/core'
+import { LtChip } from '../../shared_elements'
 
 interface ObservationsModalProps {
   isOpen: boolean
@@ -339,14 +339,14 @@ export default function ObservationsModal({
                       <Card key={obs.obsvid} withBorder padding="xs">
                         <Stack gap="xs">
                           <Group justify="space-between" align="center">
-                            <Badge
+                            <LtChip
                               size="xs"
                               color={
                                 obs.observation_type === 1 ? 'blue' : obs.observation_type === 3 ? 'green' : 'orange'
                               }
                             >
                               {typeObj?.name || 'Observation'}
-                            </Badge>
+                            </LtChip>
 
                             <Group gap={4}>
                               <Tooltip label="Edit" position="top" withArrow>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Card, Text, Button, Progress, Stack, Box, Group, FileInput, Badge } from '@mantine/core'
+import { Card, Text, Button, Progress, Stack, Box, Group, FileInput } from '@mantine/core'
 import { FileSpreadsheet, Download, Info } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 
 interface RaExcelPanelProps {
   active: boolean
@@ -69,9 +70,9 @@ export default function RaExcelPanel({ active, showToast }: RaExcelPanelProps) {
             </Text>
           </Group>
           {file && (
-            <Badge size="sm" variant="light" color="teal">
+            <LtChip size="sm" color="teal">
               Ready
-            </Badge>
+            </LtChip>
           )}
         </Group>
 

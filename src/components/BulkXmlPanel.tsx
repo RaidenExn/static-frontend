@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Card, Text, Textarea, Button, Group, Stack, Badge } from '@mantine/core'
+import { Card, Text, Textarea, Button, Group, Stack } from '@mantine/core'
 import { FileCode, Download, Info } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 
 interface BulkXmlPanelProps {
   active: boolean
@@ -78,9 +79,9 @@ export default function BulkXmlPanel({ active, showToast }: BulkXmlPanelProps) {
               Bulk Claim XML Generator
             </Text>
           </Group>
-          <Badge size="sm" variant="light" color="blue">
+          <LtChip size="sm" color="blue">
             {parsedEncounters.length} Encounters
-          </Badge>
+          </LtChip>
         </Group>
 
         <Group

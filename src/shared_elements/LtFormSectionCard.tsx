@@ -1,6 +1,7 @@
 import React from 'react'
-import { Box, Button, Badge, Group } from '@mantine/core'
+import { Box, Button, Group } from '@mantine/core'
 import { LtAppCard } from './LtAppCard'
+import { LtChip } from './LtChip'
 
 export interface LtFormSectionCardProps {
   title?: React.ReactNode
@@ -32,9 +33,9 @@ export function LtFormSectionCard({
   children
 }: LtFormSectionCardProps) {
   const badgeNode = isDirty ? (
-    <Badge color="orange" size="xs" variant="light">
+    <LtChip color="orange">
       {dirtyText}
-    </Badge>
+    </LtChip>
   ) : undefined
 
   return (

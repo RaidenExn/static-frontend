@@ -8,14 +8,13 @@ import {
   TextInput,
   Progress,
   Switch,
-  Badge,
   Box,
   Loader
 } from '@mantine/core'
 import { Search, Radio, ArrowRight, RefreshCw, Power } from 'lucide-react'
 import { useNetworkDiscovery } from '../hooks/useNetworkDiscovery'
 import { DiscoveredServer } from '../services/discoveryService'
-import { LtButton } from '../shared_elements'
+import { LtButton, LtChip } from '../shared_elements'
 
 interface NetworkDiscoveryCardProps {
   onSelectServer: (_ip: string) => void
@@ -122,9 +121,9 @@ export default function NetworkDiscoveryCard({ onSelectServer, compact = false }
                 <Text size="xs" c="dimmed">
                   Checking IP: <Text span fw={600} c="var(--mantine-color-text)">{currentIp}</Text>
                 </Text>
-                <Badge size="xs" variant="light" color="blue">
+                <LtChip color="blue">
                   Found: {discoveredServers.length}
-                </Badge>
+                </LtChip>
               </Group>
             </Stack>
           </Box>
@@ -166,9 +165,9 @@ export default function NetworkDiscoveryCard({ onSelectServer, compact = false }
                           <Text size="sm" fw={800} style={{ fontFamily: 'monospace' }}>
                             {server.ip}
                           </Text>
-                          <Badge size="xs" variant="outline" color="green">
+                          <LtChip variant="outline" color="green">
                             Beacon OK
-                          </Badge>
+                          </LtChip>
                         </Group>
                         <Text size="xs" c="dimmed">
                           Port 8788 • Last seen: {server.lastSeen}

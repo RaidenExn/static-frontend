@@ -1,7 +1,7 @@
 import React from 'react'
-import { Group, Text, Badge, Box, Grid, Divider } from '@mantine/core'
+import { Group, Text, Box, Grid, Divider } from '@mantine/core'
 import { Copy, Check } from 'lucide-react'
-import { LtInfoCard, LtTooltip } from '../shared_elements'
+import { LtInfoCard, LtTooltip, LtChip } from '../shared_elements'
 
 interface PatientHeaderBannerProps {
   isPaperClaim?: boolean
@@ -107,9 +107,9 @@ export default function PatientHeaderBanner({
                   Gender
                 </Text>
                 <LtTooltip label={`Gender: ${genderDisplay}`} position="top" withArrow>
-                  <Badge variant="light" color={genderColor} size="xs" radius="xs" h={15} mt={2} fw={700} tt="capitalize">
+                  <LtChip color={genderColor} size="xs" style={{ height: 15, textTransform: 'capitalize' }} mt={2}>
                     {genderDisplay}
-                  </Badge>
+                  </LtChip>
                 </LtTooltip>
               </Box>
 
@@ -117,9 +117,9 @@ export default function PatientHeaderBanner({
                 <>
                   <Divider orientation="vertical" h={18} opacity={0.5} />
                   <LtTooltip label="Manual (Paper) Claim" position="top" withArrow>
-                    <Badge variant="light" color="red" size="xs" radius="xs" h={15} fw={700}>
+                    <LtChip color="red" size="xs" style={{ height: 15 }}>
                       Paper
-                    </Badge>
+                    </LtChip>
                   </LtTooltip>
                 </>
               )}
@@ -276,9 +276,9 @@ export default function PatientHeaderBanner({
                       openDelay={0}
                       closeDelay={0}
                     >
-                      <Badge size="xs" color={latencyBadgeColor} variant="light" mt={1} fw={700} style={{ cursor: 'help' }}>
+                      <LtChip size="xs" color={latencyBadgeColor} mt={1} style={{ cursor: 'help' }}>
                         {latencyDot} {upstreamLatencyMs}ms
-                      </Badge>
+                      </LtChip>
                     </LtTooltip>
                   </Box>
                 </>

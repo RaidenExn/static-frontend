@@ -9,7 +9,6 @@ import {
   Table,
   ScrollArea,
   Stack,
-  Badge,
   Loader,
   Box,
   Card,
@@ -19,7 +18,7 @@ import {
   Switch
 } from '@mantine/core'
 import { useClipboard } from '@mantine/hooks'
-import { LtTableCard } from '../shared_elements'
+import { LtTableCard, LtChip } from '../shared_elements'
 import {
   ShieldAlert,
   CheckCircle,
@@ -337,9 +336,9 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
               <Text size="xs" fw={700} c="orange" tt="uppercase" lts="0.5px">
                 ACTIVE RULES EXCEPTIONS & RECOMMENDATIONS ({exceptions.length})
               </Text>
-              <Badge color="orange" size="xs" radius="xs" variant="filled">
+              <LtChip color="orange" size="xs" radius="xs" variant="filled">
                 Attention Required
-              </Badge>
+              </LtChip>
             </Group>
             <Stack gap="xs">
               {exceptions.map(({ edit, logType, logId }, idx) => {
@@ -358,15 +357,15 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                         <Text size="xs" fw={700} color={isCPT ? 'orange' : 'red'}>
                           {editCode}
                         </Text>
-                        <Badge color={isCPT ? 'orange' : 'red'} size="xs" radius="xs" variant="outline" fs="9px">
+                        <LtChip color={isCPT ? 'orange' : 'red'} size="xs" radius="xs" variant="outline" style={{ fontSize: 9 }}>
                           {logType}
-                        </Badge>
+                        </LtChip>
                       </Group>
                       <Group gap="xs">
                         {serviceCode && (
-                          <Badge color="cyan" size="xs" radius="xs" variant="outline" fs="9px">
-                            Code: {serviceCode}
-                          </Badge>
+                        <LtChip color="cyan" size="xs" radius="xs" variant="outline" style={{ fontSize: 9 }}>
+                          Code: {serviceCode}
+                        </LtChip>
                         )}
                         <Text size="10px" c="dimmed">
                           Run ID: {logId}
@@ -403,7 +402,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     <Grid.Col span={12}>
       <LtTableCard
         title={`ACTIVE ENCOUNTER DIAGNOSES SUMMARY (${diagnosticsData.length})`}
-        badge={<Badge color="cyan" size="xs" radius="xs">ICD-10 Sync</Badge>}
+        badge={<LtChip color="cyan" size="xs" radius="xs">ICD-10 Sync</LtChip>}
         loading={diagnosticsLoading}
         loadingText="Retrieving active diagnoses..."
         color="cyan"
@@ -426,9 +425,9 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                   </Table.Td>
                   <Table.Td>{diag.description || diag.desc || diag.order_name || 'Encounter Diagnosis'}</Table.Td>
                   <Table.Td style={{ whiteSpace: 'nowrap' }}>
-                    <Badge color="cyan" size="xs" radius="xs" variant="outline">
+                    <LtChip color="cyan" size="xs" radius="xs" variant="outline">
                       {diag.type || 'Primary'}
-                    </Badge>
+                    </LtChip>
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -474,19 +473,19 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                     <Card key={idx} withBorder radius="xs" p="xs">
                       <Group justify="space-between" align="center" mb={6}>
                         <Group gap="xs">
-                          <Badge color="cyan" size="xs" radius="xs" variant="light">
+                          <LtChip color="cyan" size="xs" radius="xs" variant="light">
                             ID: {log.log_id || `LOG-${idx}`}
-                          </Badge>
-                          <Badge color="blue" size="xs" radius="xs" variant="outline">
+                          </LtChip>
+                          <LtChip color="blue" size="xs" radius="xs" variant="outline">
                             {reqTypeLabel}
-                          </Badge>
+                          </LtChip>
                           <Text size="xs" c="dimmed" fw={500}>
                             {dateText}
                           </Text>
                         </Group>
-                        <Badge color={hasExceptions ? 'orange' : 'teal'} size="xs" radius="xs" variant="filled">
-                          {hasExceptions ? `${edits.length} Exceptions` : 'Approved'}
-                        </Badge>
+                  <LtChip color={hasExceptions ? 'orange' : 'teal'} size="xs" radius="xs" variant="filled">
+                    {hasExceptions ? `${edits.length} Exceptions` : 'Approved'}
+                  </LtChip>
                       </Group>
                       <Accordion variant="unstyled" chevronPosition="right" mt={4}>
                         <Accordion.Item value="raw-payloads" style={{ border: 'none' }}>
@@ -624,9 +623,9 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                     </Stack>
                   </Group>
                   {runTimestamp && (
-                    <Badge color="cyan" size="xs" radius="xs" variant="outline">
-                      Validated: {runTimestamp}
-                    </Badge>
+              <LtChip color="cyan" size="xs" radius="xs" variant="outline">
+                Validated: {runTimestamp}
+              </LtChip>
                   )}
                 </Group>
               </Card>

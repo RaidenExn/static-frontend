@@ -1,6 +1,6 @@
 import React from 'react'
-import { Group, Badge, Text } from '@mantine/core'
-import { LtTooltip } from '../shared_elements'
+import { Group, Text } from '@mantine/core'
+import { LtTooltip, LtChip } from '../shared_elements'
 
 interface SubmissionBadgeGroupProps {
   isPaperClaim?: boolean
@@ -61,7 +61,7 @@ export default function SubmissionBadgeGroup({
         {/* A. Manual Submission Indicator ("M" Badge) */}
         {isManual && (
           <LtTooltip label={`Encounter submitted manually ${manualCount} time(s)`}>
-            <Badge
+            <LtChip
               color="red"
               variant="light"
               size="xs"
@@ -75,7 +75,7 @@ export default function SubmissionBadgeGroup({
               }}
             >
               {manualText}
-            </Badge>
+            </LtChip>
           </LtTooltip>
         )}
 
@@ -93,7 +93,7 @@ export default function SubmissionBadgeGroup({
 
         {/* B. Resubmission Count Badge */}
         <LtTooltip label={`Normal Resubmission Count: ${normalCount}`}>
-          <Badge
+          <LtChip
             color={badgeColor}
             variant="filled"
             size="xs"
@@ -110,7 +110,7 @@ export default function SubmissionBadgeGroup({
             }}
           >
             {normalCount}
-          </Badge>
+          </LtChip>
         </LtTooltip>
 
         {/* C. Bold Status Label Text */}

@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Table, Group, Text, Badge, Button, Popover, TextInput, Loader } from '@mantine/core'
+import { Table, Group, Text, Button, Popover, TextInput, Loader } from '@mantine/core'
 import { RefreshCw, Download, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { RcmActivity } from '../../types'
 import { activityRaStatus, priorAuthCode, rcmStrVal, rowHasRepeatTrackerMarker } from '../../utils'
-import { LtTooltip } from '../../shared_elements'
+import { LtTooltip, LtChip } from '../../shared_elements'
 
 interface ActivityTableProps {
   loading: boolean
@@ -340,9 +340,9 @@ function ActivityTable({
       badgeColor = 'indigo'
     }
     return (
-      <Badge size="xs" variant="filled" color={badgeColor}
+      <LtChip size="xs" color={badgeColor}
         style={{ padding: '0 8px', height: '22px', fontSize: 'var(--mantine-font-size-xs)' }}
-      >{rawStatus}</Badge>
+      >{rawStatus}</LtChip>
     )
   }
 
@@ -407,9 +407,9 @@ function ActivityTable({
           <CellText text={row.order_name || ''} maxChars={40} style={{ minWidth: '35ch' }} />
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap' }}>
-          <Badge size="xs" variant="none" style={badgeStyle}>
+          <LtChip size="xs" variant="none" style={badgeStyle}>
             <CellText text={mappedStatus} />
-          </Badge>
+          </LtChip>
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap' }}>
           {editingCell?.authId === authId && editingCell.field === 'code' ? (
@@ -539,16 +539,16 @@ function ActivityTable({
             const tooltipText = desc ? `${codeStr}: ${desc}` : `Denial Code: ${codeStr}`
 
             return (
-              <LtTooltip label={tooltipText} multiline w={280}>
-                <Badge
-                  variant="light"
-                  color="red"
-                  size="sm"
-                  style={{ cursor: 'help', textTransform: 'none', fontWeight: 700 }}
-                >
-                  {codeStr}
-                </Badge>
-              </LtTooltip>
+                <LtTooltip label={tooltipText} multiline w={280}>
+                  <LtChip
+                    variant="light"
+                    color="red"
+                    size="sm"
+                    style={{ cursor: 'help', textTransform: 'none', fontWeight: 700 }}
+                  >
+                    {codeStr}
+                  </LtChip>
+                </LtTooltip>
             )
           })()}
         </Table.Td>

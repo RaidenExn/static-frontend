@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Card, Group, Text, Badge, Table } from '@mantine/core'
+import { Card, Group, Text, Table } from '@mantine/core'
 import { rcmStrVal } from '../utils'
+import { LtChip } from '../shared_elements'
 
 interface ClaimHistoryTableProps {
   claimHistory: any[]
@@ -35,88 +36,72 @@ export const ClaimHistoryTable: React.FC<ClaimHistoryTableProps> = ({ claimHisto
     if (amount === 0) {
       if (hasDenial) {
         return (
-          <Badge
+          <LtChip
             size="xs"
-            variant="none"
+            palette="error"
             style={{
               marginLeft: '6px',
               height: '14px',
               padding: '2px 6px',
               fontSize: '8px',
-              textTransform: 'none',
               borderRadius: '4px',
-              backgroundColor: 'var(--badge-error-bg)',
-              border: '1px solid var(--badge-error-border)',
-              color: 'var(--badge-error-text)',
               fontWeight: 600
             }}
           >
             DENIED
-          </Badge>
+          </LtChip>
         )
       }
       return (
-        <Badge
+        <LtChip
           size="xs"
-          variant="none"
+          palette="neutral"
           style={{
             marginLeft: '6px',
             height: '14px',
             padding: '2px 6px',
             fontSize: '8px',
-            textTransform: 'none',
             borderRadius: '4px',
-            backgroundColor: 'var(--badge-neutral-bg)',
-            border: '1px solid var(--badge-neutral-border)',
-            color: 'var(--badge-neutral-text)',
             fontWeight: 600
           }}
         >
           ZERO
-        </Badge>
+        </LtChip>
       )
     } else {
       if (hasDenial) {
         return (
-          <Badge
+          <LtChip
             size="xs"
-            variant="none"
+            palette="warning"
             style={{
               marginLeft: '6px',
               height: '14px',
               padding: '2px 6px',
               fontSize: '8px',
-              textTransform: 'none',
               borderRadius: '4px',
-              backgroundColor: 'var(--badge-warning-bg)',
-              border: '1px solid var(--badge-warning-border)',
-              color: 'var(--badge-warning-text)',
               fontWeight: 600
             }}
           >
             PARTIAL
-          </Badge>
+          </LtChip>
         )
       }
       return (
-        <Badge
+        <LtChip
           size="xs"
-          variant="none"
+          palette="success"
           style={{
             marginLeft: '6px',
             height: '14px',
             padding: '2px 6px',
             fontSize: '8px',
-            textTransform: 'none',
             borderRadius: '4px',
-            backgroundColor: 'var(--badge-success-bg)',
-            border: '1px solid var(--badge-success-border)',
-            color: 'var(--badge-success-text)',
             fontWeight: 600
           }}
         >
           PAID
-        </Badge>
+        </LtChip>
       )
     }
   }
@@ -150,22 +135,19 @@ export const ClaimHistoryTable: React.FC<ClaimHistoryTableProps> = ({ claimHisto
         >
           Claim History Details
         </Text>
-        <Badge
+        <LtChip
           size="xs"
-          variant="none"
+          palette="neutral"
           style={{
             height: '14px',
             padding: '2px 6px',
             fontSize: '8px',
             borderRadius: '4px',
-            backgroundColor: 'var(--badge-neutral-bg)',
-            border: '1px solid var(--badge-neutral-border)',
-            color: 'var(--badge-neutral-text)',
             fontWeight: 600
           }}
         >
           {claimHistory.length}
-        </Badge>
+        </LtChip>
       </Group>
 
       <div style={{ overflowX: 'auto', width: '100%' }}>

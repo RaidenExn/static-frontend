@@ -1,5 +1,6 @@
 import React from 'react'
-import { Card, Group, Text, Badge, ScrollArea, Loader, Stack, Box, MantineSpacing, MantineColor } from '@mantine/core'
+import { Card, Group, Text, ScrollArea, Loader, Stack, Box, MantineSpacing, MantineColor } from '@mantine/core'
+import { LtChip } from './LtChip'
 
 export interface LtAppCardProps {
   /** Card section title */
@@ -109,9 +110,9 @@ export function LtAppCard({
               title
             )}
             {typeof badge === 'string' || typeof badge === 'number' ? (
-              <Badge size="xs" variant="light" color="gray">
+              <LtChip>
                 {badge}
-              </Badge>
+              </LtChip>
             ) : (
               badge
             )}

@@ -5,7 +5,6 @@ import {
   Stack,
   Text,
   Title,
-  Badge,
   TextInput,
   Button,
   SimpleGrid,
@@ -13,7 +12,7 @@ import {
   Select,
   Box
 } from '@mantine/core'
-import { LtTableCard } from '../shared_elements'
+import { LtTableCard, LtChip } from '../shared_elements'
 import { Search, Clipboard, Save } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
 
@@ -199,9 +198,9 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
           ⚡ Force Bypass (Zero Remarks)
         </Title>
         {activities.length > 0 && (
-          <Badge color="gray" variant="light" size="xs">
+          <LtChip color="gray" size="xs">
             {activities.length} Activities
-          </Badge>
+          </LtChip>
         )}
       </Group>
 
@@ -360,14 +359,12 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
                     {act.rejectionAmount > 0 ? act.rejectionAmount.toFixed(2) : '0.00'}
                   </Table.Td>
                   <Table.Td ta="center">
-                    <Badge
-                      variant="light"
+                    <LtChip
                       color={act.currentStatus.toLowerCase().includes('written') ? 'orange' : 'gray'}
                       size="xs"
-                      style={{ textTransform: 'none' }}
                     >
                       {act.currentStatus || 'Unknown'}
-                    </Badge>
+                    </LtChip>
                   </Table.Td>
                   <Table.Td style={{ padding: '4px' }}>
                     <Select

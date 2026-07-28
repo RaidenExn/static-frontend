@@ -8,7 +8,6 @@ import {
   Progress,
   Box,
   SimpleGrid,
-  Badge,
   List,
   ThemeIcon,
   ScrollArea,
@@ -31,6 +30,7 @@ import {
   FileCheck
 } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
+import { LtChip } from '../shared_elements'
 
 interface ExcelWorkshopPanelProps {
   active: boolean
@@ -248,45 +248,45 @@ export default function ExcelWorkshopPanel({ active, showToast }: ExcelWorkshopP
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'idle':
-        return <Badge color="gray">Idle</Badge>
+        return <LtChip color="gray">Idle</LtChip>
       case 'analyzing':
         return (
-          <Badge color="blue" variant="filled">
+          <LtChip color="blue" variant="filled">
             Analyzing Columns
-          </Badge>
+          </LtChip>
         )
       case 'fetching_history':
         return (
-          <Badge color="indigo" variant="filled">
+          <LtChip color="indigo" variant="filled">
             EHR Claim Histories
-          </Badge>
+          </LtChip>
         )
       case 'coloring':
         return (
-          <Badge color="violet" variant="filled">
+          <LtChip color="violet" variant="filled">
             Applying Highlights
-          </Badge>
+          </LtChip>
         )
       case 'completed':
         return (
-          <Badge color="teal" variant="filled">
+          <LtChip color="teal" variant="filled">
             Completed
-          </Badge>
+          </LtChip>
         )
       case 'failed':
         return (
-          <Badge color="red" variant="filled">
+          <LtChip color="red" variant="filled">
             Failed
-          </Badge>
+          </LtChip>
         )
       case 'cancelled':
         return (
-          <Badge color="orange" variant="filled">
+          <LtChip color="orange" variant="filled">
             Cancelled
-          </Badge>
+          </LtChip>
         )
       default:
-        return <Badge color="gray">{status}</Badge>
+        return <LtChip color="gray">{status}</LtChip>
     }
   }
 
@@ -315,9 +315,9 @@ export default function ExcelWorkshopPanel({ active, showToast }: ExcelWorkshopP
           </Box>
           {jobState && (
             <Group gap="xs">
-              <Badge size="xs" variant="outline" color="blue" leftSection={<Clock size={10} />}>
+              <LtChip size="xs" variant="outline" color="blue" leftSection={<Clock size={10} />}>
                 JOB: {jobState.id.substring(0, 8)}
-              </Badge>
+              </LtChip>
               {getStatusBadge(jobState.status)}
             </Group>
           )}

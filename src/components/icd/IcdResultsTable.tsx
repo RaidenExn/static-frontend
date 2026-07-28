@@ -1,8 +1,8 @@
 import React from 'react'
-import { Table, SegmentedControl, Badge, Text } from '@mantine/core'
+import { Table, SegmentedControl, Text } from '@mantine/core'
 import { Trash2 } from 'lucide-react'
 import { Diagnosis } from '../../hooks/useIcdState'
-import { LtIconButton, LtTooltip } from '../../shared_elements'
+import { LtIconButton, LtTooltip, LtChip } from '../../shared_elements'
 
 interface IcdResultsTableProps {
   diagnoses: Diagnosis[]
@@ -86,9 +86,9 @@ export function IcdResultsTable({
                   </Table.Td>
                 )}
                 <Table.Td>
-                  <Badge size="xs" variant="light" color={isDiagDeleted ? 'gray' : 'green'}>
+                  <LtChip color={isDiagDeleted ? 'gray' : 'green'}>
                     {isDiagDeleted ? 'Struck Out' : 'Active'}
-                  </Badge>
+                  </LtChip>
                 </Table.Td>
                 <Table.Td ta="center">
                   <LtIconButton
