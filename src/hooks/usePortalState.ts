@@ -171,6 +171,29 @@ export function usePortalState() {
     fetchServerAttachments
   } = useEncounterAttachments({ encounterInput, showToast })
 
+  // Effect to clear summary attachment immediately if user turns off Auto Summary
+  useEffect(() => {
+    if (!autoAttachSummary && attachedFileName) {
+      const isSummaryFile =
+        attachedFileName.toLowerCase().includes('summary') ||
+        attachedFileName.toLowerCase().includes('clinical') ||
+        autoAttachedEncRef.current !== ''
+
+      if (isSummaryFile) {
+        setAttachedFileName('')
+        setAttachedFileBase64('')
+        autoAttachedEncRef.current = ''
+        showToast({
+          id: 'auto-attach-cleared',
+          title: '🗑️ Summary Attachment Cleared',
+          message: 'Cleared attached summary PDF because Auto Summary was turned off.',
+          tone: 'ok',
+          duration: 4000
+        })
+      }
+    }
+  }, [autoAttachSummary, attachedFileName])
+
   const resetDrafts = () => {
     setResubCommentsState('')
     setRaRemarks('')

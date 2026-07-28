@@ -683,8 +683,44 @@ export function usePortalQueries({
       })
   }
 
-  const loadSubmissionFile = async (fileId: string, siteId: string, fileName: string, isViewXml: boolean) => {
+  const loadSubmissionFile = async (
+    fileId: string,
+    siteId: string,
+    fileName: string,
+    isViewXml: boolean,
+    directBase64?: string
+  ) => {
     const toastId = 'xml-pdf-extract'
+
+    // Instant memory open if directBase64 is present and valid
+    if (!isViewXml && directBase64 && String(directBase64).trim().length > 10) {
+      let clean = String(directBase64).trim()
+      if (clean.includes('base64,')) clean = clean.substring(clean.indexOf('base64,') + 7).trim()
+      clean = clean.replace(/\s+/g, '')
+
+      if (clean.startsWith('JVBERi')) {
+        showToast({
+          id: toastId,
+          title: 'PDF Document Opening',
+          message: `Opening attached document ${fileName}...`,
+          tone: 'loading'
+        })
+        try {
+          await openPdfInExtension(clean, fileName, true, { showToast, toastId })
+          showToast({
+            id: toastId,
+            title: 'PDF Document Opened',
+            message: `Opened attached PDF file ${fileName}.`,
+            tone: 'ok',
+            duration: 4000
+          })
+          return
+        } catch (memErr: any) {
+          console.warn('[loadSubmissionFile] Memory open warning, falling back to API:', memErr.message)
+        }
+      }
+    }
+
     showToast({
       id: toastId,
       title: isViewXml ? 'XML Extraction' : 'PDF Extraction',

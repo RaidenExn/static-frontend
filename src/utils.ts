@@ -83,7 +83,13 @@ export function openBlobUrl(blob: Blob, fileName: string): string {
 }
 
 export function openPdfBase64(base64: string, fileName: string): void {
-  const binary = atob(base64)
+  let clean = String(base64 || '').trim()
+  if (clean.includes('base64,')) clean = clean.substring(clean.indexOf('base64,') + 7).trim()
+  clean = clean.replace(/\s+/g, '')
+  const pdfIdx = clean.indexOf('JVBERi')
+  if (pdfIdx > 0) clean = clean.substring(pdfIdx)
+
+  const binary = atob(clean)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)

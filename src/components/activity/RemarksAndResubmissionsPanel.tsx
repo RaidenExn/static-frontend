@@ -11,7 +11,7 @@ interface RemarksAndResubmissionsPanelProps {
   remarksRows: RcmRemark[]
   resubmissionsCount: number
   resubmissionsRows: RcmResubmission[]
-  onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
+  onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean, directBase64?: string) => void
   onDeleteResubmissionReason?: (resubmitReasonId: number, encounter?: string, raFileId?: number) => void
   onEditResubmissionReason?: (row: RcmResubmission) => void
   adaptiveCardColors?: boolean
@@ -617,7 +617,7 @@ export default function RemarksAndResubmissionsPanel({
                                     variant="light"
                                     color="blue"
                                     leftSection={<Paperclip size={11} style={{ color: 'var(--mantine-color-blue-6)' }} />}
-                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr || 'resubmission_attachment.pdf', false)}
+                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr || 'resubmission_attachment.pdf', false, rawAttachment)}
                                     style={{
                                       padding: '0 8px',
                                       fontSize: 'var(--mantine-font-size-xs)',
