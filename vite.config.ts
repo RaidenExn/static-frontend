@@ -6,6 +6,16 @@ const outDir = (process.env.GITHUB_ACTIONS === 'true' || process.env.BUILD_TARGE
 export default defineConfig({
   plugins: [react()],
   base: './',
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': { target: 'http://localhost:8788', changeOrigin: true, ws: true },
+      '/lt-local': { target: 'http://localhost:8788', changeOrigin: true },
+      '/temp': { target: 'http://localhost:8788', changeOrigin: true },
+      '/download': { target: 'http://localhost:8788', changeOrigin: true }
+    }
+  },
   build: {
     outDir,
     emptyOutDir: true,
@@ -24,4 +34,3 @@ export default defineConfig({
     }
   }
 })
-

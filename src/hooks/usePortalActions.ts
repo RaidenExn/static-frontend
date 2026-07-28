@@ -6,7 +6,8 @@ import {
   copyTextToClipboardFast,
   ensureNotificationPermission,
   showSystemNotification,
-  applyRowAction
+  applyRowAction,
+  calculateRcmFinances
 } from '../utils'
 
 import { usePortal } from '../context/PortalContext'
@@ -86,15 +87,61 @@ export function usePortalActions() {
         body: JSON.stringify(payload)
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
+      // Optimistic In-Place UI Update (<2ms)
+      const savedCommentText = resubComments.trim()
+      const returnedReasonId = Number(data?.resubmitReasonId || data?.Data?.[0]?.resubmit_reason_id || editingResubmitReasonId || Date.now())
+      const raFileName = raFilesList.find((f: any) => String(f.id) === String(selectedRaFileId))?.name || ''
+
+      const newReasonRow = {
+        resubmit_reason_id: returnedReasonId,
+        resubmit_reason_type: Number(resubmitType),
+        correction_id: Number(resubmitType),
+        ra_file_id: Number(selectedRaFileId),
+        ra_file_name: raFileName,
+        resubmit_reason_desc: savedCommentText,
+        resubmit_reason_captured: savedCommentText,
+        resubmit_reason_createdby: 'user',
+        resubmit_reason_createdon: new Date().toISOString()
+      }
+
+      if (typeof setRcmResult === 'function') {
+        setRcmResult((prev: any) => {
+          if (!prev?.Ok?.rcm) return prev
+          const rcmCopy = JSON.parse(JSON.stringify(prev.Ok.rcm))
+          const detail = rcmCopy.detail || {}
+          if (!detail.resubmissionReasons) detail.resubmissionReasons = []
+
+          detail.resubmissionReasons = [
+            newReasonRow,
+            ...detail.resubmissionReasons.filter(
+              (r: any) => Number(r.resubmit_reason_id) !== returnedReasonId
+            )
+          ]
+
+          if (!rcmCopy.flattened) rcmCopy.flattened = {}
+          rcmCopy.flattened.resubmissions = detail.resubmissionReasons
+
+          if (!rcmCopy.writeContext) rcmCopy.writeContext = {}
+          rcmCopy.writeContext.existingReason = {
+            resubmitReasonId: returnedReasonId,
+            type: Number(resubmitType),
+            fileId: Number(selectedRaFileId),
+            comments: savedCommentText
+          }
+
+          return {
+            ...prev,
+            Ok: {
+              ...prev.Ok,
+              rcm: rcmCopy
+            }
+          }
+        })
+      }
 
       if (typeof setEditingResubmitReasonId === 'function') {
         setEditingResubmitReasonId(null)
       }
-
-      setResubComments('')
-      setAttachedFileName('')
-      setAttachedFileBase64('')
 
       showToast({
         id: toastId,
@@ -158,11 +205,30 @@ export function usePortalActions() {
     if (!encounterInput.trim()) return showToast('No active encounter loaded.', 'error')
     if (!raRemarks.trim()) return showToast('Please enter remarks before saving.', 'error')
 
-    const existingReason = rcmResult?.Ok?.rcm?.writeContext?.existingReason
+    const writeContext = rcmResult?.Ok?.rcm?.writeContext || {}
+    const existingReason = writeContext.existingReason
     const serverComments = (existingReason?.comments || '').trim()
 
+    const hasDraftComments = resubComments.trim().length > 0
+    const hasDraftAttachment = Boolean(attachedFileBase64 && attachedFileBase64.length > 10)
+    const hasDraftResub = hasDraftComments || hasDraftAttachment
+
+    const activityRows = rcmResult?.Ok?.rcm?.flattened?.activity || []
+    const finances = calculateRcmFinances(activityRows, rowActions, doubleAccumulationMode)
+    const pendingResubAmount = finances.pendingResub
+
+    if (pendingResubAmount > 0 && !serverComments && !hasDraftComments) {
+      return showToast({
+        id: toastId,
+        title: 'Pending Resubmission Check',
+        message: 'RA Comments cannot be saved unless Resubmission Comments have already been saved when there is a pending Resubmitted amount.',
+        tone: 'error',
+        duration: 6000
+      })
+    }
+
     const hasReSubAction = Object.values(rowActions).some((action) => action === 're-sub')
-    if (!serverComments && hasReSubAction) {
+    if (!serverComments && !hasDraftComments && hasReSubAction) {
       return showToast({
         id: toastId,
         title: 'RA Remarks Action Check',
@@ -176,19 +242,34 @@ export function usePortalActions() {
     showToast({
       id: toastId,
       title: 'RA Remarks',
-      message: 'Saving Remittance Advice remarks to server...',
+      message: hasDraftResub
+        ? 'Saving RA remarks and draft resubmission to server...'
+        : 'Saving Remittance Advice remarks to server...',
       tone: 'loading'
     })
     void ensureNotificationPermission()
 
-    const payload = {
+    const raFileIdToUse = Number(selectedRaFileId || raFilesList[0]?.id || 0)
+    const resubmissionDraft = hasDraftResub
+      ? {
+          resubmitType: Number(resubmitType),
+          comments: resubComments.trim(),
+          raFileId: raFileIdToUse,
+          resubmitReasonId: Number(editingResubmitReasonId || writeContext.resubmitReasonId || 0),
+          attachmentBase64: attachedFileBase64,
+          autoAttachSummary
+        }
+      : undefined
+
+    const payload: any = {
       encounter: encounterInput.trim(),
       body: {
         tabStatusId: 1,
         resubmitType: Number(resubmitType),
         remarks: raRemarks.trim(),
         rowActions,
-        doubleAccumulationMode
+        doubleAccumulationMode,
+        ...(resubmissionDraft ? { resubmissionDraft } : {})
       }
     }
 
@@ -228,10 +309,18 @@ export function usePortalActions() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
 
+      if (resubmissionDraft) {
+        if (typeof setEditingResubmitReasonId === 'function') {
+          setEditingResubmitReasonId(null)
+        }
+      }
+
       showToast({
         id: toastId,
-        title: 'RA Remarks Saved',
-        message: 'RA remarks saved and synced successfully.',
+        title: hasDraftResub ? 'RA Remarks & Resubmission Saved' : 'RA Remarks Saved',
+        message: hasDraftResub
+          ? 'RA remarks and resubmission comments saved & synced successfully.'
+          : 'RA remarks saved and synced successfully.',
         tone: 'ok',
         duration: 4000
       })

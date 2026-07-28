@@ -51,11 +51,15 @@ export function usePortalQueries({
   const [upstreamHealth, setUpstreamHealth] = useState<{
     latencyMs: number
     status: 'ultra-fast' | 'healthy' | 'congested' | 'degraded'
-    poolConcurrency: number
+    protocolMode?: string
+    activeSessions?: number
+    pendingJobs?: number
   }>({
     latencyMs: 42,
     status: 'ultra-fast',
-    poolConcurrency: 5
+    protocolMode: 'h2-multiplexed',
+    activeSessions: 1,
+    pendingJobs: 0
   })
 
   useEffect(() => {

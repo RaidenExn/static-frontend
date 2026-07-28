@@ -111,6 +111,8 @@ export default function RcmActionCenter(props: RcmActionCenterProps) {
         autoTransferToRaRemarks={props.autoTransferToRaRemarks}
         setAutoTransferToRaRemarks={props.setAutoTransferToRaRemarks}
         hasPreExistingRemarksOrComments={props.hasPreExistingRemarksOrComments}
+        resubComments={props.resubComments}
+        attachedFileName={props.attachedFileName}
       />
 
       {/* Card 3: Write off remarks */}

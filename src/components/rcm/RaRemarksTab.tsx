@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Card, Group, Text, Switch, Textarea, Button, Stack } from '@mantine/core'
+import { Card, Group, Text, Switch, Textarea, Button, Stack, Badge, Tooltip } from '@mantine/core'
 
 interface RaRemarksTabProps {
   loading?: boolean
@@ -18,6 +18,8 @@ interface RaRemarksTabProps {
   autoTransferToRaRemarks: boolean
   setAutoTransferToRaRemarks: (_val: boolean) => void
   hasPreExistingRemarksOrComments: boolean
+  resubComments?: string
+  attachedFileName?: string
 }
 
 export default function RaRemarksTab({
@@ -36,7 +38,9 @@ export default function RaRemarksTab({
   onClearRaRemarks,
   autoTransferToRaRemarks,
   setAutoTransferToRaRemarks,
-  hasPreExistingRemarksOrComments
+  hasPreExistingRemarksOrComments,
+  resubComments = '',
+  attachedFileName = ''
 }: RaRemarksTabProps) {
   const raRemarksRef = useRef<HTMLTextAreaElement>(null)
 
@@ -47,6 +51,8 @@ export default function RaRemarksTab({
       textarea.style.height = `${textarea.scrollHeight}px`
     }
   }, [raRemarks])
+
+  const hasDraftResub = resubComments.trim().length > 0 || attachedFileName.length > 0
 
   return (
     <Card
@@ -71,36 +77,37 @@ export default function RaRemarksTab({
           gap: '8px'
         }}
       >
-        <Group gap="xs" wrap="nowrap">
+        <Group gap="xs" wrap="nowrap" align="center">
           <Text size="sm" fw={800} tt="uppercase" style={{ letterSpacing: '0.5px' }} c="var(--mantine-color-text)">
             Write RA Remarks
           </Text>
+          {hasDraftResub && (
+            <Tooltip label="Saving RA remarks will automatically commit your draft resubmission comments & attachment" openDelay={0} closeDelay={0}>
+              <Badge size="xs" variant="light" color="blue" style={{ cursor: 'help' }}>
+                + Draft Resub
+              </Badge>
+            </Tooltip>
+          )}
           <Switch
             label="Auto Copy"
             size="xs"
             checked={autoCopyRaRemarks}
             onChange={(e) => setAutoCopyRaRemarks(e.target.checked)}
           />
-          <Switch
-            label={
-              <Text
-                size="sm"
-                fw={600}
-                style={{ color: 'var(--muted)', cursor: hasPreExistingRemarksOrComments ? 'not-allowed' : 'pointer' }}
-              >
-                Auto transfer
-              </Text>
-            }
-            size="xs"
-            checked={autoTransferToRaRemarks && !hasPreExistingRemarksOrComments}
-            onChange={(e) => setAutoTransferToRaRemarks(e.target.checked)}
-            disabled={hasPreExistingRemarksOrComments}
-            title={
-              hasPreExistingRemarksOrComments
-                ? 'Bypassed because pre-existing saved remarks or comments exist on the server'
-                : 'Automatically mirror comments to RA remarks'
-            }
-          />
+          <Tooltip label="Automatically mirror resubmission comments into RA remarks in real time" openDelay={0} closeDelay={0}>
+            <div>
+              <Switch
+                label={
+                  <Text size="sm" fw={600} style={{ color: 'var(--muted)', cursor: 'pointer' }}>
+                    Auto transfer
+                  </Text>
+                }
+                size="xs"
+                checked={autoTransferToRaRemarks}
+                onChange={(e) => setAutoTransferToRaRemarks(e.target.checked)}
+              />
+            </div>
+          </Tooltip>
         </Group>
 
         {loading ? (
@@ -207,14 +214,24 @@ export default function RaRemarksTab({
               >
                 Clear
               </Button>
-              <Button
-                onClick={onSaveRaRemarks}
-                disabled={isSavingRaRemarks || !canSaveRaRemarks}
-                className="rcm-save-ra"
-                style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 48px' }}
+              <Tooltip
+                label={
+                  hasDraftResub
+                    ? 'Saves RA remarks & draft resubmission reason + attachment in one click'
+                    : 'Save RA remarks to remote EMR'
+                }
+                openDelay={0}
+                closeDelay={0}
               >
-                {isSavingRaRemarks ? 'Saving...' : 'Save'}
-              </Button>
+                <Button
+                  onClick={onSaveRaRemarks}
+                  disabled={isSavingRaRemarks || !canSaveRaRemarks}
+                  className="rcm-save-ra"
+                  style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 48px' }}
+                >
+                  {isSavingRaRemarks ? 'Saving...' : 'Save'}
+                </Button>
+              </Tooltip>
             </Group>
           </Group>
         </Stack>
@@ -222,3 +239,4 @@ export default function RaRemarksTab({
     </Card>
   )
 }
+

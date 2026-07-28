@@ -124,7 +124,7 @@ export function usePortalState() {
   const setResubComments = (val: string | ((prev: string) => string)) => {
     setResubCommentsState((prev) => {
       const nextVal = typeof val === 'function' ? val(prev) : val
-      if (autoTransferToRaRemarks && !hasPreExistingRemarksOrComments) {
+      if (autoTransferToRaRemarks) {
         setTimeout(() => {
           setRaRemarks(nextVal)
         }, 0)

@@ -572,21 +572,24 @@ function ActivityTable({
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap' }}>
           {(() => {
-            const codeStr = row.claim_denial_code || ''
-            if (!codeStr) return <></>
-            const desc = getDenialDescription(codeStr)
-            const tooltipLabel = desc ? `${codeStr}: ${desc}` : codeStr
+            const rowAny = row as any
+            const codeStr = String(row.claim_denial_code || rowAny.denial_code || rowAny.deniel_code || '').trim()
+            if (!codeStr) return null
+            const rawDesc = String(row.claim_denial_desc || rowAny.denial_desc || rowAny.claim_denial_remark || '').trim()
+            const dictDesc = getDenialDescription(codeStr)
+            const desc = dictDesc || rawDesc
+            const tooltipText = desc ? `${codeStr}: ${desc}` : `Denial Code: ${codeStr}`
+
             return (
-              <Tooltip label={tooltipLabel} position="top" withArrow>
-                <div style={{ display: 'inline-block', verticalAlign: 'middle', cursor: 'help' }}>
-                  <Text size="sm" style={{
-                    fontWeight: isRepeatTrackerRow ? 800 : 500,
-                    color: isRepeatTrackerRow ? 'var(--bad, #e03131)' : 'inherit',
-                    fontSize: 'var(--mantine-font-size-sm)'
-                  }}>
-                    <CellText text={codeStr} />
-                  </Text>
-                </div>
+              <Tooltip label={tooltipText} position="top" withArrow openDelay={0} closeDelay={0} multiline w={280}>
+                <Badge
+                  variant="light"
+                  color="red"
+                  size="sm"
+                  style={{ cursor: 'help', textTransform: 'none', fontWeight: 700 }}
+                >
+                  {codeStr}
+                </Badge>
               </Tooltip>
             )
           })()}
