@@ -1,17 +1,15 @@
 import React, { useState, useCallback } from 'react'
 import {
-  Button,
   Badge,
   Group,
   Text,
   SegmentedControl,
   Select,
   Popover,
-  ActionIcon,
   Stack,
-  Tooltip,
   TextInput
 } from '@mantine/core'
+import { LtButton, LtIconButton, LtTooltip } from '../shared_elements'
 import { FileText, Calendar, RefreshCw, ShieldCheck, Settings, Plus, Zap, Clipboard, RotateCcw } from 'lucide-react'
 import { mergeModelOptions } from '../utils/modelDefinitions'
 import { customFetch as fetch } from '../config/backend'
@@ -115,136 +113,126 @@ export default function EncounterActions({
   }
 
   return (
-    <Group gap="xs" className="actions-group-container" align="center" style={{ flexWrap: 'wrap' }}>
+    <Group gap="xs" align="center" wrap="wrap">
       {/* Download XML */}
-      <Button
+      <LtButton
         id="downloadXmlButton"
         type="button"
-        size="xs"
         variant="default"
-        leftSection={<FileText style={{ width: 14, height: 14 }} />}
+        leftIcon={<FileText size={14} />}
         onClick={onDownloadXml}
-        aria-label="Download XML file"
+        ariaLabel="Download XML file"
       >
         Download XML
-      </Button>
+      </LtButton>
 
       {/* Edit Mode Toggle */}
-      <Tooltip label="Toggle Edit Mode (reveals editable encounter and authorization dates)" position="top" withArrow>
-        <Button
-          id="dateEditModeButton"
-          type="button"
-          size="xs"
-          variant={dateEditMode ? 'filled' : 'default'}
-          leftSection={<Calendar style={{ width: 14, height: 14 }} />}
-          onClick={() => setDateEditMode(!dateEditMode)}
-          aria-label="Toggle edit mode"
-        >
-          Edit Mode
-        </Button>
-      </Tooltip>
+      <LtButton
+        id="dateEditModeButton"
+        type="button"
+        variant={dateEditMode ? 'filled' : 'default'}
+        leftIcon={<Calendar size={14} />}
+        onClick={() => setDateEditMode(!dateEditMode)}
+        tooltip="Toggle Edit Mode (reveals editable encounter and authorization dates)"
+        ariaLabel="Toggle edit mode"
+      >
+        Edit Mode
+      </LtButton>
 
       {/* Force Refresh */}
-      <Tooltip label="Force reload from upstream (bypass local cache)" position="top" withArrow>
-        <Button
-          id="forceReloadButton"
-          type="button"
-          size="xs"
-          variant="light"
-          color="red"
-          leftSection={<RefreshCw style={{ width: 14, height: 14 }} />}
-          onClick={onForceReload}
-          aria-label="Force reload from upstream"
-        >
-          Force Refresh
-        </Button>
-      </Tooltip>
+      <LtButton
+        id="forceReloadButton"
+        type="button"
+        variant="light"
+        color="red"
+        leftIcon={<RefreshCw size={14} />}
+        onClick={onForceReload}
+        tooltip="Force reload from upstream (bypass local cache)"
+        ariaLabel="Force reload from upstream"
+      >
+        Force Refresh
+      </LtButton>
 
       {/* CEED Validator */}
-      <Tooltip label="Open CEED Rules Engine & Validation Suite" position="top" withArrow>
-        <Button
-          id="ceedValidatorButton"
-          type="button"
-          size="xs"
-          variant="light"
-          color="cyan"
-          leftSection={<ShieldCheck style={{ width: 14, height: 14 }} />}
-          onClick={onOpenCeedValidator}
-          aria-label="Open CEED Validator"
-        >
-          CEED Validator
-        </Button>
-      </Tooltip>
+      <LtButton
+        id="ceedValidatorButton"
+        type="button"
+        variant="light"
+        color="cyan"
+        leftIcon={<ShieldCheck size={14} />}
+        onClick={onOpenCeedValidator}
+        tooltip="Open CEED Rules Engine & Validation Suite"
+        ariaLabel="Open CEED Validator"
+      >
+        CEED Validator
+      </LtButton>
 
       {/* Auto Prompt */}
       {onAutoPrompt && (
-        <Tooltip label="Auto-generate AI justification for denied services and paste into comments" position="top" withArrow>
-          <Button
-            id="autoPromptButton"
-            type="button"
-            size="xs"
-            variant="filled"
-            color="green"
-            leftSection={<Zap style={{ width: 14, height: 14 }} />}
-            onClick={onAutoPrompt}
-            aria-label="Auto-generate AI justification"
-          >
-            Auto Prompt
-          </Button>
-        </Tooltip>
+        <LtButton
+          id="autoPromptButton"
+          type="button"
+          color="green"
+          leftIcon={<Zap size={14} />}
+          onClick={onAutoPrompt}
+          tooltip="Auto-generate AI justification for denied services and paste into comments"
+          ariaLabel="Auto-generate AI justification"
+        >
+          Auto Prompt
+        </LtButton>
       )}
 
       {/* Copy Prompt */}
       {onCopyPrompt && (
-        <Tooltip label="Copy compiled clinical prompt to clipboard" position="top" withArrow>
-          <Button
-            id="copyPromptButton"
-            type="button"
-            size="xs"
-            variant="default"
-            leftSection={<Clipboard style={{ width: 14, height: 14 }} />}
-            onClick={onCopyPrompt}
-            aria-label="Copy compiled prompt"
-          >
-            Copy Prompt
-          </Button>
-        </Tooltip>
+        <LtButton
+          id="copyPromptButton"
+          type="button"
+          variant="default"
+          leftIcon={<Clipboard size={14} />}
+          onClick={onCopyPrompt}
+          tooltip="Copy compiled clinical prompt to clipboard"
+          ariaLabel="Copy compiled prompt"
+        >
+          Copy Prompt
+        </LtButton>
       )}
 
       {/* New Chat */}
       {onNewChat && (
-        <Tooltip label="Clear AI chat history and start a new conversation" position="top" withArrow>
-          <Button
-            id="newChatButton"
-            type="button"
-            size="xs"
-            variant="light"
-            color="red"
-            leftSection={<RotateCcw style={{ width: 14, height: 14 }} />}
-            onClick={onNewChat}
-            aria-label="Reset AI chat"
-          >
-            New Chat
-          </Button>
-        </Tooltip>
+        <LtButton
+          id="newChatButton"
+          type="button"
+          variant="light"
+          color="red"
+          leftIcon={<RotateCcw size={14} />}
+          onClick={onNewChat}
+          tooltip="Clear AI chat history and start a new conversation"
+          ariaLabel="Reset AI chat"
+        >
+          New Chat
+        </LtButton>
       )}
 
       {/* AI Provider & Model Config */}
       <Popover width={280} position="bottom-start" withArrow shadow="md" trapFocus onOpen={fetchAiModels}>
         <Popover.Target>
-          <Tooltip label="Configure AI Provider & Model" position="top" withArrow>
-            <ActionIcon size="xs" variant="subtle" color="blue">
-              <Settings style={{ width: 13, height: 13 }} />
-            </ActionIcon>
-          </Tooltip>
+          <LtIconButton
+            icon={Settings}
+            iconSize={13}
+            variant="subtle"
+            color="blue"
+            tooltip="Configure AI Provider & Model"
+          />
         </Popover.Target>
-        <Popover.Dropdown style={{ padding: '8px', border: '1px solid var(--line)', backgroundColor: 'var(--panel)' }}>
+        <Popover.Dropdown p="xs">
           <Stack gap="xs">
-            <Text size="11px" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <Text size="11px" fw={700} c="dimmed" tt="uppercase" lts="0.5px">
               AI Configurations
             </Text>
             <Stack gap={2}>
-              <Text size="10px" fw={600} c="dimmed">PROVIDER</Text>
+              <Text size="10px" fw={600} c="dimmed">
+                PROVIDER
+              </Text>
               <SegmentedControl
                 size="xs"
                 value={aiProvider}
@@ -253,18 +241,20 @@ export default function EncounterActions({
                   { value: 'openrouter', label: 'OpenRouter' },
                   { value: 'gemini', label: 'Gemini' }
                 ]}
-                style={{ width: '100%' }}
+                fullWidth
               />
             </Stack>
             <Stack gap={2}>
-              <Text size="10px" fw={600} c="dimmed">MODEL</Text>
+              <Text size="10px" fw={600} c="dimmed">
+                MODEL
+              </Text>
               <Select
                 size="xs"
                 value={aiModel}
                 onChange={handleModelChange}
                 data={modelOptions}
                 searchable
-                style={{ width: '100%' }}
+                w="100%"
               />
               {showCustomInput && (
                 <Group gap={4} wrap="nowrap" align="center">
@@ -275,13 +265,25 @@ export default function EncounterActions({
                     onChange={(e) => setCustomModelInput(e.currentTarget.value)}
                     style={{ flex: 1 }}
                   />
-                  <ActionIcon size="sm" variant="filled" color="blue" onClick={handleSaveCustomModel}>
-                    <Plus style={{ width: 12, height: 12 }} />
-                  </ActionIcon>
+                  <LtIconButton
+                    icon={Plus}
+                    iconSize={12}
+                    size="sm"
+                    variant="filled"
+                    color="blue"
+                    onClick={handleSaveCustomModel}
+                  />
                 </Group>
               )}
             </Stack>
-            <Badge size="xs" variant="light" color={aiProvider === 'gemini' ? 'purple' : 'indigo'} style={{ alignSelf: 'flex-start', fontSize: '9px', fontWeight: 800 }}>
+            <Badge
+              size="xs"
+              variant="light"
+              color={aiProvider === 'gemini' ? 'purple' : 'indigo'}
+              fw={800}
+              fs="9px"
+              style={{ alignSelf: 'flex-start' }}
+            >
               {aiProvider.toUpperCase()} · {aiModel.split('/').pop() || aiModel}
             </Badge>
           </Stack>

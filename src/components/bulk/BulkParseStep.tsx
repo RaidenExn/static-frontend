@@ -1,5 +1,5 @@
 import React from 'react'
-import { Tooltip } from '@mantine/core'
+import { LtTooltip } from '../../shared_elements'
 
 interface BulkParseStepProps {
   inputText: string
@@ -116,7 +116,7 @@ export function BulkParseStep({
               {isExporting ? 'Generating...' : '📥 Export Editable CSV Template'}
             </button>
 
-            <Tooltip label="Force all denied items back to Resubmission mode directly without writing any comments or remarks" openDelay={0} closeDelay={0}>
+            <LtTooltip label="Force all denied items back to Resubmission mode directly without writing any comments or remarks">
               <button
                 type="button"
                 onClick={handleForceResubmit}
@@ -139,7 +139,7 @@ export function BulkParseStep({
               >
                 ⚡ Force Set to Resubmission Mode
               </button>
-            </Tooltip>
+            </LtTooltip>
           </div>
         </div>
       </div>

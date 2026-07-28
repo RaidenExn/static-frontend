@@ -1,6 +1,7 @@
 import React from 'react'
 import { Card, Group, Stack, Button, Text } from '@mantine/core'
-import { Calendar } from 'lucide-react'
+import { Calendar, Clipboard } from 'lucide-react'
+import { LtTableCard } from '../shared_elements'
 import { DateTimePicker } from '@mantine/dates'
 import { RcmActivity, RcmRemark, RcmResubmission, RcmVisit } from '../types'
 import { useActivityState } from '../hooks/useActivityState'
@@ -246,36 +247,46 @@ export default function ActivityPanel(props: ActivityPanelProps) {
         </Card>
       )}
 
-      {/* Main Activity Table */}
-      <ActivityTable
+      {/* Main Activity Table inside shared Table Card */}
+      <LtTableCard
+        title="Activity Wise Status"
+        icon={Clipboard}
+        badge={props.activityCount}
         loading={!!props.loading}
-        sortedRows={state.sortedRows}
-        loadingRepeatTracker={props.loadingRepeatTracker}
-        repeatTrackerLoaded={props.repeatTrackerLoaded}
-        onLoadRepeatTracker={props.onLoadRepeatTracker}
-        repeatTrackerLookbackYears={props.repeatTrackerLookbackYears}
-        batchAuthStartInput={state.batchAuthStartInput}
-        setBatchAuthStartInput={state.setBatchAuthStartInput}
-        batchAuthExpiryInput={state.batchAuthExpiryInput}
-        setBatchAuthExpiryInput={state.setBatchAuthExpiryInput}
-        batchActivityStartInput={state.batchActivityStartInput}
-        setBatchActivityStartInput={state.setBatchActivityStartInput}
-        handleBatchSaveField={state.handleBatchSaveField}
-        handleToggleAllActions={state.handleToggleAllActions}
-        editingCell={state.editingCell}
-        setEditingCell={state.setEditingCell}
-        editValue={state.editValue}
-        setEditValue={state.setEditValue}
-        handleSaveCell={state.handleSaveCell}
-        modifiedCells={state.modifiedCells}
-        observationCounts={state.observationCounts}
-        handleOpenObservationsModal={state.handleOpenObservationsModal}
-        getDenialDescription={state.getDenialDescription}
-        rowActions={props.rowActions}
-        setRowActions={props.setRowActions}
-        canSaveRaRemarks={props.canSaveRaRemarks}
-        dateEditMode={props.dateEditMode}
-      />
+        loadingText="Loading activity data..."
+        style={{ overflow: 'visible' }}
+        disableTableWrapper
+      >
+        <ActivityTable
+          loading={!!props.loading}
+          sortedRows={state.sortedRows}
+          loadingRepeatTracker={props.loadingRepeatTracker}
+          repeatTrackerLoaded={props.repeatTrackerLoaded}
+          onLoadRepeatTracker={props.onLoadRepeatTracker}
+          repeatTrackerLookbackYears={props.repeatTrackerLookbackYears}
+          batchAuthStartInput={state.batchAuthStartInput}
+          setBatchAuthStartInput={state.setBatchAuthStartInput}
+          batchAuthExpiryInput={state.batchAuthExpiryInput}
+          setBatchAuthExpiryInput={state.setBatchAuthExpiryInput}
+          batchActivityStartInput={state.batchActivityStartInput}
+          setBatchActivityStartInput={state.setBatchActivityStartInput}
+          handleBatchSaveField={state.handleBatchSaveField}
+          handleToggleAllActions={state.handleToggleAllActions}
+          editingCell={state.editingCell}
+          setEditingCell={state.setEditingCell}
+          editValue={state.editValue}
+          setEditValue={state.setEditValue}
+          handleSaveCell={state.handleSaveCell}
+          modifiedCells={state.modifiedCells}
+          observationCounts={state.observationCounts}
+          handleOpenObservationsModal={state.handleOpenObservationsModal}
+          getDenialDescription={state.getDenialDescription}
+          rowActions={props.rowActions}
+          setRowActions={props.setRowActions}
+          canSaveRaRemarks={props.canSaveRaRemarks}
+          dateEditMode={props.dateEditMode}
+        />
+      </LtTableCard>
 
       {/* Modals for Activities & Authorizations */}
       <ObservationsModal

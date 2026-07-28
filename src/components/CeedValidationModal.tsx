@@ -18,6 +18,8 @@ import {
   Accordion,
   Switch
 } from '@mantine/core'
+import { useClipboard } from '@mantine/hooks'
+import { LtTableCard } from '../shared_elements'
 import {
   ShieldAlert,
   CheckCircle,
@@ -86,7 +88,8 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
   const [diagnosticsData, setDiagnosticsData] = useState<any[]>([])
   const [generatedXml, setGeneratedXml] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState<boolean>(false)
+
+  const clipboard = useClipboard({ timeout: 2000 })
 
   // Persist the Auto-run preference to localStorage
   const [autoRun, setAutoRun] = useState<boolean>(() => localStorage.getItem('ceed_auto_run') !== 'false')
@@ -247,13 +250,6 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     }
   }
 
-  const handleCopyXml = () => {
-    if (!generatedXml) return
-    navigator.clipboard.writeText(generatedXml)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   // Safely extract claim edits/exceptions from various potential JSON structures in log items
   const getClaimEdits = (logItem: any): any[] => {
     if (!logItem) return []
@@ -306,7 +302,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
       const key = `${edit.editCode || ''}_${edit.editComment || ''}`
       if (!seen.has(key)) {
         seen.add(key)
-        
+
         const editCode = edit.editCode || ''
         const description = edit.editType?.description || edit.editComment || ''
         const category = getErrorCategory(editCode, description)
@@ -323,7 +319,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     uniqueEdits.sort((a, b) => {
       const aIsIcd = String(a.edit.editCode || '').toUpperCase().startsWith('ICD')
       const bIsIcd = String(b.edit.editCode || '').toUpperCase().startsWith('ICD')
-      
+
       if (aIsIcd && !bIsIcd) return -1
       if (!aIsIcd && bIsIcd) return 1
       return 0
@@ -336,10 +332,14 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     if (hasExceptions) {
       return (
         <Grid.Col span={12}>
-          <Card withBorder radius="sm" p="sm" style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))', backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.01))' }}>
-            <Group justify="space-between" align="center" style={{ marginBottom: '10px' }}>
-              <Text size="xs" fw={700} c="orange" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>ACTIVE RULES EXCEPTIONS & RECOMMENDATIONS ({exceptions.length})</Text>
-              <Badge color="orange" size="xs" radius="xs" variant="filled">Attention Required</Badge>
+          <Card withBorder radius="sm" p="sm">
+            <Group justify="space-between" align="center" mb="xs">
+              <Text size="xs" fw={700} c="orange" tt="uppercase" lts="0.5px">
+                ACTIVE RULES EXCEPTIONS & RECOMMENDATIONS ({exceptions.length})
+              </Text>
+              <Badge color="orange" size="xs" radius="xs" variant="filled">
+                Attention Required
+              </Badge>
             </Group>
             <Stack gap="xs">
               {exceptions.map(({ edit, logType, logId }, idx) => {
@@ -347,19 +347,33 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                 const isCPT = editCode.toUpperCase().startsWith('CPT')
                 const serviceCode = edit.serviceCode || edit.editType?.serviceCode
                 return (
-                  <Card key={idx} withBorder radius="xs" p="xs" style={{ backgroundColor: isCPT ? 'rgba(253, 126, 20, 0.06)' : 'rgba(250, 82, 82, 0.06)', borderColor: isCPT ? 'rgba(253, 126, 20, 0.2)' : 'rgba(250, 82, 82, 0.2)' }}>
-                    <Group justify="space-between" align="center" style={{ marginBottom: '4px' }}>
+                  <Card key={idx} withBorder radius="xs" p="xs">
+                    <Group justify="space-between" align="center" mb={4}>
                       <Group gap="xs">
-                        {isCPT ? <AlertCircle size={13} style={{ color: 'var(--mantine-color-orange-6)' }} /> : <AlertOctagon size={13} style={{ color: 'var(--mantine-color-red-6)' }} />}
-                        <Text size="xs" fw={700} style={{ color: isCPT ? 'var(--mantine-color-orange-4)' : 'var(--mantine-color-red-4)' }}>{editCode}</Text>
-                        <Badge color={isCPT ? 'orange' : 'red'} size="xs" radius="xs" variant="outline" style={{ fontSize: '9px' }}>{logType}</Badge>
+                        {isCPT ? (
+                          <AlertCircle size={13} style={{ color: 'var(--mantine-color-orange-6)' }} />
+                        ) : (
+                          <AlertOctagon size={13} style={{ color: 'var(--mantine-color-red-6)' }} />
+                        )}
+                        <Text size="xs" fw={700} color={isCPT ? 'orange' : 'red'}>
+                          {editCode}
+                        </Text>
+                        <Badge color={isCPT ? 'orange' : 'red'} size="xs" radius="xs" variant="outline" fs="9px">
+                          {logType}
+                        </Badge>
                       </Group>
                       <Group gap="xs">
-                        {serviceCode && <Badge color="cyan" size="xs" radius="xs" variant="outline" style={{ fontSize: '9px' }}>Code: {serviceCode}</Badge>}
-                        <Text size="10px" c="dimmed">Run ID: {logId}</Text>
+                        {serviceCode && (
+                          <Badge color="cyan" size="xs" radius="xs" variant="outline" fs="9px">
+                            Code: {serviceCode}
+                          </Badge>
+                        )}
+                        <Text size="10px" c="dimmed">
+                          Run ID: {logId}
+                        </Text>
                       </Group>
                     </Group>
-                    <Text size="xs" style={{ color: 'var(--ink)' }}>{edit.editComment || 'Rule breached or diagnostic mismatch found.'}</Text>
+                    <Text size="xs">{edit.editComment || 'Rule breached or diagnostic mismatch found.'}</Text>
                   </Card>
                 )
               })}
@@ -371,10 +385,12 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     if (validationLogs.length > 0 && !logsLoading) {
       return (
         <Grid.Col span={12}>
-          <Card withBorder radius="sm" p="sm" style={{ borderColor: 'var(--mantine-color-teal-3)', backgroundColor: 'rgba(9, 146, 104, 0.02)', textAlign: 'center' }}>
+          <Card withBorder radius="sm" p="sm" ta="center">
             <Group gap="xs" justify="center">
               <CheckCircle size={18} style={{ color: 'var(--mantine-color-teal-6)' }} />
-              <Text size="xs" fw={700} c="teal">ALL VALIDATION CHECKS PASSED. NO REMOTE EXCEPTIONS DETECTED.</Text>
+              <Text size="xs" fw={700} c="teal">
+                ALL VALIDATION CHECKS PASSED. NO REMOTE EXCEPTIONS DETECTED.
+              </Text>
             </Group>
           </Card>
         </Grid.Col>
@@ -385,39 +401,51 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
 
   const renderDiagnosticsSection = () => (
     <Grid.Col span={12}>
-      <Card withBorder radius="sm" p="sm" style={{ backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.01))', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}>
-        <Group justify="space-between" align="center" style={{ marginBottom: '8px' }}>
-          <Text size="xs" fw={700} c="cyan">ACTIVE ENCOUNTER DIAGNOSES SUMMARY ({diagnosticsData.length})</Text>
-          <Badge color="cyan" size="xs" radius="xs">ICD-10 Sync</Badge>
-        </Group>
-        {diagnosticsLoading ? (
-          <Group gap="xs" align="center" py="xs">
-            <Loader size="xs" color="cyan" />
-            <Text size="xs" c="dimmed">Retrieving active diagnoses...</Text>
-          </Group>
-        ) : diagnosticsData.length > 0 ? (
-          <Table verticalSpacing="xs" horizontalSpacing="sm" style={{ fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}>
-            <Table.Thead style={{ backgroundColor: 'var(--panel-soft, rgba(0,0,0,0.1))' }}>
-              <Table.Tr style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}>
-                <Table.Th style={{ color: 'var(--ink)' }}>CODE</Table.Th>
-                <Table.Th style={{ color: 'var(--ink)' }}>DESCRIPTION</Table.Th>
-                <Table.Th style={{ color: 'var(--ink)' }}>TYPE</Table.Th>
+      <LtTableCard
+        title={`ACTIVE ENCOUNTER DIAGNOSES SUMMARY (${diagnosticsData.length})`}
+        badge={<Badge color="cyan" size="xs" radius="xs">ICD-10 Sync</Badge>}
+        loading={diagnosticsLoading}
+        loadingText="Retrieving active diagnoses..."
+        color="cyan"
+        padding="sm"
+      >
+        {diagnosticsData.length > 0 ? (
+          <>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>CODE</Table.Th>
+                <Table.Th>DESCRIPTION</Table.Th>
+                <Table.Th>TYPE</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {diagnosticsData.map((diag, idx) => (
-                <Table.Tr key={idx} style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}>
-                  <Table.Td style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--badge-info-text)' }}>{diag.code || diag.icdCode || 'ICD-10'}</Table.Td>
-                  <Table.Td style={{ color: 'var(--ink)' }}>{diag.description || diag.desc || diag.order_name || 'Encounter Diagnosis'}</Table.Td>
-                  <Table.Td style={{ whiteSpace: 'nowrap' }}><Badge color="cyan" size="xs" radius="xs" variant="outline">{diag.type || 'Primary'}</Badge></Table.Td>
+                <Table.Tr key={idx}>
+                  <Table.Td style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>
+                    {diag.code || diag.icdCode || 'ICD-10'}
+                  </Table.Td>
+                  <Table.Td>{diag.description || diag.desc || diag.order_name || 'Encounter Diagnosis'}</Table.Td>
+                  <Table.Td style={{ whiteSpace: 'nowrap' }}>
+                    <Badge color="cyan" size="xs" radius="xs" variant="outline">
+                      {diag.type || 'Primary'}
+                    </Badge>
+                  </Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
-          </Table>
+          </>
         ) : (
-          <Text size="xs" c="dimmed" style={{ textAlign: 'center', padding: '10px 0' }}>No active clinical diagnostics records detected for this encounter. Run validation to synchronize.</Text>
+          <Table.Tbody>
+            <Table.Tr>
+              <Table.Td colSpan={3}>
+                <Text size="xs" c="var(--muted)" ta="center" py="xs">
+                  No active clinical diagnostics records detected for this encounter. Run validation to synchronize.
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          </Table.Tbody>
         )}
-      </Card>
+      </LtTableCard>
     </Grid.Col>
   )
 
@@ -425,15 +453,17 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
     if (validationLogs.length === 0) return null
     return (
       <Grid.Col span={12}>
-        <Accordion variant="unstyled" style={{ width: '100%' }}>
+        <Accordion variant="unstyled" w="100%">
           <Accordion.Item value="developer-logs" style={{ border: 'none' }}>
-            <Accordion.Control style={{ padding: 0 }}>
+            <Accordion.Control p={0}>
               <Group gap="xs">
-                <Terminal size={14} style={{ color: 'var(--badge-info-text)' }} />
-                <Text size="xs" fw={700} c="dimmed" style={{ textTransform: 'uppercase' }}>Raw Developer Log History ({validationLogs.length} runs)</Text>
+                <Terminal size={14} />
+                <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                  Raw Developer Log History ({validationLogs.length} runs)
+                </Text>
               </Group>
             </Accordion.Control>
-            <Accordion.Panel style={{ paddingTop: '8px' }}>
+            <Accordion.Panel pt="xs">
               <Stack gap="xs">
                 {validationLogs.map((log, idx) => {
                   const reqTypeLabel = log.req_type === 2 || log.reqType === 2 ? 'Medical Necessity' : 'Code Validation'
@@ -441,32 +471,68 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                   const edits = getClaimEdits(log)
                   const hasExceptions = edits.length > 0
                   return (
-                    <Card key={idx} withBorder radius="xs" p="xs" style={{ backgroundColor: 'rgba(0,0,0,0.15)', borderColor: 'var(--line, rgba(255,255,255,0.05))' }}>
-                      <Group justify="space-between" align="center" style={{ marginBottom: '6px' }}>
+                    <Card key={idx} withBorder radius="xs" p="xs">
+                      <Group justify="space-between" align="center" mb={6}>
                         <Group gap="xs">
-                          <Badge color="cyan" size="xs" radius="xs" variant="light">ID: {log.log_id || `LOG-${idx}`}</Badge>
-                          <Badge color="blue" size="xs" radius="xs" variant="outline">{reqTypeLabel}</Badge>
-                          <Text size="xs" c="dimmed" fw={500}>{dateText}</Text>
+                          <Badge color="cyan" size="xs" radius="xs" variant="light">
+                            ID: {log.log_id || `LOG-${idx}`}
+                          </Badge>
+                          <Badge color="blue" size="xs" radius="xs" variant="outline">
+                            {reqTypeLabel}
+                          </Badge>
+                          <Text size="xs" c="dimmed" fw={500}>
+                            {dateText}
+                          </Text>
                         </Group>
-                        <Badge color={hasExceptions ? 'orange' : 'teal'} size="xs" radius="xs" variant="filled">{hasExceptions ? `${edits.length} Exceptions` : 'Approved'}</Badge>
+                        <Badge color={hasExceptions ? 'orange' : 'teal'} size="xs" radius="xs" variant="filled">
+                          {hasExceptions ? `${edits.length} Exceptions` : 'Approved'}
+                        </Badge>
                       </Group>
-                      <Accordion variant="unstyled" chevronPosition="right" style={{ marginTop: '4px' }}>
+                      <Accordion variant="unstyled" chevronPosition="right" mt={4}>
                         <Accordion.Item value="raw-payloads" style={{ border: 'none' }}>
-                          <Accordion.Control style={{ padding: 0, height: 'auto', minHeight: 0 }}>
-                            <Text size="10px" c="dimmed" fw={600}>Toggle Raw Developer Payloads</Text>
+                          <Accordion.Control p={0} style={{ minHeight: 0 }}>
+                            <Text size="10px" c="dimmed" fw={600}>
+                              Toggle Raw Developer Payloads
+                            </Text>
                           </Accordion.Control>
-                          <Accordion.Panel style={{ paddingTop: '8px' }}>
+                          <Accordion.Panel pt="xs">
                             <Stack gap="xs">
                               {log.req_content && (
                                 <Box>
-                                  <Text size="xs" fw={600} c="dimmed">Request Payload:</Text>
-                                  <pre style={{ margin: '4px 0 0 0', padding: '6px', fontSize: '10px', backgroundColor: 'var(--panel, #121212)', borderRadius: '4px', overflowX: 'auto', border: '1px solid rgba(255,255,255,0.03)', color: '#a0a0a0', fontFamily: 'monospace' }}>{log.req_content}</pre>
+                                  <Text size="xs" fw={600} c="dimmed">
+                                    Request Payload:
+                                  </Text>
+                                  <pre
+                                    style={{
+                                      margin: '4px 0 0 0',
+                                      padding: '6px',
+                                      fontSize: '10px',
+                                      borderRadius: '4px',
+                                      overflowX: 'auto',
+                                      fontFamily: 'monospace'
+                                    }}
+                                  >
+                                    {log.req_content}
+                                  </pre>
                                 </Box>
                               )}
                               {log.res_content && (
                                 <Box>
-                                  <Text size="xs" fw={600} c="dimmed">Response Payload:</Text>
-                                  <pre style={{ margin: '4px 0 0 0', padding: '6px', fontSize: '10px', backgroundColor: 'var(--panel, #121212)', borderRadius: '4px', overflowX: 'auto', border: '1px solid rgba(255,255,255,0.03)', color: '#00d2ff', fontFamily: 'monospace' }}>{log.res_content}</pre>
+                                  <Text size="xs" fw={600} c="dimmed">
+                                    Response Payload:
+                                  </Text>
+                                  <pre
+                                    style={{
+                                      margin: '4px 0 0 0',
+                                      padding: '6px',
+                                      fontSize: '10px',
+                                      borderRadius: '4px',
+                                      overflowX: 'auto',
+                                      fontFamily: 'monospace'
+                                    }}
+                                  >
+                                    {log.res_content}
+                                  </pre>
                                 </Box>
                               )}
                             </Stack>
@@ -485,73 +551,99 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
   }
 
   const getCeedStatus = (valDetails: any, activeResult: any) => ({
-    isSuccess: valDetails?.status_value === 1 || valDetails?.success === true || valDetails?.success === 'true' || activeResult?.Success === true || activeResult?.resp_status === 'Success',
-    message: valDetails?.message || valDetails?.status_text || valDetails?.statusText || activeResult?.message || activeResult?.resp_status,
+    isSuccess:
+      valDetails?.status_value === 1 ||
+      valDetails?.success === true ||
+      valDetails?.success === 'true' ||
+      activeResult?.Success === true ||
+      activeResult?.resp_status === 'Success',
+    message:
+      valDetails?.message ||
+      valDetails?.status_text ||
+      valDetails?.statusText ||
+      activeResult?.message ||
+      activeResult?.resp_status
   })
 
   const getCeedDone = (valDetails: any, activeResult: any) =>
-    valDetails?.isCeedDone === 1 || valDetails?.isCeedDone === 2 || valDetails?.isCeedDone === '1' || valDetails?.isCeedDone === '2' || activeResult?.isCeedDone === 1
+    valDetails?.isCeedDone === 1 ||
+    valDetails?.isCeedDone === 2 ||
+    valDetails?.isCeedDone === '1' ||
+    valDetails?.isCeedDone === '2' ||
+    activeResult?.isCeedDone === 1
 
   const renderDashboardTab = () => {
     const latestLog = validationLogs[0]
     const activeResult = validationResult || latestLog
     const mergedExceptions = getMergedLatestExceptions()
-    const valDetails = activeResult ? (extractDataArray(activeResult)[0] || activeResult) : null
+    const valDetails = activeResult ? extractDataArray(activeResult)[0] || activeResult : null
     const { isSuccess, message } = getCeedStatus(valDetails, activeResult)
     const isCeedDone = getCeedDone(valDetails, activeResult) || (latestLog && !validationResult)
-    const getRunTimestamp = () => validationResult ? 'Just now (Active Run)' : (latestLog?.date_submitted || latestLog?.dateSubmitted || null)
+    const getRunTimestamp = () =>
+      validationResult
+        ? 'Just now (Active Run)'
+        : latestLog?.date_submitted || latestLog?.dateSubmitted || null
     const runTimestamp = getRunTimestamp()
     const isCeedApproved = isSuccess && isCeedDone
     const hasMergedExceptions = mergedExceptions.length > 0
     return (
-    <Tabs.Panel value="dashboard" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
-      <ScrollArea style={{ flex: 1 }} type="auto">
-        <Stack gap="md" p="xs">
-          {error && (
-            <Alert icon={<ServerCrash size={16} />} title="Upstream Connection Error" color="red" radius="xs" variant="light">
-              {error}
-            </Alert>
-          )}
-          {validationLoading && (
-            <Card withBorder radius="sm" p="sm" style={{ backgroundColor: 'rgba(0, 210, 255, 0.02)', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))', textAlign: 'center' }}>
-              <Stack align="center" gap="xs">
-                <Loader color="cyan" size="sm" type="dots" />
-                <Text size="xs" c="cyan" fw={600}>Running Clinically Essential Encounter Diagnostics validation over HTTP/2 persistent pool...</Text>
-              </Stack>
-            </Card>
-          )}
-          {activeResult && !validationLoading && (
-            <Card withBorder radius="sm" p="xs" style={{ backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.01))', borderColor: 'var(--line, rgba(255, 255, 255, 0.05))' }}>
-              <Group justify="space-between" align="center">
-                <Group gap="xs">
-                  {isCeedApproved ? <CheckCircle size={16} style={{ color: 'var(--mantine-color-teal-6)' }} /> : <AlertTriangle size={16} style={{ color: 'var(--mantine-color-orange-6)' }} />}
-                  <Stack gap={0}>
-                    <Text size="xs" fw={700} style={{ color: isCeedApproved ? 'var(--mantine-color-teal-4)' : 'var(--mantine-color-orange-4)' }}>
-                      {isCeedApproved ? 'CEED VALIDATION APPROVED' : 'CEED EXCEPTIONS FOUND'}
-                    </Text>
-                    <Text size="10px" c="dimmed">{message || 'Encounter processed with diagnostic recommendations.'}</Text>
-                  </Stack>
+      <Tabs.Panel value="dashboard" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
+        <ScrollArea style={{ flex: 1 }} type="auto">
+          <Stack gap="md" p="xs">
+            {error && (
+              <Alert icon={<ServerCrash size={16} />} title="Upstream Connection Error" color="red" radius="xs" variant="light">
+                {error}
+              </Alert>
+            )}
+            {validationLoading && (
+              <Card withBorder radius="sm" p="sm" ta="center">
+                <Stack align="center" gap="xs">
+                  <Loader color="cyan" size="sm" type="dots" />
+                  <Text size="xs" c="cyan" fw={600}>
+                    Running Clinically Essential Encounter Diagnostics validation over HTTP/2 persistent pool...
+                  </Text>
+                </Stack>
+              </Card>
+            )}
+            {activeResult && !validationLoading && (
+              <Card withBorder radius="sm" p="xs">
+                <Group justify="space-between" align="center">
+                  <Group gap="xs">
+                    {isCeedApproved ? (
+                      <CheckCircle size={16} style={{ color: 'var(--mantine-color-teal-6)' }} />
+                    ) : (
+                      <AlertTriangle size={16} style={{ color: 'var(--mantine-color-orange-6)' }} />
+                    )}
+                    <Stack gap={0}>
+                      <Text size="xs" fw={700} color={isCeedApproved ? 'teal' : 'orange'}>
+                        {isCeedApproved ? 'CEED VALIDATION APPROVED' : 'CEED EXCEPTIONS FOUND'}
+                      </Text>
+                      <Text size="10px" c="dimmed">
+                        {message || 'Encounter processed with diagnostic recommendations.'}
+                      </Text>
+                    </Stack>
+                  </Group>
+                  {runTimestamp && (
+                    <Badge color="cyan" size="xs" radius="xs" variant="outline">
+                      Validated: {runTimestamp}
+                    </Badge>
+                  )}
                 </Group>
-                {runTimestamp && <Badge color="cyan" size="xs" radius="xs" variant="outline">Validated: {runTimestamp}</Badge>}
-              </Group>
-            </Card>
-          )}
-          <Grid {...({ gutter: 'sm' } as any)}>
-            {renderExceptionsGrid(hasMergedExceptions, mergedExceptions)}
-            {renderDiagnosticsSection()}
-            {renderDeveloperLogs()}
-          </Grid>
-        </Stack>
-      </ScrollArea>
-    </Tabs.Panel>
+              </Card>
+            )}
+            <Grid {...({ gutter: 'sm' } as any)}>
+              {renderExceptionsGrid(hasMergedExceptions, mergedExceptions)}
+              {renderDiagnosticsSection()}
+              {renderDeveloperLogs()}
+            </Grid>
+          </Stack>
+        </ScrollArea>
+      </Tabs.Panel>
     )
   }
 
   const renderXmlTab = () => (
-    <Tabs.Panel
-      value="xml"
-      style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}
-    >
+    <Tabs.Panel value="xml" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
       <Stack gap="xs" style={{ flex: 1, height: '100%' }} p="xs">
         <Group justify="space-between" align="center">
           <Text size="xs" c="dimmed">
@@ -561,11 +653,11 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
             <Button
               size="xs"
               variant="light"
-              color={copied ? 'teal' : 'cyan'}
-              leftSection={copied ? <Check size={12} /> : <Copy size={12} />}
-              onClick={handleCopyXml}
+              color={clipboard.copied ? 'teal' : 'cyan'}
+              leftSection={clipboard.copied ? <Check size={12} /> : <Copy size={12} />}
+              onClick={() => clipboard.copy(generatedXml)}
             >
-              {copied ? 'Copied XML' : 'Copy XML'}
+              {clipboard.copied ? 'Copied XML' : 'Copy XML'}
             </Button>
           )}
         </Group>
@@ -573,9 +665,8 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
         <ScrollArea
           style={{
             flex: 1,
-            border: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
-            borderRadius: '4px',
-            backgroundColor: '#121212'
+            border: '1px solid var(--mantine-color-default-border)',
+            borderRadius: '4px'
           }}
           type="auto"
         >
@@ -592,7 +683,6 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
                 margin: 0,
                 padding: '12px',
                 fontSize: '11px',
-                color: '#00d2ff',
                 fontFamily: 'monospace',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-all'
@@ -601,7 +691,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
               {generatedXml}
             </pre>
           ) : (
-            <Text size="xs" c="dimmed" style={{ textAlign: 'center', paddingTop: '40px' }}>
+            <Text size="xs" c="dimmed" ta="center" pt="xl">
               No CEED XML generated yet. Validate the encounter to render.
             </Text>
           )}
@@ -617,23 +707,14 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
       size="xl"
       radius="sm"
       padding="md"
-      overlayProps={{
-        backgroundOpacity: 0.55
-      }}
+      overlayProps={{ backgroundOpacity: 0.55 }}
       styles={{
         header: {
-          backgroundColor: 'transparent',
-          borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
+          borderBottom: '1px solid var(--mantine-color-default-border)',
           paddingBottom: '10px'
         },
         content: {
-          backgroundColor: "var(--bg-translucent, rgba(26, 26, 26, 0.75))",
-          backdropFilter: "var(--backdrop-filter, blur(16px))",
-          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
-          borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
-          color: 'var(--ink, #ffffff)',
           overflow: 'hidden',
-          boxShadow: 'none',
           display: 'flex',
           flexDirection: 'column'
         },
@@ -647,29 +728,21 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
       }}
       title={
         <Group gap="xs" align="center">
-          <Cpu style={{ width: 18, height: 18, color: 'var(--badge-info-text, #00d2ff)' }} />
+          <Cpu style={{ width: 18, height: 18 }} />
           <Stack gap={1}>
             <Text size="sm" fw={700}>
               CEED Rules Engine & Clinical Diagnostics
             </Text>
             <Text size="xs" c="dimmed">
-              Encounter Suffix ID:{' '}
-              <strong style={{ color: 'var(--badge-info-text)' }}>{encounterId || 'No loaded encounter'}</strong>
+              Encounter Suffix ID: <Text span fw={700} c="cyan">{encounterId || 'No loaded encounter'}</Text>
             </Text>
           </Stack>
         </Group>
       }
     >
       {!encounterId ? (
-        <Alert
-          icon={<ShieldAlert size={16} />}
-          title="Encounter Context Required"
-          color="red"
-          radius="xs"
-          variant="light"
-        >
-          No encounter is currently loaded. Please search for and select an active encounter in the portal before
-          opening the CEED validator.
+        <Alert icon={<ShieldAlert size={16} />} title="Encounter Context Required" color="red" radius="xs" variant="light">
+          No encounter is currently loaded. Please search for and select an active encounter in the portal before opening the CEED validator.
         </Alert>
       ) : (
         <Tabs
@@ -679,7 +752,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
           variant="outline"
           style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}
         >
-          <Tabs.List style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))', marginBottom: '15px' }}>
+          <Tabs.List mb="md">
             <Tabs.Tab value="dashboard" leftSection={<Activity size={14} />}>
               Dashboard & Reports
             </Tabs.Tab>
@@ -692,7 +765,7 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
           {renderXmlTab()}
         </Tabs>
       )}
-      <Divider style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))', margin: '15px 0' }} />
+      <Divider my="md" />
 
       <Group justify="space-between" align="center">
         <Switch
@@ -705,7 +778,6 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
           }}
           color="cyan"
           size="xs"
-          styles={{ label: { fontSize: '11px', fontWeight: 600, color: 'var(--ink, #ffffff)' } }}
         />
 
         <Group gap="xs">
@@ -714,9 +786,9 @@ export default function CeedValidationModal({ isOpen, onClose, encounterId }: Ce
             color="cyan"
             loading={validationLoading}
             onClick={runValidation}
-            leftSection={(validationResult || validationLogs[0]) ? <RefreshCw size={12} /> : <Play size={12} />}
+            leftSection={validationResult || validationLogs[0] ? <RefreshCw size={12} /> : <Play size={12} />}
           >
-            {(validationResult || validationLogs[0]) ? 'Re-run CEED Validator' : 'Run CEED Validator'}
+            {validationResult || validationLogs[0] ? 'Re-run CEED Validator' : 'Run CEED Validator'}
           </Button>
           <Button size="xs" variant="outline" color="cyan" onClick={onClose}>
             Close Validator

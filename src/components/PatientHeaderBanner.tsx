@@ -1,6 +1,7 @@
 import React from 'react'
-import { Group, Text, Badge, Box, Tooltip, Grid, Paper, Divider } from '@mantine/core'
+import { Group, Text, Badge, Box, Grid, Divider } from '@mantine/core'
 import { Copy, Check } from 'lucide-react'
+import { LtInfoCard, LtTooltip } from '../shared_elements'
 
 interface PatientHeaderBannerProps {
   isPaperClaim?: boolean
@@ -56,6 +57,7 @@ export default function PatientHeaderBanner({
     latencyBadgeColor = 'orange'
     latencyDot = '🟡'
   }
+
   // Determine gender display and label with a defensive fallback
   const rawGender = patientGender && patientGender !== '-' ? patientGender.trim() : 'Unknown'
   const genderDisplay = rawGender ? rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase() : 'Unknown'
@@ -69,175 +71,68 @@ export default function PatientHeaderBanner({
   }
 
   return (
-    <Box style={{ width: '100%', boxSizing: 'border-box', padding: '0px' }}>
-      <Grid style={{ width: '100%', margin: 0 }} {...({ gutter: 'xs' } as any)}>
+    <Box w="100%" p={0}>
+      <Grid w="100%" m={0} {...({ gutter: 'xs' } as any)}>
         {/* SUBSECTION 1: PATIENT SECTION (Patient name, age, gender) */}
         <Grid.Col span={{ base: 12, md: 3.5 }}>
-          <Paper
-            withBorder
-            radius="sm"
-            p="6px 12px"
-            style={{
-              backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-              borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
-              backdropFilter: 'var(--backdrop-filter, blur(16px))',
-              WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-              display: 'flex',
-              alignItems: 'center',
-              minHeight: '38px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Group
-              gap="xs"
-              align="center"
-              style={{ flexWrap: 'nowrap', width: '100%', justifyContent: 'space-between' }}
-            >
+          <LtInfoCard height={38}>
+            <Group gap="xs" align="center" justify="space-between" w="100%" wrap="nowrap">
               {/* Patient Name */}
-              <Box style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ flexGrow: 1, minWidth: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Patient
                 </Text>
-                <Text
-                  fw={700}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    marginTop: '1px',
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                  }}
-                >
+                <Text size="xs" fw={700} truncate mt={1}>
                   {patientName || '--'}
                 </Text>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Patient Age */}
-              <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ flexShrink: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Age
                 </Text>
-                <Text
-                  fw={700}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    marginTop: '1px',
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                  }}
-                >
+                <Text size="xs" fw={700} mt={1}>
                   {patientAge || '--'}
                 </Text>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
-              {/* Patient Gender - Dedicated section block */}
-              <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              {/* Patient Gender */}
+              <Box style={{ flexShrink: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Gender
                 </Text>
-                <Tooltip label={`Gender: ${genderDisplay}`} position="top" withArrow>
-                  <Badge
-                    variant="light"
-                    color={genderColor}
-                    size="xs"
-                    style={{
-                      height: '15px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.85)',
-                      padding: '0 6px',
-                      textTransform: 'capitalize',
-                      flexShrink: 0,
-                      marginTop: '2px',
-                      fontWeight: 700,
-                      borderRadius: 'var(--mantine-radius-default, var(--mantine-radius-sm, 4px))',
-                      cursor: 'help'
-                    }}
-                  >
+                <LtTooltip label={`Gender: ${genderDisplay}`} position="top" withArrow>
+                  <Badge variant="light" color={genderColor} size="xs" radius="xs" h={15} mt={2} fw={700} tt="capitalize">
                     {genderDisplay}
                   </Badge>
-                </Tooltip>
+                </LtTooltip>
               </Box>
 
               {isPaperClaim && (
                 <>
-                  <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
-                  <Tooltip label="Manual (Paper) Claim" position="top" withArrow>
-                    <Badge
-                      variant="light"
-                      color="red"
-                      size="xs"
-                      style={{
-                        height: '15px',
-                        fontSize: 'calc(var(--mantine-font-size-xs) * 0.85)',
-                        padding: '0 6px',
-                        textTransform: 'capitalize',
-                        flexShrink: 0,
-                        borderRadius: 'var(--mantine-radius-default, var(--mantine-radius-sm, 4px))',
-                        cursor: 'help'
-                      }}
-                    >
+                  <Divider orientation="vertical" h={18} opacity={0.5} />
+                  <LtTooltip label="Manual (Paper) Claim" position="top" withArrow>
+                    <Badge variant="light" color="red" size="xs" radius="xs" h={15} fw={700}>
                       Paper
                     </Badge>
-                  </Tooltip>
+                  </LtTooltip>
                 </>
               )}
             </Group>
-          </Paper>
+          </LtInfoCard>
         </Grid.Col>
 
-        {/* SUBSECTION 2: INSURANCE SECTION (Card no, receiver, payer, Card number, expiry date, network) */}
+        {/* SUBSECTION 2: INSURANCE SECTION */}
         <Grid.Col span={{ base: 12, md: 5.5 }}>
-          <Paper
-            withBorder
-            radius="sm"
-            p="6px 12px"
-            style={{
-              backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-              borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
-              backdropFilter: 'var(--backdrop-filter, blur(16px))',
-              WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-              display: 'flex',
-              alignItems: 'center',
-              minHeight: '38px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Group
-              gap="xs"
-              align="center"
-              style={{ flexWrap: 'nowrap', width: '100%', justifyContent: 'space-between' }}
-            >
+          <LtInfoCard height={38}>
+            <Group gap="xs" align="center" justify="space-between" w="100%" wrap="nowrap">
               {/* Insurance Card No */}
-              <Tooltip
+              <LtTooltip
                 label={
                   copiedField === 'cardNo'
                     ? 'Copied!'
@@ -250,333 +145,146 @@ export default function PatientHeaderBanner({
               >
                 <Box
                   onClick={() => onCopyField(insuranceCardNo, 'cardNo', 'Card No')}
-                  style={{ display: 'flex', flexDirection: 'column', minWidth: 0, cursor: 'pointer' }}
+                  style={{ minWidth: 0, cursor: 'pointer' }}
                 >
-                  <Text
-                    fw={700}
-                    c="dimmed"
-                    style={{
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      lineHeight: 1,
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                    }}
-                  >
-                    Card No{' '}
+                  <Group gap={4} align="center">
+                    <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
+                      Card No
+                    </Text>
                     {insuranceCardNo &&
                       insuranceCardNo !== '--' &&
                       (copiedField === 'cardNo' ? (
-                        <Check style={{ width: 9, height: 9, color: 'var(--good, #40c057)' }} />
+                        <Check size={9} style={{ color: 'var(--mantine-color-teal-6)' }} />
                       ) : (
-                        <Copy style={{ width: 9, height: 9 }} />
+                        <Copy size={9} />
                       ))}
-                  </Text>
-                  <Text
-                    fw={700}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      marginTop: '1px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                    }}
-                  >
+                  </Group>
+                  <Text size="xs" fw={700} truncate mt={1}>
                     {insuranceCardNo || '--'}
                   </Text>
                 </Box>
-              </Tooltip>
+              </LtTooltip>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Receiver Name */}
-              <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flexGrow: 1 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ minWidth: 0, flexGrow: 1 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Receiver
                 </Text>
-                <Tooltip
-                  label={receiverName || 'No receiver specified'}
-                  disabled={!receiverName}
-                  position="top"
-                  withArrow
-                >
-                  <Text
-                    fw={700}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      marginTop: '1px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)',
-                      cursor: receiverName ? 'help' : 'default'
-                    }}
-                  >
+                <LtTooltip label={receiverName || 'No receiver specified'} disabled={!receiverName} position="top" withArrow>
+                  <Text size="xs" fw={700} truncate mt={1} style={{ cursor: receiverName ? 'help' : 'default' }}>
                     {receiverName || '--'}
                   </Text>
-                </Tooltip>
+                </LtTooltip>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Payer Name */}
-              <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flexGrow: 1.5 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ minWidth: 0, flexGrow: 1.5 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Payer
                 </Text>
-                <Tooltip label={payerName || 'No payer specified'} disabled={!payerName} position="top" withArrow>
-                  <Text
-                    fw={700}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      marginTop: '1px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)',
-                      cursor: payerName ? 'help' : 'default'
-                    }}
-                  >
+                <LtTooltip label={payerName || 'No payer specified'} disabled={!payerName} position="top" withArrow>
+                  <Text size="xs" fw={700} truncate mt={1} style={{ cursor: payerName ? 'help' : 'default' }}>
                     {payerName || '--'}
                   </Text>
-                </Tooltip>
+                </LtTooltip>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Network Name */}
-              <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ minWidth: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Network
                 </Text>
-                <Tooltip label={networkName || 'No network specified'} disabled={!networkName} position="top" withArrow>
-                  <Text
-                    fw={700}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      marginTop: '1px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)',
-                      cursor: networkName ? 'help' : 'default'
-                    }}
-                  >
+                <LtTooltip label={networkName || 'No network specified'} disabled={!networkName} position="top" withArrow>
+                  <Text size="xs" fw={700} truncate mt={1} style={{ cursor: networkName ? 'help' : 'default' }}>
                     {networkName || '--'}
                   </Text>
-                </Tooltip>
+                </LtTooltip>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Insurance Expiry Date */}
-              <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ flexShrink: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Expiry
                 </Text>
-                <Text
-                  fw={700}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    marginTop: '1px',
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                  }}
-                >
+                <Text size="xs" fw={700} mt={1}>
                   {expiryDate || '--'}
                 </Text>
               </Box>
             </Group>
-          </Paper>
+          </LtInfoCard>
         </Grid.Col>
 
-        {/* SUBSECTION 3: CLAIM SECTION (Resolved encounter ID, Doctor, encounter start date) - No Resubs */}
+        {/* SUBSECTION 3: CLAIM SECTION */}
         <Grid.Col span={{ base: 12, md: 3 }}>
-          <Paper
-            withBorder
-            radius="sm"
-            p="6px 12px"
-            style={{
-              backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-              borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
-              backdropFilter: 'var(--backdrop-filter, blur(16px))',
-              WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-              display: 'flex',
-              alignItems: 'center',
-              minHeight: '38px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Group
-              gap="xs"
-              align="center"
-              style={{ flexWrap: 'nowrap', width: '100%', justifyContent: 'space-between' }}
-            >
+          <LtInfoCard height={38}>
+            <Group gap="xs" align="center" justify="space-between" w="100%" wrap="nowrap">
               {/* Resolved Encounter */}
-              <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flexShrink: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ minWidth: 0, flexShrink: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Resolved
                 </Text>
-                <Text
-                  fw={700}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    marginTop: '1px',
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                  }}
-                >
+                <Text size="xs" fw={700} truncate mt={1}>
                   {resolvedEncounter || '--'}
                 </Text>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Doctor Name */}
-              <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flexGrow: 1 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ minWidth: 0, flexGrow: 1 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Doctor
                 </Text>
-                <Tooltip label={doctorName || 'No doctor assigned'} disabled={!doctorName} position="top" withArrow>
-                  <Text
-                    fw={700}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      marginTop: '1px',
-                      fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)',
-                      cursor: doctorName ? 'help' : 'default'
-                    }}
-                  >
+                <LtTooltip label={doctorName || 'No doctor assigned'} disabled={!doctorName} position="top" withArrow>
+                  <Text size="xs" fw={700} truncate mt={1} style={{ cursor: doctorName ? 'help' : 'default' }}>
                     {doctorName || '--'}
                   </Text>
-                </Tooltip>
+                </LtTooltip>
               </Box>
 
-              <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
+              <Divider orientation="vertical" h={18} opacity={0.5} />
 
               {/* Encounter Date */}
-              <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <Text
-                  fw={700}
-                  c="dimmed"
-                  style={{
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    lineHeight: 1,
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                  }}
-                >
+              <Box style={{ flexShrink: 0 }}>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                   Date
                 </Text>
-                <Text
-                  fw={700}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    marginTop: '1px',
-                    fontSize: 'calc(var(--mantine-font-size-xs) * 0.95)'
-                  }}
-                >
+                <Text size="xs" fw={700} mt={1}>
                   {encounterDate || '--'}
                 </Text>
               </Box>
 
               {typeof upstreamLatencyMs === 'number' && (
                 <>
-                  <Divider orientation="vertical" style={{ height: '18px', opacity: 0.5 }} />
-                  <Box style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                    <Text
-                      fw={700}
-                      c="dimmed"
-                      style={{
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        lineHeight: 1,
-                        fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                      }}
-                    >
+                  <Divider orientation="vertical" h={18} opacity={0.5} />
+                  <Box style={{ flexShrink: 0 }}>
+                    <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts="0.5px" lh={1}>
                       EHR
                     </Text>
-                    <Tooltip
+                    <LtTooltip
                       label={`Upstream EHR Latency: ${upstreamLatencyMs}ms (${upstreamStatus}) | Mode: ${upstreamProtocol} | Connections: ${upstreamConcurrency}`}
                       position="top"
                       withArrow
                       openDelay={0}
                       closeDelay={0}
                     >
-                      <Badge
-                        size="xs"
-                        color={latencyBadgeColor}
-                        variant="light"
-                        style={{
-                          marginTop: '1px',
-                          cursor: 'help',
-                          fontWeight: 700,
-                          fontSize: 'calc(var(--mantine-font-size-xs) * 0.82)'
-                        }}
-                      >
+                      <Badge size="xs" color={latencyBadgeColor} variant="light" mt={1} fw={700} style={{ cursor: 'help' }}>
                         {latencyDot} {upstreamLatencyMs}ms
                       </Badge>
-                    </Tooltip>
+                    </LtTooltip>
                   </Box>
                 </>
               )}
             </Group>
-          </Paper>
+          </LtInfoCard>
         </Grid.Col>
       </Grid>
     </Box>

@@ -4,7 +4,6 @@ import {
   Group,
   Stack,
   Text,
-  Title,
   Badge,
   Button,
   SimpleGrid,
@@ -25,8 +24,6 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { customFetch as fetch } from '../../config/backend'
-
-
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes <= 0) return '0 B'
@@ -51,7 +48,6 @@ export const StorageCategoryBreakdown: React.FC = () => {
   const [purgingTarget, setPurgingTarget] = useState<string | null>(null)
   const [confirmModalTarget, setConfirmModalTarget] = useState<{ target: string; title: string } | null>(null)
   const [_expEhrVerification, setExpEhrVerification] = useState<boolean>(true)
-  const [_savingExp] = useState<boolean>(false)
 
   const fetchOverview = useCallback(async () => {
     setLoading(true)
@@ -61,7 +57,7 @@ export const StorageCategoryBreakdown: React.FC = () => {
         const data = await res.json()
         setOverview(data)
       }
-    } catch  {
+    } catch {
       // Overview fetch may fail
     } finally {
       setLoading(false)
@@ -75,7 +71,7 @@ export const StorageCategoryBreakdown: React.FC = () => {
         const data = await res.json()
         setExpEhrVerification(data.experimentalEhrVerification !== false)
       }
-    } catch  {
+    } catch {
       // Settings fetch may fail
     }
   }, [])
@@ -86,7 +82,6 @@ export const StorageCategoryBreakdown: React.FC = () => {
   }, [fetchOverview, fetchExperimentalSettings])
 
   const handlePurge = async (target: string) => {
-
     setPurgingTarget(target)
     setConfirmModalTarget(null)
     try {
@@ -107,7 +102,7 @@ export const StorageCategoryBreakdown: React.FC = () => {
 
   if (!overview) {
     return (
-      <Card withBorder radius="sm" padding="sm">
+      <Card withBorder radius="sm" padding="sm" bg="var(--mantine-color-body)" mt="xs">
         <Group justify="space-between" align="center">
           <Text size="xs" fw={700}>
             Loading Storage Breakdown...
@@ -119,7 +114,6 @@ export const StorageCategoryBreakdown: React.FC = () => {
       </Card>
     )
   }
-
 
   const categories = [
     {
@@ -162,24 +156,16 @@ export const StorageCategoryBreakdown: React.FC = () => {
   const totalSize = overview.total.sizeBytes || 1
 
   return (
-    <Card withBorder radius="sm" padding="sm" bg="var(--mantine-color-body)" style={{ marginTop: '12px' }}>
+    <Card withBorder radius="sm" padding="sm" bg="var(--mantine-color-body)" mt="xs">
       <Stack gap="xs">
         {/* Header */}
-        <Group justify="space-between" align="center" bd="0 0 1px solid var(--line, rgba(255, 255, 255, 0.05))" pb="xs">
-          <Title
-            order={4}
-            style={{
-              fontSize: '12px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <HardDrive size={14} /> System Storage Breakdown & Cleanup
-          </Title>
+        <Group justify="space-between" align="center" bd="0 0 1px solid var(--mantine-color-default-border)" pb="xs">
+          <Group gap={6} align="center">
+            <HardDrive size={14} />
+            <Text size="xs" fw={800} tt="uppercase" lts="0.5px">
+              System Storage Breakdown & Cleanup
+            </Text>
+          </Group>
 
           <Group gap="xs">
             <Button
@@ -205,7 +191,7 @@ export const StorageCategoryBreakdown: React.FC = () => {
         </Group>
 
         {/* Total Summary Banner */}
-        <Card withBorder radius="sm" padding="xs" bg="var(--panel-soft, rgba(255, 255, 255, 0.02))">
+        <Card withBorder radius="sm" padding="xs" bg="var(--mantine-color-body)">
           <Group justify="space-between" align="center">
             <Box style={{ flex: 1 }}>
               <Group gap="xs" align="center">
@@ -243,17 +229,17 @@ export const StorageCategoryBreakdown: React.FC = () => {
                 withBorder
                 radius="sm"
                 padding="xs"
+                bg="var(--mantine-color-body)"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
-                  borderColor: 'var(--line, rgba(255, 255, 255, 0.05))'
+                  justifyContent: 'space-between'
                 }}
               >
                 <Stack gap="xs">
                   <Group justify="space-between" align="flex-start">
                     <Group gap={6} align="center">
-                      <Icon size={14} style={{ color: `var(--mantine-color-${cat.color}-filled)` }} />
+                      <Icon size={14} color={`var(--mantine-color-${cat.color}-filled)`} />
                       <Text size="xs" fw={700}>
                         {cat.title}
                       </Text>
@@ -291,22 +277,21 @@ export const StorageCategoryBreakdown: React.FC = () => {
         </SimpleGrid>
       </Stack>
 
-
       {/* Confirmation Modal */}
       <Modal
-
         opened={!!confirmModalTarget}
         onClose={() => setConfirmModalTarget(null)}
         title={
           <Group gap={6}>
             <AlertTriangle color="var(--mantine-color-red-filled)" size={16} />
-            <Text fw={700} size="xs" style={{ textTransform: 'uppercase' }}>
+            <Text fw={700} size="xs" tt="uppercase">
               Confirm Storage Purge
             </Text>
           </Group>
         }
         centered
         size="sm"
+        radius="sm"
       >
         <Stack gap="sm">
           <Text size="xs" c="dimmed">

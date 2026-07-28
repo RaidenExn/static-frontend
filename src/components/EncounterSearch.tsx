@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Tabs, Card, Box, Group, Badge, ActionIcon, Tooltip, Paper, Text, Divider } from '@mantine/core'
+import { Tabs, Card, Box, Group, Badge, Paper, Text, Divider } from '@mantine/core'
 import {
   FileText,
   Clipboard,
@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import PatientHeaderBanner from './PatientHeaderBanner'
+import { LtInfoCard, LtIconButton } from '../shared_elements'
 import EncounterActions from './EncounterActions'
 import EncounterLoader from './EncounterLoader'
 import SubmissionBadgeGroup from './SubmissionBadgeGroup'
@@ -226,27 +227,9 @@ export default function EncounterSearch({
       </Box>
 
       {/* ROW 3: Embedded Compact Tabs & Status / Resubs Group */}
-      <Group
-        justify="space-between"
-        align="center"
-        wrap="nowrap"
-        style={{
-          paddingLeft: '12px',
-          paddingRight: '12px',
-          boxSizing: 'border-box',
-          width: '100%'
-        }}
-      >
+      <Group justify="space-between" align="center" wrap="nowrap" px="xs" w="100%">
         <Tabs value={activeTab} onChange={(val) => val && onSelectTab(val)} style={{ flex: 1, minWidth: 0 }}>
-          <Tabs.List
-            style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              flexWrap: 'nowrap',
-              overflowX: 'auto',
-              scrollbarWidth: 'none'
-            }}
-          >
+          <Tabs.List style={{ border: 'none', backgroundColor: 'transparent', flexWrap: 'nowrap', overflowX: 'auto' }}>
             {(
               [
                 { id: 'summary', label: 'Summary', icon: FileText },
@@ -258,7 +241,6 @@ export default function EncounterSearch({
                 { id: 'settings', label: 'Settings', icon: Settings },
                 { id: 'bulk', label: 'Bulk Operations', icon: Layers },
                 { id: 'workshop', label: 'Excel Workshop', icon: FileSpreadsheet }
-
               ] as const
             ).map((tab) => {
               const IconComponent = tab.icon
@@ -266,24 +248,19 @@ export default function EncounterSearch({
                 <Tabs.Tab
                   key={tab.id}
                   value={tab.id}
-                  leftSection={<IconComponent style={{ width: 12, height: 12 }} />}
-                  style={{ whiteSpace: 'nowrap', padding: '6px 12px', height: '32px' }}
+                  leftSection={<IconComponent size={12} />}
+                  h={32}
+                  px="xs"
+                  style={{ whiteSpace: 'nowrap' }}
                 >
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: 'var(--mantine-font-size-xs)'
-                    }}
-                  >
-                    {tab.label}
+                  <Group gap={4} align="center" wrap="nowrap">
+                    <Text size="xs" fw={600}>{tab.label}</Text>
                     {'count' in tab && tab.count !== undefined && tab.count > 0 && (
-                      <Badge color="gray" size="xs" style={{ height: '14px', fontSize: '9px', padding: '0 4px' }}>
+                      <Badge color="gray" size="xs" variant="light" h={14} p="0 4px" fs="9px">
                         {tab.count}
                       </Badge>
                     )}
-                  </span>
+                  </Group>
                 </Tabs.Tab>
               )
             })}
@@ -291,51 +268,37 @@ export default function EncounterSearch({
         </Tabs>
 
         {/* Status Card, Resubs indicator, CEED, Theme Switcher */}
-        <Box style={{ flexShrink: 0, paddingLeft: '8px' }}>
+        <Box style={{ flexShrink: 0 }} pl="xs">
           <Group gap="xs" align="center" wrap="nowrap">
             {/* Outlined status card with MPI, Appointment Status, Claim Queue */}
-            <Paper
-              withBorder
-              radius="sm"
-              style={{
-                backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-                borderColor: 'var(--line, rgba(255, 255, 255, 0.05))',
-                backdropFilter: 'var(--backdrop-filter, blur(16px))',
-                WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-                height: '28px',
-                padding: '0 10px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                userSelect: 'none'
-              }}
-            >
+            <LtInfoCard height={28} style={{ width: 'auto' }}>
               <Group gap="xs" align="center" wrap="nowrap">
                 <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
                   MPI:{' '}
-                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                  <Text component="span" fw={600}>
                     {rawMpi}
                   </Text>
                 </Text>
 
-                <Divider orientation="vertical" style={{ height: '14px', opacity: 0.5 }} />
+                <Divider orientation="vertical" h={14} opacity={0.5} />
 
                 <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
                   Appointment Status:{' '}
-                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                  <Text component="span" fw={600}>
                     {rawApptStatus}
                   </Text>
                 </Text>
 
-                <Divider orientation="vertical" style={{ height: '14px', opacity: 0.5 }} />
+                <Divider orientation="vertical" h={14} opacity={0.5} />
 
                 <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
                   Claim Queue:{' '}
-                  <Text component="span" fw={500} style={{ opacity: 0.9 }}>
+                  <Text component="span" fw={600}>
                     {rawClaimQueueStatus}
                   </Text>
                 </Text>
               </Group>
-            </Paper>
+            </LtInfoCard>
 
             <SubmissionBadgeGroup
               isPaperClaim={isPaperClaim}
@@ -343,41 +306,23 @@ export default function EncounterSearch({
               claimHistory={claimHistory}
               submissionState={submissionState}
             />
-            <Tooltip label="Open CEED Rules Engine & Validation Suite" position="top" withArrow>
-              <ActionIcon
-                onClick={onOpenCeedValidator}
-                variant="light"
-                color="cyan"
-                size="sm"
-                aria-label="Open CEED Validator"
-                style={{
-                  borderRadius: 'var(--mantine-radius-sm)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Cpu style={{ width: 14, height: 14 }} />
-              </ActionIcon>
-            </Tooltip>
+            <LtIconButton
+              icon={Cpu}
+              onClick={onOpenCeedValidator}
+              variant="light"
+              color="cyan"
+              size="sm"
+              tooltip="Open CEED Rules Engine & Validation Suite"
+            />
 
-            <Tooltip label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} position="top" withArrow>
-              <ActionIcon
-                onClick={toggleTheme}
-                variant="subtle"
-                color="gray"
-                size="sm"
-                aria-label="Toggle theme mode"
-                style={{
-                  borderRadius: 'var(--mantine-radius-sm)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {theme === 'dark' ? (
-                  <Sun style={{ width: 14, height: 14 }} />
-                ) : (
-                  <Moon style={{ width: 14, height: 14 }} />
-                )}
-              </ActionIcon>
-            </Tooltip>
+            <LtIconButton
+              icon={theme === 'dark' ? Sun : Moon}
+              onClick={toggleTheme}
+              variant="subtle"
+              color="gray"
+              size="sm"
+              tooltip={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            />
           </Group>
         </Box>
       </Group>

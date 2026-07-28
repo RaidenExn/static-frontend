@@ -13,6 +13,7 @@ import {
   Select,
   Box
 } from '@mantine/core'
+import { LtTableCard } from '../shared_elements'
 import { Search, Clipboard, Save } from 'lucide-react'
 import { customFetch as fetch } from '../config/backend'
 
@@ -314,137 +315,83 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
 
       {/* Clinical Activities Table */}
       {activities.length > 0 && (
-        <Card
-          withBorder
-          radius="sm"
-          padding={0}
-          bg="var(--mantine-color-body)"
-          style={{ borderColor: 'var(--line, rgba(255, 255, 255, 0.05))', overflow: 'hidden' }}
-        >
-          <div style={{ overflowX: 'auto' }}>
-            <Table highlightOnHover verticalSpacing={6} horizontalSpacing="xs" style={{ fontSize: '10.5px' }}>
-              <Table.Thead style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
-                <Table.Tr style={{ borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.05))' }}>
-                  <Table.Th
-                    style={{
-                      width: '40px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)'
-                    }}
-                  >
-                    #
-                  </Table.Th>
-                  <Table.Th
-                    style={{
-                      width: '100px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)'
-                    }}
-                  >
-                    CPT Code
-                  </Table.Th>
-                  <Table.Th
-                    style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)' }}
-                  >
-                    Description
-                  </Table.Th>
-                  <Table.Th
-                    style={{
-                      width: '120px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)',
-                      textAlign: 'right'
-                    }}
-                  >
-                    Rejection Amount
-                  </Table.Th>
-                  <Table.Th
-                    style={{
-                      width: '140px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)',
-                      textAlign: 'center'
-                    }}
-                  >
-                    Current Status
-                  </Table.Th>
-                  <Table.Th
-                    style={{
-                      width: '180px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--muted)'
-                    }}
-                  >
-                    Target Status
-                  </Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {activities.map((act, idx) => {
-                  const selectedAction = targetActions[act.authOrderId] || 'Unchanged'
-                  const isModified = selectedAction !== 'Unchanged'
+        <LtTableCard>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th w={40} fs="9px" fw={700} tt="uppercase" c="var(--muted)">
+                #
+              </Table.Th>
+              <Table.Th w={100} fs="9px" fw={700} tt="uppercase" c="var(--muted)">
+                CPT Code
+              </Table.Th>
+              <Table.Th fs="9px" fw={700} tt="uppercase" c="var(--muted)">
+                Description
+              </Table.Th>
+              <Table.Th w={120} fs="9px" fw={700} tt="uppercase" c="var(--muted)" ta="right">
+                Rejection Amount
+              </Table.Th>
+              <Table.Th w={140} fs="9px" fw={700} tt="uppercase" c="var(--muted)" ta="center">
+                Current Status
+              </Table.Th>
+              <Table.Th w={180} fs="9px" fw={700} tt="uppercase" c="var(--muted)">
+                Target Status
+              </Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {activities.map((act, idx) => {
+              const selectedAction = targetActions[act.authOrderId] || 'Unchanged'
+              const isModified = selectedAction !== 'Unchanged'
 
-                  return (
-                    <Table.Tr
-                      key={act.authOrderId}
-                      style={{
-                        borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
-                        background: isModified ? 'var(--panel-soft, rgba(255, 255, 255, 0.02))' : 'transparent'
-                      }}
+              return (
+                <Table.Tr
+                  key={act.authOrderId}
+                  style={{
+                    borderBottom: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
+                    background: isModified ? 'var(--panel-soft, rgba(255, 255, 255, 0.02))' : 'transparent'
+                  }}
+                >
+                  <Table.Td c="var(--muted)">{idx + 1}</Table.Td>
+                  <Table.Td fw={700}>{act.cptCode}</Table.Td>
+                  <Table.Td c="var(--muted)" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {act.description}
+                  </Table.Td>
+                  <Table.Td fw={700} ta="right">
+                    {act.rejectionAmount > 0 ? act.rejectionAmount.toFixed(2) : '0.00'}
+                  </Table.Td>
+                  <Table.Td ta="center">
+                    <Badge
+                      variant="light"
+                      color={act.currentStatus.toLowerCase().includes('written') ? 'orange' : 'gray'}
+                      size="xs"
+                      style={{ textTransform: 'none' }}
                     >
-                      <Table.Td style={{ color: 'var(--muted)' }}>{idx + 1}</Table.Td>
-                      <Table.Td style={{ fontWeight: 700 }}>{act.cptCode}</Table.Td>
-                      <Table.Td style={{ color: 'var(--muted)', whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                        {act.description}
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'right', fontWeight: 700 }}>
-                        {act.rejectionAmount > 0 ? act.rejectionAmount.toFixed(2) : '0.00'}
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Badge
-                          variant="light"
-                          color={act.currentStatus.toLowerCase().includes('written') ? 'orange' : 'gray'}
-                          size="xs"
-                          style={{ textTransform: 'none' }}
-                        >
-                          {act.currentStatus || 'Unknown'}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td style={{ padding: '4px' }}>
-                        <Select
-                          size="xs"
-                          radius="xs"
-                          value={selectedAction}
-                          onChange={(val) => handleActionChange(act.authOrderId, val || 'Unchanged')}
-                          data={['Unchanged', 'Resubmit', 'Write-off', 'Close']}
-                          styles={{
-                            input: {
-                              fontWeight: isModified ? 700 : 'normal',
-                              color: isModified ? 'var(--mantine-color-text)' : 'inherit',
-                              border: isModified
-                                ? '1px solid var(--mantine-color-text)'
-                                : '1px solid var(--line, rgba(255, 255, 255, 0.05))'
-                            }
-                          }}
-                        />
-                      </Table.Td>
-                    </Table.Tr>
-                  )
-                })}
-              </Table.Tbody>
-            </Table>
-          </div>
-        </Card>
+                      {act.currentStatus || 'Unknown'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td style={{ padding: '4px' }}>
+                    <Select
+                      size="xs"
+                      radius="xs"
+                      value={selectedAction}
+                      onChange={(val) => handleActionChange(act.authOrderId, val || 'Unchanged')}
+                      data={['Unchanged', 'Resubmit', 'Write-off', 'Close']}
+                      styles={{
+                        input: {
+                          fontWeight: isModified ? 700 : 'normal',
+                          color: isModified ? 'var(--mantine-color-text)' : 'inherit',
+                          border: isModified
+                            ? '1px solid var(--mantine-color-text)'
+                            : '1px solid var(--line, rgba(255, 255, 255, 0.05))'
+                        }
+                      }}
+                    />
+                  </Table.Td>
+                </Table.Tr>
+              )
+            })}
+          </Table.Tbody>
+        </LtTableCard>
       )}
 
       {/* Save Button */}

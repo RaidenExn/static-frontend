@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Table, Group, Text, Badge, Button, Popover, TextInput, Card, Loader, Tooltip } from '@mantine/core'
+import React, { useState } from 'react'
+import { Table, Group, Text, Badge, Button, Popover, TextInput, Loader } from '@mantine/core'
 import { RefreshCw, Download, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { RcmActivity } from '../../types'
 import { activityRaStatus, priorAuthCode, rcmStrVal, rowHasRepeatTrackerMarker } from '../../utils'
+import { LtTooltip } from '../../shared_elements'
 
 interface ActivityTableProps {
   loading: boolean
@@ -67,9 +68,9 @@ const CellText = ({ text, maxChars, style }: { text: string; maxChars?: number; 
 
   if (isTruncated) {
     return (
-      <Tooltip label={cleanText} position="top" withArrow>
+      <LtTooltip label={cleanText}>
         {content}
-      </Tooltip>
+      </LtTooltip>
     )
   }
 
@@ -96,7 +97,7 @@ const BatchHeaderCell = ({
   setInputValue,
   onSave
 }: BatchHeaderProps) => (
-  <Table.Th style={{ position: 'relative', padding: '8px 12px', whiteSpace: 'nowrap' }}>
+  <Table.Th style={{ position: 'relative', padding: '6px 8px', whiteSpace: 'nowrap' }}>
     <Popover
       opened={activePopover === field}
       onClose={() => setActivePopover(null)}
@@ -188,43 +189,7 @@ function ActivityTable({
   const [activePopover, setActivePopover] = useState<'start' | 'expiry' | 'activityStart' | null>(null)
   const [raErrorExpanded, setRaErrorExpanded] = useState<Record<number, boolean>>({})
 
-  const tableContainerRef = useRef<HTMLDivElement>(null)
-  const [scrollTop, setScrollTop] = useState(0)
-  const containerHeight = 650
-  const rowHeight = 39
-  const overscan = 15
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop)
-  }
-
-  const isRejectionRow = (row: RcmActivity): boolean => {
-    if (!row) return false
-    const raStatus = activityRaStatus(row)
-    const mappedStatus = mapStatusDisplayName(raStatus)
-    const isDeniedOrPartial = ['Denied', 'Rejected', 'Partial RA', 'Partial Remittance', 'RA Error', 'Recovery'].includes(mappedStatus)
-    const hasRejAmt = Number(row.total_rej_amount || 0) > 0
-    const hasDenialCode = String(row.claim_denial_code || '').trim() !== ''
-    return isDeniedOrPartial || hasRejAmt || hasDenialCode
-  }
-
-  useEffect(() => {
-    if (!loading && sortedRows.length > 0) {
-      const firstRejectionIndex = sortedRows.findIndex(isRejectionRow)
-      if (firstRejectionIndex > 0) {
-        const targetScrollTop = firstRejectionIndex * rowHeight
-        if (tableContainerRef.current) {
-          tableContainerRef.current.scrollTop = targetScrollTop
-        }
-        setScrollTop(targetScrollTop)
-      } else {
-        if (tableContainerRef.current) {
-          tableContainerRef.current.scrollTop = 0
-        }
-        setScrollTop(0)
-      }
-    }
-  }, [sortedRows, loading])
+  // (virtual scrolling removed — table auto-expands to content)
 
   const getActionButtonProps = (actionType: 're-sub' | 'w-off', currentAction: string, isDisabled: boolean) => {
     const isActive = currentAction === actionType
@@ -275,13 +240,7 @@ function ActivityTable({
     { label: 'Denial Code', w: undefined }
   ]
 
-  const totalRows = sortedRows.length
-  const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan)
-  const endIndex = Math.min(totalRows, Math.floor((scrollTop + containerHeight) / rowHeight) + overscan)
-
-  const visibleRows = sortedRows.slice(startIndex, endIndex)
-  const topSpacerHeight = startIndex * rowHeight
-  const bottomSpacerHeight = (totalRows - endIndex) * rowHeight
+  // (virtual scroll indexing removed — all rows render directly)
 
   const getBadgeStatusStyle = (ms: string) => {
     const denied = ['Denied', 'Rejected'].includes(ms)
@@ -391,13 +350,13 @@ function ActivityTable({
     const isRepeatTrackerRow = rowHasRepeatTrackerMarker(row)
     if (billingSummary) {
       return (
-        <Tooltip label={billingSummary} position="top" withArrow>
+        <LtTooltip label={billingSummary}>
           <Text size="sm" color="dimmed" style={{
             fontStyle: 'italic', display: 'inline-block', overflow: 'hidden',
             textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle',
             fontSize: 'var(--mantine-font-size-sm)', cursor: 'help'
           }}>{billingSummary}</Text>
-        </Tooltip>
+        </LtTooltip>
       )
     }
     if (isRepeatTrackerRow && loadingRepeatTracker) {
@@ -418,8 +377,7 @@ function ActivityTable({
     return ''
   }
 
-  const renderActivityRow = (row: RcmActivity, relativeIdx: number) => {
-    const idx = startIndex + relativeIdx
+  const renderActivityRow = (row: RcmActivity, idx: number) => {
     const raStatus = activityRaStatus(row)
     const mappedStatus = mapStatusDisplayName(raStatus)
     const billingSummary = row.repeatTrackerBillingSummary || ''
@@ -467,7 +425,7 @@ function ActivityTable({
               styles={{ input: { height: '24px', width: '110px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 4px' } }}
             />
           ) : (
-            <Tooltip label="Click to edit Prior Auth #" disabled={!dateEditMode} position="top" withArrow>
+            <LtTooltip label="Click to edit Prior Auth #" disabled={!dateEditMode}>
               <div
                 onClick={() => {
                   if (dateEditMode) {
@@ -486,7 +444,7 @@ function ActivityTable({
               >
                 <CellText text={priorAuthCode(row) || (dateEditMode ? '[Add Auth]' : '-')} />
               </div>
-            </Tooltip>
+            </LtTooltip>
           )}
         </Table.Td>
         {dateEditMode && (
@@ -531,7 +489,7 @@ function ActivityTable({
           })()}
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', textAlign: 'center', whiteSpace: 'nowrap' }}>
-          <Tooltip label="Clinical Evidence Observations & Attachments" position="top" withArrow>
+          <LtTooltip label="Clinical Evidence Observations & Attachments">
             <Button
               size="xs" variant="subtle" color={(observationCounts[authId] || 0) > 0 ? 'green' : 'gray'}
               onClick={() => handleOpenObservationsModal(row)}
@@ -540,7 +498,7 @@ function ActivityTable({
             >
               <CellText text={String(observationCounts[authId] || 0)} />
             </Button>
-          </Tooltip>
+          </LtTooltip>
         </Table.Td>
         <Table.Td style={{ padding: '8px 12px', fontSize: 'var(--mantine-font-size-sm)', whiteSpace: 'nowrap' }}>
           <CellText text={rcmStrVal(row.claim_patient_pay) || ''} />
@@ -581,7 +539,7 @@ function ActivityTable({
             const tooltipText = desc ? `${codeStr}: ${desc}` : `Denial Code: ${codeStr}`
 
             return (
-              <Tooltip label={tooltipText} position="top" withArrow openDelay={0} closeDelay={0} multiline w={280}>
+              <LtTooltip label={tooltipText} multiline w={280}>
                 <Badge
                   variant="light"
                   color="red"
@@ -590,7 +548,7 @@ function ActivityTable({
                 >
                   {codeStr}
                 </Badge>
-              </Tooltip>
+              </LtTooltip>
             )
           })()}
         </Table.Td>
@@ -605,175 +563,146 @@ function ActivityTable({
   }
 
   return (
-    <Card
-      withBorder
-      radius="sm"
-      padding="xs"
-      bg="var(--panel-soft, rgba(255, 255, 255, 0.02))" style={{ overflow: "visible", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
-    >
-      <div
-        ref={tableContainerRef}
-        style={{
-          overflowX: 'auto',
-          width: '100%',
-          maxHeight: `${containerHeight}px`,
-          overflowY: 'auto',
-          position: 'relative'
-        }}
-        onScroll={handleScroll}
+    <div style={{ overflowX: 'auto', width: '100%' }}>
+      <Table
+        highlightOnHover
+        verticalSpacing={3}
+        horizontalSpacing="xs"
+        stickyHeader
+        style={{ fontSize: 'var(--mantine-font-size-sm)', width: '100%', tableLayout: 'auto' }}
       >
-        <Table
-          highlightOnHover
-          verticalSpacing="xs"
-          horizontalSpacing="md"
-          stickyHeader
-          style={{ fontSize: 'var(--mantine-font-size-sm)', width: '100%', tableLayout: 'auto' }}
-        >
-          <Table.Thead>
-            <Table.Tr style={{ borderBottom: '1px solid var(--line)' }}>
-              {staticHeaders.map(({ label }) => (
-                <Table.Th
-                  key={label}
-                  style={{
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--muted)',
-                    padding: '8px 12px',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {label}
-                </Table.Th>
+        <Table.Thead>
+          <Table.Tr style={{ borderBottom: '1px solid var(--line)' }}>
+            {staticHeaders.map(({ label }) => (
+              <Table.Th
+                key={label}
+                style={{
+                  fontSize: 'var(--mantine-font-size-xs)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--muted)',
+                  padding: '6px 8px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {label}
+              </Table.Th>
+            ))}
+
+            {dateEditMode &&
+              dateHeaders.map(({ label, field, value, setVal }) => (
+                <BatchHeaderCell
+                  key={field}
+                  label={label}
+                  field={field}
+                  activePopover={activePopover}
+                  setActivePopover={setActivePopover}
+                  inputValue={value}
+                  setInputValue={setVal}
+                  onSave={handleBatchSaveField}
+                />
               ))}
 
-              {dateEditMode &&
-                dateHeaders.map(({ label, field, value, setVal }) => (
-                  <BatchHeaderCell
-                    key={field}
-                    label={label}
-                    field={field}
-                    activePopover={activePopover}
-                    setActivePopover={setActivePopover}
-                    inputValue={value}
-                    setInputValue={setVal}
-                    onSave={handleBatchSaveField}
-                  />
+            {numericHeaders.map(({ label }) => (
+              <Table.Th
+                key={label}
+                style={{
+                  fontSize: 'var(--mantine-font-size-xs)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--muted)',
+                  padding: '6px 8px',
+                  whiteSpace: 'nowrap',
+                  ...(label === 'Obs' && { textAlign: 'center' })
+                }}
+              >
+                {label}
+              </Table.Th>
+            ))}
+
+            <Table.Th style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
+              <Button
+                size="xs"
+                variant="light"
+                color="gray"
+                onClick={handleToggleAllActions}
+                leftSection={<RefreshCw style={{ width: 12, height: 12 }} />}
+                style={{
+                  height: '22px',
+                  fontSize: 'var(--mantine-font-size-xs)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  padding: '0 6px',
+                  minHeight: '0'
+                }}
+              >
+                Actions
+              </Button>
+            </Table.Th>
+
+            <Table.Th style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
+              <Button
+                size="xs"
+                variant="light"
+                color="gray"
+                disabled={loadingRepeatTracker}
+                onClick={() =>
+                  !loadingRepeatTracker &&
+                  onLoadRepeatTracker &&
+                  onLoadRepeatTracker(undefined, repeatTrackerLookbackYears, 'manual')
+                }
+                leftSection={
+                  loadingRepeatTracker ? <Loader size={10} /> : <Download style={{ width: 12, height: 12 }} />
+                }
+                style={{
+                  height: '22px',
+                  fontSize: 'var(--mantine-font-size-xs)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  padding: '0 6px',
+                  minHeight: '0'
+                }}
+              >
+                {loadingRepeatTracker ? 'Syncing...' : 'Sync Tracker'}
+              </Button>
+            </Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+
+        <Table.Tbody>
+          {loading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <Table.Tr key={`shimmer-activity-${idx}`}>
+                {Array.from({ length: dateEditMode ? 19 : 16 }).map((_, cIdx) => (
+                  <Table.Td key={cIdx} style={{ padding: '6px 8px' }}>
+                    <div
+                      className="shimmer-text"
+                      style={{
+                        width: '80%',
+                        height: '10px',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '1px'
+                      }}
+                    />
+                  </Table.Td>
                 ))}
-
-              {numericHeaders.map(({ label }) => (
-                <Table.Th
-                  key={label}
-                  style={{
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--muted)',
-                    padding: '8px 12px',
-                    whiteSpace: 'nowrap',
-                    ...(label === 'Obs' && { textAlign: 'center' })
-                  }}
-                >
-                  {label}
-                </Table.Th>
-              ))}
-
-              <Table.Th style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
-                <Button
-                  size="xs"
-                  variant="light"
-                  color="gray"
-                  onClick={handleToggleAllActions}
-                  leftSection={<RefreshCw style={{ width: 12, height: 12 }} />}
-                  style={{
-                    height: '24px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    padding: '0 8px',
-                    minHeight: '0'
-                  }}
-                >
-                  Actions
-                </Button>
-              </Table.Th>
-
-              <Table.Th style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
-                <Button
-                  size="xs"
-                  variant="light"
-                  color="gray"
-                  disabled={loadingRepeatTracker}
-                  onClick={() =>
-                    !loadingRepeatTracker &&
-                    onLoadRepeatTracker &&
-                    onLoadRepeatTracker(undefined, repeatTrackerLookbackYears, 'manual')
-                  }
-                  leftSection={
-                    loadingRepeatTracker ? <Loader size={10} /> : <Download style={{ width: 12, height: 12 }} />
-                  }
-                  style={{
-                    height: '24px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    padding: '0 8px',
-                    minHeight: '0'
-                  }}
-                >
-                  {loadingRepeatTracker ? 'Syncing...' : 'Sync Tracker'}
-                </Button>
-              </Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-
-          <Table.Tbody>
-            {loading ? (
-              Array.from({ length: 4 }).map((_, idx) => (
-                <Table.Tr key={`shimmer-activity-${idx}`}>
-                  {Array.from({ length: dateEditMode ? 19 : 16 }).map((_, cIdx) => (
-                    <Table.Td key={cIdx} style={{ padding: '8px 12px' }}>
-                      <div
-                        className="shimmer-text"
-                        style={{
-                          width: '80%',
-                          height: '12px',
-                          background: 'rgba(255,255,255,0.05)',
-                          borderRadius: '1px'
-                        }}
-                      />
-                    </Table.Td>
-                  ))}
-                </Table.Tr>
-              ))
-            ) : sortedRows.length === 0 ? (
-              <Table.Tr>
-                <Table.Td
-                  colSpan={dateEditMode ? 19 : 16}
-                  style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)' }}
-                >
-                  No activity rows found.
-                </Table.Td>
               </Table.Tr>
-            ) : (
-              <>
-                {topSpacerHeight > 0 && (
-                  <Table.Tr style={{ height: `${topSpacerHeight}px` }}>
-                    <Table.Td colSpan={dateEditMode ? 19 : 16} style={{ padding: 0, border: 0 }} />
-                  </Table.Tr>
-                )}
-                {visibleRows.map((row, relativeIdx) => renderActivityRow(row, relativeIdx))}
-                {bottomSpacerHeight > 0 && (
-                  <Table.Tr style={{ height: `${bottomSpacerHeight}px` }}>
-                    <Table.Td colSpan={dateEditMode ? 19 : 16} style={{ padding: 0, border: 0 }} />
-                  </Table.Tr>
-                )}
-              </>
-            )}
-          </Table.Tbody>
-        </Table>
-      </div>
-    </Card>
+            ))
+          ) : sortedRows.length === 0 ? (
+            <Table.Tr>
+              <Table.Td
+                colSpan={dateEditMode ? 19 : 16}
+                style={{ textAlign: 'center', padding: '12px', color: 'var(--muted)' }}
+              >
+                No activity rows found.
+              </Table.Td>
+            </Table.Tr>
+          ) : (
+            sortedRows.map((row, idx) => renderActivityRow(row, idx))
+          )}
+        </Table.Tbody>
+      </Table>
+    </div>
   )
 }
 

@@ -1,5 +1,6 @@
 import React from 'react'
-import { Group, Badge, Text, Tooltip } from '@mantine/core'
+import { Group, Badge, Text } from '@mantine/core'
+import { LtTooltip } from '../shared_elements'
 
 interface SubmissionBadgeGroupProps {
   isPaperClaim?: boolean
@@ -19,7 +20,7 @@ export default function SubmissionBadgeGroup({
   const manualText = manualCount === 1 ? 'M' : `${manualCount}xM`
 
   return (
-    <Tooltip label={`Submission State: ${currentType}`} openDelay={0} closeDelay={0}>
+    <LtTooltip label={`Submission State: ${currentType}`}>
       <Group
         className="submission-badge-group"
         gap="xs"
@@ -59,7 +60,7 @@ export default function SubmissionBadgeGroup({
       >
         {/* A. Manual Submission Indicator ("M" Badge) */}
         {isManual && (
-          <Tooltip label={`Encounter submitted manually ${manualCount} time(s)`} openDelay={0} closeDelay={0}>
+          <LtTooltip label={`Encounter submitted manually ${manualCount} time(s)`}>
             <Badge
               color="red"
               variant="light"
@@ -75,7 +76,7 @@ export default function SubmissionBadgeGroup({
             >
               {manualText}
             </Badge>
-          </Tooltip>
+          </LtTooltip>
         )}
 
         {/* Sleek Vertical Divider if both badges exist */}
@@ -91,7 +92,7 @@ export default function SubmissionBadgeGroup({
         )}
 
         {/* B. Resubmission Count Badge */}
-        <Tooltip label={`Normal Resubmission Count: ${normalCount}`} openDelay={0} closeDelay={0}>
+        <LtTooltip label={`Normal Resubmission Count: ${normalCount}`}>
           <Badge
             color={badgeColor}
             variant="filled"
@@ -110,10 +111,10 @@ export default function SubmissionBadgeGroup({
           >
             {normalCount}
           </Badge>
-        </Tooltip>
+        </LtTooltip>
 
         {/* C. Bold Status Label Text */}
-        <Tooltip label={`Encounter Submission State: ${currentType}`} openDelay={0} closeDelay={0}>
+        <LtTooltip label={`Encounter Submission State: ${currentType}`}>
           <Text
             size="xs"
             fw={800}
@@ -127,8 +128,8 @@ export default function SubmissionBadgeGroup({
           >
             {currentType}
           </Text>
-        </Tooltip>
+        </LtTooltip>
       </Group>
-    </Tooltip>
+    </LtTooltip>
   )
 }

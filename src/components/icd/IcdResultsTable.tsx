@@ -1,7 +1,8 @@
 import React from 'react'
-import { Table, SegmentedControl, Badge, ActionIcon, Text, Tooltip } from '@mantine/core'
+import { Table, SegmentedControl, Badge, Text } from '@mantine/core'
 import { Trash2 } from 'lucide-react'
 import { Diagnosis } from '../../hooks/useIcdState'
+import { LtIconButton, LtTooltip } from '../../shared_elements'
 
 interface IcdResultsTableProps {
   diagnoses: Diagnosis[]
@@ -17,30 +18,27 @@ export function IcdResultsTable({
   handleDeleteDiagnosis
 }: IcdResultsTableProps) {
   return (
-    <Table horizontalSpacing="xs" verticalSpacing="xs" highlightOnHover striped style={{ minWidth: '100%' }}>
+    <Table horizontalSpacing="xs" verticalSpacing="xs" highlightOnHover striped w="100%" fs="xs">
       <Table.Thead>
         <Table.Tr>
-          <Table.Th style={{ width: compact ? '70px' : '90px', fontSize: '11px', textTransform: 'uppercase' }}>
+          <Table.Th w={compact ? 70 : 90} fs="xs" tt="uppercase">
             Code
           </Table.Th>
-          <Table.Th style={{ fontSize: '11px', textTransform: 'uppercase' }}>Description</Table.Th>
-          <Table.Th style={{ width: compact ? '160px' : '180px', fontSize: '11px', textTransform: 'uppercase' }}>
+          <Table.Th fs="xs" tt="uppercase">
+            Description
+          </Table.Th>
+          <Table.Th w={compact ? 160 : 180} fs="xs" tt="uppercase">
             Priority
           </Table.Th>
           {!compact && (
-            <Table.Th style={{ width: '80px', fontSize: '11px', textTransform: 'uppercase' }}>Audit ID</Table.Th>
+            <Table.Th w={80} fs="xs" tt="uppercase">
+              Audit ID
+            </Table.Th>
           )}
-          <Table.Th style={{ width: compact ? '80px' : '90px', fontSize: '11px', textTransform: 'uppercase' }}>
+          <Table.Th w={compact ? 80 : 90} fs="xs" tt="uppercase">
             Status
           </Table.Th>
-          <Table.Th
-            style={{
-              textAlign: 'center',
-              width: compact ? '40px' : '80px',
-              fontSize: '11px',
-              textTransform: 'uppercase'
-            }}
-          >
+          <Table.Th ta="center" w={compact ? 40 : 80} fs="xs" tt="uppercase">
             Action
           </Table.Th>
         </Table.Tr>
@@ -48,8 +46,8 @@ export function IcdResultsTable({
       <Table.Tbody>
         {diagnoses.length === 0 ? (
           <Table.Tr>
-            <Table.Td colSpan={compact ? 5 : 6} style={{ textAlign: 'center', padding: '24px 0' }}>
-              <Text size="xs" color="dimmed" style={{ fontStyle: 'italic' }}>
+            <Table.Td colSpan={compact ? 5 : 6} ta="center" py="lg">
+              <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
                 No active diagnoses.
               </Text>
             </Table.Td>
@@ -60,15 +58,15 @@ export function IcdResultsTable({
             const isDiagDeleted = Number(diag.disease_addendum_status_id) === 2 || Number((diag as any).is_active) === 0
             return (
               <Table.Tr key={diag.patient_diseases_id} style={{ opacity: isDiagDeleted ? 0.5 : 1 }}>
-                <Table.Td style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '11px' }}>
+                <Table.Td fw={800} c="cyan" fs="xs">
                   {diag.icd_code}
                 </Table.Td>
                 <Table.Td style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}>
-                  <Tooltip label={diag.disease_desc} position="top" withArrow>
+                  <LtTooltip label={diag.disease_desc}>
                     <Text size="xs" style={{ cursor: 'help', textDecoration: isDiagDeleted ? 'line-through' : 'none' }}>
                       {diag.disease_desc}
                     </Text>
-                  </Tooltip>
+                  </LtTooltip>
                 </Table.Td>
                 <Table.Td>
                   <SegmentedControl
@@ -80,14 +78,10 @@ export function IcdResultsTable({
                       { label: 'Primary', value: 'primary' },
                       { label: 'Secondary', value: 'secondary' }
                     ]}
-                    styles={{
-                      root: { padding: '2px' },
-                      control: { minWidth: '70px' }
-                    }}
                   />
                 </Table.Td>
                 {!compact && (
-                  <Table.Td style={{ fontSize: '11px' }}>
+                  <Table.Td fs="xs">
                     {diag.creatinguserId !== undefined ? diag.creatinguserId : '-'}
                   </Table.Td>
                 )}
@@ -96,18 +90,16 @@ export function IcdResultsTable({
                     {isDiagDeleted ? 'Struck Out' : 'Active'}
                   </Badge>
                 </Table.Td>
-                <Table.Td style={{ textAlign: 'center' }}>
-                  <Tooltip label="Delete Diagnosis" position="top" withArrow>
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      size="sm"
-                      onClick={() => handleDeleteDiagnosis(diag)}
-                      aria-label="Delete Diagnosis"
-                    >
-                      <Trash2 style={{ width: 14, height: 14 }} />
-                    </ActionIcon>
-                  </Tooltip>
+                <Table.Td ta="center">
+                  <LtIconButton
+                    icon={Trash2}
+                    color="red"
+                    variant="subtle"
+                    size="sm"
+                    onClick={() => handleDeleteDiagnosis(diag)}
+                    ariaLabel="Delete Diagnosis"
+                    tooltip="Delete Diagnosis"
+                  />
                 </Table.Td>
               </Table.Tr>
             )

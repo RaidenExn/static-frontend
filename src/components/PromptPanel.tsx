@@ -5,22 +5,19 @@ import {
   Group,
   Stack,
   SimpleGrid,
-  Title,
   Text,
   TextInput,
   Select,
-  Button,
-  ActionIcon,
   Checkbox,
   Textarea,
   Center,
   Loader,
   Paper,
-  Card,
-  Tooltip
+  Card
 } from '@mantine/core'
 import { Save, Download, Upload, Plus, FileText, Trash2 } from 'lucide-react'
 import { usePromptConfig } from '../hooks/usePromptConfig'
+import { LtButton, LtIconButton } from '../shared_elements'
 
 interface PromptPanelProps {
   active: boolean
@@ -41,9 +38,9 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
     handleSaveAsNew,
     handleLoadVersion,
     handleDeleteVersion,
-    handleAddEncounterBlock,
-    handleDeleteEncounterBlock,
-    handleMoveEncounterBlock,
+    handleAddEncounterBlock: _handleAddEncounterBlock,
+    handleDeleteEncounterBlock: _handleDeleteEncounterBlock,
+    handleMoveEncounterBlock: _handleMoveEncounterBlock,
     handleEncounterBlockChange,
     handleEncounterThresholdChange,
     handleEncounterProfileFieldsChange,
@@ -56,15 +53,15 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
   if (!active) return null
 
   return (
-    <Box component="section" id="promptPanel" p="lg" bg="var(--mantine-color-body)" mih="100vh">
+    <Box component="section" id="promptPanel" p="md" bg="var(--mantine-color-body)" mih="100vh">
       {/* ==================== CONTROL TOOLBAR ==================== */}
-      <Card withBorder radius="sm" p="xs" mb="xl" style={{ backgroundColor: 'var(--bg-translucent, rgba(255, 255, 255, 0.06))', backdropFilter: 'var(--backdrop-filter, blur(16px))', WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))' }}>
+      <Card withBorder radius="sm" p="xs" mb="lg" bg="var(--mantine-color-body)">
         <Group justify="space-between" align="center" wrap="wrap" gap="xs">
           {/* Left: Version management */}
           <Group gap="xs" align="center" wrap="nowrap" style={{ flexShrink: 0 }}>
-            <FileText style={{ width: 14, height: 14, color: 'var(--mantine-color-dimmed)' }} />
-            <Text size="sm" fw={800} tt="uppercase" lts="0.5px">
-              Config
+            <FileText size={14} />
+            <Text size="xs" fw={800} tt="uppercase" lts="0.5px">
+              Prompt Config
             </Text>
             {versions.length > 0 && (
               <Group gap={4} wrap="nowrap">
@@ -75,14 +72,17 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                   value={selectedVersion || null}
                   onChange={(val) => { if (val) handleLoadVersion(val) }}
                   data={versions.map((v) => ({ value: v.filename, label: v.name }))}
-                  styles={{ input: { height: '28px' } }}
                 />
                 {selectedVersion && (
-                  <Tooltip label="Delete this version" position="top" withArrow>
-                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDeleteVersion(selectedVersion)}>
-                      <Trash2 style={{ width: 13, height: 13 }} />
-                    </ActionIcon>
-                  </Tooltip>
+                  <LtIconButton
+                    icon={Trash2}
+                    iconSize={13}
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={() => handleDeleteVersion(selectedVersion)}
+                    tooltip="Delete this version"
+                  />
                 )}
               </Group>
             )}
@@ -90,40 +90,48 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
 
           {/* Right: Action buttons */}
           <Group gap="xs" wrap="wrap">
-            <Tooltip label="Save current configuration" position="top" withArrow>
-              <Button size="xs" bg="#cc7129" fw={600} disabled={saving}
-                leftSection={<Save style={{ width: 13, height: 13 }} />} onClick={() => handleSave()}>
-                {saving ? 'Saving...' : 'Save Active'}
-              </Button>
-            </Tooltip>
+            <LtButton
+              color="orange"
+              variant="filled"
+              disabled={saving}
+              leftIcon={<Save size={13} />}
+              onClick={() => handleSave()}
+              tooltip="Save current configuration"
+            >
+              {saving ? 'Saving...' : 'Save Active'}
+            </LtButton>
 
-            <Tooltip label="Save as a new named version" position="top" withArrow>
-              <Button size="xs" variant="default" fw={500}
-                leftSection={<Plus style={{ width: 13, height: 13 }} />}
-                onClick={() => {
-                  const proposedName = prompt('Enter name for the new configuration:', name)
-                  if (proposedName && proposedName.trim()) {
-                    handleSaveAsNew(proposedName.trim())
-                  }
-                }}>
-                Save As New
-              </Button>
-            </Tooltip>
+            <LtButton
+              variant="default"
+              leftIcon={<Plus size={13} />}
+              onClick={() => {
+                const proposedName = prompt('Enter name for the new configuration:', name)
+                if (proposedName && proposedName.trim()) {
+                  handleSaveAsNew(proposedName.trim())
+                }
+              }}
+              tooltip="Save as a new named version"
+            >
+              Save As New
+            </LtButton>
 
-            <Tooltip label="Export configuration as YAML file" position="top" withArrow>
-              <Button size="xs" variant="default" fw={500}
-                leftSection={<Download style={{ width: 13, height: 13 }} />} onClick={handleExport}>
-                Export
-              </Button>
-            </Tooltip>
+            <LtButton
+              variant="default"
+              leftIcon={<Download size={13} />}
+              onClick={handleExport}
+              tooltip="Export configuration as YAML file"
+            >
+              Export
+            </LtButton>
 
-            <Tooltip label="Import configuration from YAML/JSON file" position="top" withArrow>
-              <Button size="xs" variant="default" fw={500}
-                leftSection={<Upload style={{ width: 13, height: 13 }} />}
-                onClick={() => fileInputRef.current?.click()}>
-                Import
-              </Button>
-            </Tooltip>
+            <LtButton
+              variant="default"
+              leftIcon={<Upload size={13} />}
+              onClick={() => fileInputRef.current?.click()}
+              tooltip="Import configuration from YAML/JSON file"
+            >
+              Import
+            </LtButton>
           </Group>
         </Group>
       </Card>
@@ -133,22 +141,20 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
       {loading ? (
         <Center mih="300px">
           <Stack align="center" gap="xs">
-            <Loader color="#cc7129" size="xl" type="dots" />
-            <Text size="sm" c="dimmed" fs="italic">
+            <Loader color="orange" size="xl" type="dots" />
+            <Text size="xs" c="dimmed" fs="italic">
               Loading dynamic workspaces...
             </Text>
           </Stack>
         </Center>
       ) : (
         <Container fluid p={0}>
-          {/* Workspace Metadata Settings Card */}
-
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
             {/* ==================== LEFT COLUMN: SYSTEM INSTRUCTIONS ==================== */}
             <Box>
-              <Title order={2} fz={18} fw={600} mb="md">
+              <Text size="xs" fw={800} tt="uppercase" lts="0.5px" mb="xs">
                 System Instructions
-              </Title>
+              </Text>
 
               <Textarea
                 autosize
@@ -157,8 +163,9 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                 value={systemInstructions}
                 onChange={(e) => setSystemInstructions(e.currentTarget.value)}
                 placeholder="Enter your system instructions..."
-                ff="monospace"
-                size="sm"
+                style={{ fontFamily: 'monospace' }}
+                size="xs"
+                radius="sm"
               />
             </Box>
 
@@ -167,27 +174,27 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
               <Group
                 justify="space-between"
                 align="center"
-                mb="md"
+                mb="xs"
                 pb="xs"
                 bd="0 0 1px solid var(--mantine-color-default-border)"
               >
-                <Title order={2} fz={18} fw={600}>
-                  Encounter Data
-                </Title>
+                <Text size="xs" fw={800} tt="uppercase" lts="0.5px">
+                  Encounter Data Blocks
+                </Text>
               </Group>
 
-              <Stack gap="md">
+              <Stack gap="sm">
                 {encounterBlocks.map((block, idx) => (
                   <Paper
                     key={block.id}
                     withBorder
-                    p="md"
+                    p="sm"
                     radius="sm"
-                    bg="var(--mantine-color-default-hover)"
-                    opacity={block.enabled ? 1 : 0.65}
+                    bg="var(--mantine-color-body)"
+                    style={{ opacity: block.enabled ? 1 : 0.65 }}
                   >
-                    <Group justify="space-between" align="end" mb="sm" wrap="wrap" gap="sm">
-                      <Group gap="sm" align="end" flex={1}>
+                    <Group justify="space-between" align="end" mb="xs" wrap="wrap" gap="xs">
+                      <Group gap="xs" align="end" style={{ flex: 1 }}>
                         <TextInput
                           label="Title"
                           variant="unstyled"
@@ -205,7 +212,6 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                           label="XML Tag"
                           size="xs"
                           w={140}
-                          ff="monospace"
                           value={block.xmlTag || ''}
                           onChange={(e) =>
                             handleEncounterBlockChange(
@@ -214,47 +220,26 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                               e.currentTarget.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
                             )
                           }
-                          c="#cc7129"
+                          c="orange"
+                          style={{ fontFamily: 'monospace' }}
                         />
 
                         <Checkbox
                           size="xs"
-                          color="#cc7129"
+                          color="orange"
                           label="Active"
                           checked={block.enabled}
                           onChange={(e) => handleEncounterBlockChange(idx, 'enabled', e.currentTarget.checked)}
                           mb={6}
                         />
                       </Group>
-
-                      <Group gap={2} mb={4}>
-                        <ActionIcon
-                          variant="subtle"
-                          color="dimmed"
-                          onClick={() => handleMoveEncounterBlock(idx, 'up')}
-                          disabled={idx === 0}
-                        >
-                          ↑
-                        </ActionIcon>
-                        <ActionIcon
-                          variant="subtle"
-                          color="dimmed"
-                          onClick={() => handleMoveEncounterBlock(idx, 'down')}
-                          disabled={idx === encounterBlocks.length - 1}
-                        >
-                          ↓
-                        </ActionIcon>
-                        <ActionIcon variant="subtle" color="red" onClick={() => handleDeleteEncounterBlock(block.id)}>
-                          ✕
-                        </ActionIcon>
-                      </Group>
                     </Group>
 
                     {block.id === 'patient_profile' ? (
-                      <Paper p="sm" bg="var(--mantine-color-body)" withBorder radius="sm">
-                        <Stack gap="md">
+                      <Paper p="xs" bg="var(--mantine-color-body)" withBorder radius="sm" mt="xs">
+                        <Stack gap="xs">
                           <Box>
-                            <Text size="xs" fw={600} c="#cc7129" mb={8}>
+                            <Text size="xs" fw={700} c="orange" mb={4}>
                               Included Profile Components:
                             </Text>
                             <Group gap="md">
@@ -274,7 +259,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                                   <Checkbox
                                     key={field}
                                     size="xs"
-                                    color="#cc7129"
+                                    color="orange"
                                     label={field === 'bp' ? 'BP' : field === 'bmi' ? 'BMI' : field}
                                     checked={val}
                                     onChange={(e) =>
@@ -288,10 +273,10 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                           </Box>
 
                           <Box>
-                            <Text size="xs" fw={600} c="#cc7129" mb={8}>
+                            <Text size="xs" fw={700} c="orange" mb={4}>
                               Smart Vital Thresholds (Include only if outside range):
                             </Text>
-                            <Group gap="sm" wrap="wrap">
+                            <Group gap="xs" wrap="wrap">
                               <TextInput
                                 label="Temp Max"
                                 size="xs"
@@ -299,7 +284,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                                 type="number"
                                 placeholder="38.0"
                                 rightSection={
-                                  <Text fz={10} c="dimmed">
+                                  <Text size="10px" c="dimmed">
                                     °C
                                   </Text>
                                 }
@@ -314,7 +299,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                                 type="number"
                                 placeholder="140"
                                 rightSection={
-                                  <Text fz={10} c="dimmed">
+                                  <Text size="10px" c="dimmed">
                                     mmHg
                                   </Text>
                                 }
@@ -331,7 +316,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                                 type="number"
                                 placeholder="90"
                                 rightSection={
-                                  <Text fz={10} c="dimmed">
+                                  <Text size="10px" c="dimmed">
                                     mmHg
                                   </Text>
                                 }
@@ -348,7 +333,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                                 type="number"
                                 placeholder="100"
                                 rightSection={
-                                  <Text fz={10} c="dimmed">
+                                  <Text size="10px" c="dimmed">
                                     bpm
                                   </Text>
                                 }
@@ -360,7 +345,7 @@ export default function PromptPanel({ active, showToast }: PromptPanelProps) {
                         </Stack>
                       </Paper>
                     ) : (
-                      <Text size="xs" c="dimmed" fs="italic" px={2}>
+                      <Text size="xs" c="dimmed" fs="italic">
                         Values are dynamically loaded from corresponding EMR sections into the custom XML tag.
                       </Text>
                     )}

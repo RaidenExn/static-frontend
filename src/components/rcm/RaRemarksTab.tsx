@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { Card, Group, Text, Switch, Textarea, Button, Stack, Badge, Tooltip } from '@mantine/core'
+import { Card, Group, Text, Switch, Textarea, Stack, Badge } from '@mantine/core'
+import { LtButton, LtTooltip } from '../../shared_elements'
 
 interface RaRemarksTabProps {
   loading?: boolean
@@ -82,11 +83,11 @@ export default function RaRemarksTab({
             Write RA Remarks
           </Text>
           {hasDraftResub && (
-            <Tooltip label="Saving RA remarks will automatically commit your draft resubmission comments & attachment" openDelay={0} closeDelay={0}>
+            <LtTooltip label="Saving RA remarks will automatically commit your draft resubmission comments & attachment">
               <Badge size="xs" variant="light" color="blue" style={{ cursor: 'help' }}>
                 + Draft Resub
               </Badge>
-            </Tooltip>
+            </LtTooltip>
           )}
           <Switch
             label="Auto Copy"
@@ -94,7 +95,7 @@ export default function RaRemarksTab({
             checked={autoCopyRaRemarks}
             onChange={(e) => setAutoCopyRaRemarks(e.target.checked)}
           />
-          <Tooltip label="Automatically mirror resubmission comments into RA remarks in real time" openDelay={0} closeDelay={0}>
+          <LtTooltip label="Automatically mirror resubmission comments into RA remarks in real time">
             <div>
               <Switch
                 label={
@@ -107,7 +108,7 @@ export default function RaRemarksTab({
                 onChange={(e) => setAutoTransferToRaRemarks(e.target.checked)}
               />
             </div>
-          </Tooltip>
+          </LtTooltip>
         </Group>
 
         {loading ? (
@@ -205,7 +206,7 @@ export default function RaRemarksTab({
             </Group>
 
             <Group gap="xs">
-              <Button
+              <LtButton
                 onClick={onClearRaRemarks}
                 variant="light"
                 color="gray"
@@ -213,25 +214,20 @@ export default function RaRemarksTab({
                 style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 16px' }}
               >
                 Clear
-              </Button>
-              <Tooltip
-                label={
+              </LtButton>
+              <LtButton
+                onClick={onSaveRaRemarks}
+                disabled={isSavingRaRemarks || !canSaveRaRemarks}
+                className="rcm-save-ra"
+                tooltip={
                   hasDraftResub
                     ? 'Saves RA remarks & draft resubmission reason + attachment in one click'
                     : 'Save RA remarks to remote EMR'
                 }
-                openDelay={0}
-                closeDelay={0}
+                style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 48px' }}
               >
-                <Button
-                  onClick={onSaveRaRemarks}
-                  disabled={isSavingRaRemarks || !canSaveRaRemarks}
-                  className="rcm-save-ra"
-                  style={{ height: '36px', fontSize: 'var(--mantine-font-size-sm)', padding: '0 48px' }}
-                >
-                  {isSavingRaRemarks ? 'Saving...' : 'Save'}
-                </Button>
-              </Tooltip>
+                {isSavingRaRemarks ? 'Saving...' : 'Save'}
+              </LtButton>
             </Group>
           </Group>
         </Stack>

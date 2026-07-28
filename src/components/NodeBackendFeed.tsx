@@ -1,14 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import {
   Card,
   Group,
   Text,
-  TextInput,
-  ActionIcon,
-  Tooltip,
-  Box
+  Box,
+  Badge,
+  TextInput
 } from '@mantine/core'
 import { Search, Trash2, Terminal, ArrowDown, Activity } from 'lucide-react'
+import { LtIconButton } from '../shared_elements'
 
 interface NodeBackendFeedProps {
   logs: any[]
@@ -88,6 +88,7 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isCleared, setIsCleared] = useState(false)
+  const scrollerRef = useRef<any>(null)
 
   const activeLogs = useMemo(() => {
     if (isCleared) return []
@@ -138,8 +139,8 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
         style={{
           borderBottom: '1px solid var(--line)',
           backgroundColor: 'var(--bg-translucent)',
-          backdropFilter: "var(--backdrop-filter, blur(16px))",
-          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))"
+          backdropFilter: 'var(--backdrop-filter, blur(16px))',
+          WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
         }}
       >
         <Group justify="space-between" align="center" wrap="nowrap">
@@ -148,41 +149,43 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
             <Text size="sm" fw={700} style={{ color: 'var(--text-primary)' }}>
               Native Pino Stream Inspector
             </Text>
-            <Activity
-              size={14}
-              style={{
-                color: logsLoading ? 'var(--mantine-color-yellow-5)' : 'var(--mantine-color-green-5)'
-              }}
-            />
+            <Badge
+              color={logsLoading ? 'yellow' : 'green'}
+              variant="light"
+              size="sm"
+              style={{ fontSize: '10px', padding: '2px 6px' }}
+            >
+              {logsLoading ? 'STREAMING' : 'ACTIVE'}
+            </Badge>
           </Group>
 
           <Group gap="xs" wrap="nowrap">
             <TextInput
               placeholder="Filter logs..."
-              size="xs"
+              leftSection={<Search size={14} />}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.currentTarget.value)}
-              leftSection={<Search size={12} />}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              size="xs"
               styles={{
                 input: {
                   backgroundColor: 'var(--panel)',
-                  border: '1px solid var(--line)',
+                  borderColor: 'var(--line)',
+                  color: 'var(--mantine-color-text)',
                   fontSize: '11px',
-                  height: '28px'
+                  height: '28px',
+                  borderRadius: '4px'
                 }
               }}
             />
 
-            <Tooltip label="Clear local terminal buffer" openDelay={0} closeDelay={0}>
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                size="sm"
-                onClick={() => setIsCleared(true)}
-              >
-                <Trash2 size={14} />
-              </ActionIcon>
-            </Tooltip>
+            <LtIconButton
+              icon={Trash2}
+              variant="subtle"
+              color="red"
+              size="sm"
+              onClick={() => setIsCleared(true)}
+              tooltip="Clear local terminal buffer"
+            />
           </Group>
         </Group>
       </Box>
@@ -225,13 +228,26 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
               <div
                 key={idx}
                 style={{
+                  display: 'flex',
                   fontFamily: 'var(--mantine-font-family-monospace)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-all',
                   padding: '1px 0'
                 }}
               >
-                {renderAnsiString(line)}
+                <span
+                  style={{
+                    userSelect: 'none',
+                    color: '#484f58',
+                    minWidth: '40px',
+                    textAlign: 'right',
+                    paddingRight: '12px',
+                    fontSize: '10px'
+                  }}
+                >
+                  {idx + 1}
+                </span>
+                <div style={{ flex: 1 }}>{renderAnsiString(line)}</div>
               </div>
             ))
           )}
@@ -255,8 +271,8 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
             transform: 'translateX(-50%)',
             padding: '8px 16px',
             background: 'var(--bg-translucent)',
-            backdropFilter: "var(--backdrop-filter, blur(16px))",
-          WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
+            backdropFilter: 'var(--backdrop-filter, blur(16px))',
+            WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
             border: '1.5px solid var(--accent)',
             color: 'var(--accent)',
             borderRadius: '20px',

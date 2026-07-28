@@ -6,17 +6,16 @@ import {
   Text,
   Title,
   TextInput,
-  Button,
   Progress,
   Switch,
   Badge,
-  Tooltip,
   Box,
   Loader
 } from '@mantine/core'
 import { Search, Radio, ArrowRight, RefreshCw, Power } from 'lucide-react'
 import { useNetworkDiscovery } from '../hooks/useNetworkDiscovery'
 import { DiscoveredServer } from '../services/discoveryService'
+import { LtButton } from '../shared_elements'
 
 interface NetworkDiscoveryCardProps {
   onSelectServer: (_ip: string) => void
@@ -93,16 +92,14 @@ export default function NetworkDiscoveryCard({ onSelectServer, compact = false }
             size="xs"
             style={{ flex: 1 }}
           />
-          <Tooltip label={isScanning ? 'Halt network scan' : 'Scan subnet for active LT-Local servers'} openDelay={0} closeDelay={0}>
-            <Button
-              size="xs"
-              color={isScanning ? 'red' : 'blue'}
-              onClick={handleScanToggle}
-              leftSection={isScanning ? <Power size={14} /> : <Search size={14} />}
-            >
-              {isScanning ? 'STOP SCAN' : 'SCAN NETWORK'}
-            </Button>
-          </Tooltip>
+          <LtButton
+            color={isScanning ? 'red' : 'blue'}
+            onClick={handleScanToggle}
+            leftIcon={isScanning ? <Power size={14} /> : <Search size={14} />}
+            tooltip={isScanning ? 'Halt network scan' : 'Scan subnet for active LT-Local servers'}
+          >
+            {isScanning ? 'STOP SCAN' : 'SCAN NETWORK'}
+          </LtButton>
         </Group>
 
         {/* Live Progress Bar when Scanning */}
@@ -178,15 +175,14 @@ export default function NetworkDiscoveryCard({ onSelectServer, compact = false }
                         </Text>
                       </Box>
                     </Group>
-                    <Button
-                      size="xs"
+                    <LtButton
                       color="green"
                       variant="light"
-                      rightSection={<ArrowRight size={14} />}
+                      rightIcon={<ArrowRight size={14} />}
                       onClick={() => onSelectServer(server.ip)}
                     >
                       CONNECT
-                    </Button>
+                    </LtButton>
                   </Group>
                 </Card>
               ))}

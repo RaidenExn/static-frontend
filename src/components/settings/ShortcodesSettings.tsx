@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react'
-import { Card, Title, Group, Text, Box, Stack, Button, Tooltip } from '@mantine/core'
+import { Card, Title, Group, Text, Box, Stack } from '@mantine/core'
 import { Download, Upload, CheckCircle, RefreshCw } from 'lucide-react'
 import { resolveApiUrl, customFetch as fetch } from '../../config/backend'
+import { LtButton } from '../../shared_elements'
 
 interface ShortcodesSettingsProps {
   showToast: (_text: string, tone?: 'ok' | 'error' | 'info' | 'warning' | 'loading') => void
@@ -164,31 +165,25 @@ export function ShortcodesSettings({ showToast }: ShortcodesSettingsProps) {
           onChange={handleFileChange}
         />
         <Group grow gap="xs">
-          <Tooltip label="Download current dictionary as CSV" openDelay={0} closeDelay={0}>
-            <Button
-              variant="outline"
-              color="gray"
-              leftSection={<Download size={14} />}
-              size="xs"
-              onClick={handleExport}
-              style={{ fontWeight: 600 }}
-            >
-              Export CSV
-            </Button>
-          </Tooltip>
+          <LtButton
+            variant="outline"
+            color="gray"
+            leftIcon={<Download size={14} />}
+            onClick={handleExport}
+            tooltip="Download current dictionary as CSV"
+          >
+            Export CSV
+          </LtButton>
 
-          <Tooltip label="Import and index a new shortcodes CSV" openDelay={0} closeDelay={0}>
-            <Button
-              variant="filled"
-              leftSection={<Upload size={14} />}
-              size="xs"
-              onClick={handleImportClick}
-              loading={importing}
-              style={{ fontWeight: 600 }}
-            >
-              Import CSV
-            </Button>
-          </Tooltip>
+          <LtButton
+            variant="filled"
+            leftIcon={<Upload size={14} />}
+            onClick={handleImportClick}
+            loading={importing}
+            tooltip="Import and index a new shortcodes CSV"
+          >
+            Import CSV
+          </LtButton>
         </Group>
       </Box>
     </Card>

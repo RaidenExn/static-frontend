@@ -1,6 +1,7 @@
 import React from 'react'
-import { TextInput, Button, Group, ActionIcon, Tooltip, Menu } from '@mantine/core'
+import { TextInput, Group, Menu } from '@mantine/core'
 import { Copy, Trash2, Zap, ChevronDown, History } from 'lucide-react'
+import { LtButton, LtIconButton } from '../shared_elements'
 
 interface EncounterLoaderProps {
   encounterInput: string
@@ -19,7 +20,6 @@ export default function EncounterLoader({
   onLoadEncounter,
   showToast
 }: EncounterLoaderProps) {
-
   const handleCopy = async () => {
     const text = encounterInput.trim()
     if (text) {
@@ -62,68 +62,61 @@ export default function EncounterLoader({
   }
 
   return (
-    <Group gap="xs" align="center" style={{ flexWrap: 'nowrap' }}>
+    <Group gap="xs" align="center" wrap="nowrap">
       <TextInput
         id="encounter"
         placeholder="Encounter number"
         size="xs"
+        radius="sm"
         autoComplete="off"
         value={encounterInput}
         onChange={(e) => setEncounterInput(e.target.value)}
-        styles={{
-          root: { minWidth: '240px' },
-          input: { height: '30px' }
-        }}
+        w={240}
         leftSection={
-          <Tooltip label="Copy from input" position="top" withArrow>
-            <ActionIcon
-              variant="transparent"
-              color="gray"
-              onClick={handleCopy}
-              aria-label="Copy input encounter number"
-              style={{ width: 18, height: 18, minWidth: 18 }}
-            >
-              <Copy style={{ width: 14, height: 14 }} />
-            </ActionIcon>
-          </Tooltip>
+          <LtIconButton
+            icon={Copy}
+            variant="transparent"
+            color="gray"
+            onClick={handleCopy}
+            tooltip="Copy from input"
+            ariaLabel="Copy input encounter number"
+          />
         }
         rightSection={
           recentEncounters.length > 0 && (
             <Menu shadow="md" width={260} position="bottom-end" zIndex={10000}>
               <Menu.Target>
-                <Tooltip label="Recent encounters" position="top" withArrow>
-                  <ActionIcon
-                    variant="transparent"
-                    color="gray"
-                    aria-label="Show search history"
-                    style={{ width: 18, height: 18, minWidth: 18 }}
-                  >
-                    <ChevronDown style={{ width: 14, height: 14 }} />
-                  </ActionIcon>
-                </Tooltip>
+                <LtIconButton
+                  icon={ChevronDown}
+                  variant="transparent"
+                  color="gray"
+                  tooltip="Recent encounters"
+                  ariaLabel="Show search history"
+                />
               </Menu.Target>
-              <Menu.Dropdown style={{ backgroundColor: 'var(--panel)', borderColor: 'var(--line)' }}>
-                <Menu.Label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)' }}>RECENT ENCOUNTERS</Menu.Label>
+              <Menu.Dropdown>
+                <Menu.Label fs="10px" fw={700} c="dimmed">
+                  RECENT ENCOUNTERS
+                </Menu.Label>
                 {recentEncounters.map((enc) => (
                   <Menu.Item
                     key={enc}
-                    leftSection={<History style={{ width: 13, height: 13 }} />}
+                    leftSection={<History size={13} />}
                     onClick={() => {
                       setEncounterInput(enc)
                       onLoadEncounter(enc, 'cache-first')
                     }}
-                    style={{ fontSize: 'var(--mantine-font-size-xs)' }}
+                    fs="xs"
                   >
-
                     {enc}
                   </Menu.Item>
                 ))}
-                <Menu.Divider style={{ borderColor: 'var(--line)' }} />
+                <Menu.Divider />
                 <Menu.Item
                   color="red"
-                  leftSection={<Trash2 style={{ width: 13, height: 13 }} />}
+                  leftSection={<Trash2 size={13} />}
                   onClick={clearRecentEncounters}
-                  style={{ fontSize: 'var(--mantine-font-size-xs)' }}
+                  fs="xs"
                 >
                   Clear Search History
                 </Menu.Item>
@@ -134,25 +127,21 @@ export default function EncounterLoader({
       />
 
       {/* Load Button */}
-      <Button id="loadButton" type="submit" size="xs" aria-label="Load active encounter" style={{ height: '30px' }}>
+      <LtButton id="loadButton" type="submit" ariaLabel="Load active encounter">
         Load
-      </Button>
+      </LtButton>
 
       {/* Paste & Load Button */}
-      <Tooltip label="Paste from clipboard and load immediately" position="top" withArrow>
-        <Button
-          type="button"
-          size="xs"
-          variant="filled"
-          color="teal"
-          leftSection={<Zap style={{ width: 14, height: 14 }} />}
-          onClick={handlePasteAndLoad}
-          aria-label="Paste from clipboard and load active encounter"
-          style={{ height: '30px' }}
-        >
-          Paste & Load
-        </Button>
-      </Tooltip>
+      <LtButton
+        type="button"
+        color="teal"
+        leftIcon={<Zap size={14} />}
+        onClick={handlePasteAndLoad}
+        tooltip="Paste from clipboard and load immediately"
+        ariaLabel="Paste from clipboard and load active encounter"
+      >
+        Paste & Load
+      </LtButton>
     </Group>
   )
 }

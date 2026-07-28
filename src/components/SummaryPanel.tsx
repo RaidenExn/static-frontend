@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react'
-import { Card, Group, Grid, Button, Stack, Box, Title, Text, ScrollArea, Paper } from '@mantine/core'
-import { Download, Eye, Archive, RefreshCw, User, Calendar, Stethoscope, AlertCircle, Activity, ClipboardList, HeartPulse, FileCheck } from 'lucide-react'
+import { Group, Grid, Button, Stack, Box, Text, ScrollArea } from '@mantine/core'
+import { Download, Eye, Archive, RefreshCw, FileText, Activity } from 'lucide-react'
 import { useIcdState } from '../hooks/useIcdState'
 import { IcdResultsTable } from './icd/IcdResultsTable'
 import { IcdConfigCard } from './icd/IcdConfigCard'
 import { IcdSearchForm } from './icd/IcdSearchForm'
+import { LtAppCard } from '../shared_elements'
 
 interface SummaryPanelProps {
   active: boolean
@@ -118,83 +119,37 @@ export default function SummaryPanel({
   if (!active) return null
 
   return (
-    <Grid style={{ marginTop: '12px', marginLeft: 0, marginRight: 0 }}>
-      {/* LEFT SIDE: Native React Clinical Summary View */}
-      <Grid.Col span={{ base: 12, md: 6 }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* Consolidated Action Dock */}
-        <Card withBorder radius="sm" p="xs" bg="var(--mantine-color-body)">
-          <Group justify="space-between" align="center">
-            <Title
-              order={3}
-              style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                margin: 0
-              }}
-            >
-              Summary Document Desk
-            </Title>
-            <Group gap="xs">
-              <Button
-                size="xs"
-                variant="outline"
-                leftSection={<Download style={{ width: 12, height: 12 }} />}
-                onClick={onExportHtml}
-              >
+    <Grid mt="xs" m={0}>
+      {/* LEFT SIDE: Unified Summary Document Desk Card */}
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <LtAppCard
+          title="Summary Document Desk"
+          icon={FileText}
+          minHeight={600}
+          padding="xs"
+          loading={!summaryHtml}
+          loadingText="Waiting for EMR Summary Document... Please select or fetch an encounter above."
+          actions={
+            <>
+              <Button size="xs" variant="outline" leftSection={<Download size={12} />} onClick={onExportHtml}>
                 Export HTML
               </Button>
-              <Button
-                size="xs"
-                variant="outline"
-                leftSection={<Eye style={{ width: 12, height: 12 }} />}
-                onClick={onExportPdf}
-              >
+              <Button size="xs" variant="outline" leftSection={<Eye size={12} />} onClick={onExportPdf}>
                 View PDF Summary
               </Button>
-              <Button size="xs" leftSection={<Archive style={{ width: 12, height: 12 }} />} onClick={onExportZip}>
+              <Button size="xs" leftSection={<Archive size={12} />} onClick={onExportZip}>
                 Export ZIP Portfolio
               </Button>
-            </Group>
-          </Group>
-        </Card>
-
-        {/* Dynamic Native React Clinical Summary Card */}
-        <Card
-          withBorder
-          padding={0}
-          radius="sm"
-          bg="var(--mantine-color-body)"
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px', overflow: 'hidden' }}
+            </>
+          }
         >
-          {!summaryHtml ? (
-            <Stack align="center" justify="center" p="xl" style={{ flex: 1, minHeight: '320px' }}>
-              <div
-                className="toast-spinner"
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  border: '2px solid var(--mantine-color-text)',
-                  borderTopColor: 'transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }}
-              />
-              <Text size="xs" c="dimmed" fw={600} ta="center">
-                Waiting for EMR Summary Document...
-              </Text>
-              <Text size="xs" c="dimmed" ta="center" style={{ maxWidth: '300px' }}>
-                Please select or fetch an encounter above to view the clinical summary.
-              </Text>
-            </Stack>
-          ) : (
-            <Box style={{ flex: 1, overflow: 'hidden', height: '100%', minHeight: '600px' }}>
+          {summaryHtml && (
+            <Box style={{ flex: 1, overflow: 'hidden' }} h="100%" mih={540}>
               <ScrollArea h="100%">
-                <Stack gap="md" p="md">
+                <Stack gap="md" p="xs">
                   {/* Patient Metadata Grid */}
                   {parsed.metadata.length > 0 && (
-                    <Paper withBorder p="xs" radius="sm" bg="var(--panel-soft, rgba(255, 255, 255, 0.02))">
+                    <Box pb="xs" bd="0 0 1px solid var(--mantine-color-default-border)">
                       <Group gap="md" align="flex-start" wrap="wrap">
                         {parsed.metadata.map((item, idx) => (
                           <Box key={idx} style={{ flex: '1 1 120px', minWidth: '110px' }}>
@@ -207,20 +162,19 @@ export default function SummaryPanel({
                           </Box>
                         ))}
                       </Group>
-                    </Paper>
+                    </Box>
                   )}
 
                   {/* Dynamic Summary Categories or Raw Fallback */}
                   {parsed.categories.length > 0 ? (
                     parsed.categories.map((cat, catIdx) => (
-                      <Paper key={catIdx} withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-orange-5, #f59f00)' }}>
-                        <Group gap="xs" align="center" mb={6}>
-                          <Box style={{ width: '3px', height: '14px', backgroundColor: 'var(--mantine-color-orange-5, #f59f00)', borderRadius: '2px' }} />
+                      <Box key={catIdx} pl="xs" style={{ borderLeft: '3px solid var(--mantine-color-orange-5)' }}>
+                        <Group gap="xs" align="center" mb={4}>
                           <Text size="xs" fw={800} tt="uppercase" c="orange">
                             {cat.title}
                           </Text>
                         </Group>
-                        <Stack gap="xs" pl="sm">
+                        <Stack gap="xs" pl="2px">
                           {cat.fields.map((field, fieldIdx) => (
                             <Box key={fieldIdx}>
                               {field.label && (
@@ -234,12 +188,10 @@ export default function SummaryPanel({
                             </Box>
                           ))}
                         </Stack>
-                      </Paper>
+                      </Box>
                     ))
                   ) : parsed.rawFallbackHtml ? (
-                    <Paper withBorder p="xs" radius="sm">
-                      <Box style={{ fontSize: '12px' }} dangerouslySetInnerHTML={{ __html: parsed.rawFallbackHtml }} />
-                    </Paper>
+                    <Box fs="xs" dangerouslySetInnerHTML={{ __html: parsed.rawFallbackHtml }} />
                   ) : (
                     <Text size="xs" c="dimmed" ta="center">
                       No clinical summary recorded.
@@ -248,52 +200,43 @@ export default function SummaryPanel({
 
                   {/* Doctor Signature Block */}
                   {parsed.doctorSignature && (
-                    <Paper withBorder p="xs" radius="sm" style={{ borderLeft: '3px solid var(--mantine-color-blue-5, #339af0)' }}>
+                    <Box pl="xs" pt="xs" style={{ borderLeft: '3px solid var(--mantine-color-blue-5)' }}>
                       <Text size="10px" fw={700} c="dimmed" tt="uppercase" mb={2}>
                         Doctor / Physician Signature
                       </Text>
                       <Text size="xs" style={{ whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
                         {parsed.doctorSignature}
                       </Text>
-                    </Paper>
+                    </Box>
                   )}
                 </Stack>
               </ScrollArea>
             </Box>
           )}
-        </Card>
+        </LtAppCard>
       </Grid.Col>
 
       {/* RIGHT SIDE: ICD-10 Diagnoses, Configuration & Form Cards */}
       <Grid.Col span={{ base: 12, md: 6 }}>
-        <Stack gap="sm" style={{ paddingBottom: '20px' }}>
-          <Card withBorder radius="sm" padding="xs" bg="var(--mantine-color-body)">
-            <Group justify="space-between" align="center" style={{ marginBottom: '8px' }}>
-              <Title
-                order={4}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  color: 'var(--mantine-color-text)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  margin: 0
-                }}
-              >
-                Active ICD-10 Diagnoses
-              </Title>
+        <Stack gap="sm" pb="md">
+          <LtAppCard
+            title="Active ICD-10 Diagnoses"
+            icon={Activity}
+            actions={
               <Button
                 size="xs"
                 variant="subtle"
-                leftSection={<RefreshCw style={{ width: 11, height: 11 }} />}
+                leftSection={<RefreshCw size={11} />}
                 onClick={icdState.fetchDiagnoses}
                 loading={icdState.loading}
-                style={{ height: '20px', padding: '0 6px', fontSize: '10px' }}
+                h={20}
+                p="0 6px"
+                fs="10px"
               >
                 Refresh List
               </Button>
-            </Group>
-
+            }
+          >
             <Box style={{ overflowX: 'auto' }}>
               <IcdResultsTable
                 diagnoses={icdState.diagnoses}
@@ -302,7 +245,7 @@ export default function SummaryPanel({
                 handleDeleteDiagnosis={icdState.handleDeleteDiagnosis}
               />
             </Box>
-          </Card>
+          </LtAppCard>
 
           <IcdConfigCard compact={true} {...icdState} />
 

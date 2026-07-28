@@ -1,9 +1,10 @@
 import React from 'react'
-import { Card, Group, Text, Badge, Table, Stack, Button, Box, ActionIcon, Tooltip } from '@mantine/core'
+import { Group, Text, Badge, Table, Stack, Skeleton } from '@mantine/core'
 import { Trash2, Paperclip, Pencil } from 'lucide-react'
 import { RcmRemark, RcmResubmission } from '../../types'
 import { remarkText, rcmStrVal, parseDateLikeJs } from '../../utils'
 import dayjs from 'dayjs'
+import { LtCompactButton, LtIconButton, LtTableCard } from '../../shared_elements'
 
 interface RemarksAndResubmissionsPanelProps {
   loading: boolean
@@ -44,654 +45,295 @@ export default function RemarksAndResubmissionsPanel({
   onDeleteResubmissionReason,
   onEditResubmissionReason,
   adaptiveCardColors = true,
-  submissionStateColor = 'gray',
-  theme = 'light'
+  submissionStateColor = 'gray'
 }: RemarksAndResubmissionsPanelProps) {
-  const adaptiveStyles = React.useMemo(() => {
-    if (!adaptiveCardColors || submissionStateColor === 'gray') {
-      return {
-        bg: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-        border: '1px solid var(--line, rgba(255, 255, 255, 0.05))'
-      }
-    }
-
-    const isDark = theme === 'dark'
-
-    const colors: Record<string, { lightBg: string; lightBorder: string; darkBg: string; darkBorder: string }> = {
-      blue: {
-        lightBg: 'rgba(231, 245, 255, 0.58)',
-        lightBorder: 'rgba(51, 154, 240, 0.32)',
-        darkBg: 'rgba(24, 100, 171, 0.16)',
-        darkBorder: 'rgba(51, 154, 240, 0.38)'
-      },
-      teal: {
-        lightBg: 'rgba(224, 242, 241, 0.58)',
-        lightBorder: 'rgba(13, 148, 136, 0.32)',
-        darkBg: 'rgba(13, 148, 136, 0.16)',
-        darkBorder: 'rgba(13, 148, 136, 0.38)'
-      },
-      indigo: {
-        lightBg: 'rgba(237, 242, 255, 0.58)',
-        lightBorder: 'rgba(92, 124, 250, 0.32)',
-        darkBg: 'rgba(54, 79, 199, 0.16)',
-        darkBorder: 'rgba(92, 124, 250, 0.38)'
-      },
-      orange: {
-        lightBg: 'rgba(255, 244, 230, 0.58)',
-        lightBorder: 'rgba(253, 126, 20, 0.32)',
-        darkBg: 'rgba(232, 114, 0, 0.16)',
-        darkBorder: 'rgba(253, 126, 20, 0.38)'
-      },
-      red: {
-        lightBg: 'rgba(255, 235, 235, 0.58)',
-        lightBorder: 'rgba(250, 82, 82, 0.32)',
-        darkBg: 'rgba(201, 42, 42, 0.16)',
-        darkBorder: 'rgba(250, 82, 82, 0.38)'
-      }
-    }
-
-    const set = colors[submissionStateColor] || colors.blue
-    return {
-      bg: isDark ? set.darkBg : set.lightBg,
-      border: `1px solid ${isDark ? set.darkBorder : set.lightBorder}`
-    }
-  }, [adaptiveCardColors, submissionStateColor, theme])
+  const cardColor = adaptiveCardColors ? submissionStateColor : undefined
 
   return (
     <Stack gap="sm">
       {/* 1. Remarks Card */}
-      <Card
-        withBorder
-        radius="sm"
-        padding="xs"
-        style={{
-          backgroundColor: adaptiveStyles.bg,
-          border: adaptiveStyles.border,
-          color: 'var(--ink)',
-          transition: 'all 0.2s ease'
-        }}
+      <LtTableCard
+        title="Remarks"
+        badge={remarksCount}
+        variant={adaptiveCardColors && submissionStateColor !== 'gray' ? 'light' : 'default'}
+        color={cardColor}
       >
-        <Group justify="space-between" align="center" pb="xs" mb="xs" style={{ borderBottom: '1px solid var(--line)' }}>
-          <Text size="sm" fw={800} tt="uppercase" style={{ letterSpacing: '0.5px' }} c="var(--mantine-color-text)">
-            Remarks
-          </Text>
-          <Badge size="xs" variant="light" color="gray">
-            {remarksCount}
-          </Badge>
-        </Group>
-
-        <div style={{ overflowX: 'auto', width: '100%' }}>
-          <Table
-            highlightOnHover
-            verticalSpacing="xs"
-            horizontalSpacing="md"
-            style={{ fontSize: 'var(--mantine-font-size-xs)', width: '100%', tableLayout: 'auto' }}
-          >
-            <Table.Thead>
-              <Table.Tr style={{ borderBottom: '1px solid var(--line)' }}>
-                <Table.Th
-                  colSpan={2}
-                  style={{
-                    padding: '6px 8px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    color: 'var(--muted)',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  Metadata
-                </Table.Th>
-                <Table.Th
-                  style={{
-                    padding: '6px 8px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    color: 'var(--muted)',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  Remark
-                </Table.Th>
+        <Table.Thead>
+          <Table.Tr bd="0 0 1px solid var(--line)">
+            <Table.Th colSpan={2} p="6px 8px" fs="xs" fw={700} c="var(--muted)" tt="uppercase">
+              Metadata
+            </Table.Th>
+            <Table.Th p="6px 8px" fs="xs" fw={700} c="var(--muted)" tt="uppercase">
+              Remark
+            </Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {loading ? (
+            Array.from({ length: 2 }).map((_, idx) => (
+              <Table.Tr key={`shimmer-remarks-${idx}`}>
+                <Table.Td p="6px 8px" w={130} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={4}>
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                  </Stack>
+                </Table.Td>
+                <Table.Td p="6px 8px" w={220} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={4}>
+                    <Skeleton height={10} width={120} radius="xs" />
+                    <Skeleton height={10} width={100} radius="xs" />
+                    <Skeleton height={10} width={90} radius="xs" />
+                    <Skeleton height={10} width={140} radius="xs" />
+                  </Stack>
+                </Table.Td>
+                <Table.Td p="6px 8px" style={{ verticalAlign: 'top' }}>
+                  <Stack gap="xs">
+                    <Skeleton height={10} width="90%" radius="xs" />
+                    <Skeleton height={10} width="70%" radius="xs" />
+                  </Stack>
+                </Table.Td>
               </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {loading ? (
-                Array.from({ length: 2 }).map((_, idx) => (
-                  <Table.Tr key={`shimmer-remarks-${idx}`}>
-                    <Table.Td style={{ padding: '6px 8px', width: '130px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td style={{ padding: '6px 8px', width: '220px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '120px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '100px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '90px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '140px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                      <Stack gap="xs">
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '90%',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '70%',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              ) : remarksRows.length === 0 ? (
-                <Table.Tr>
-                  <Table.Td
-                    colSpan={3}
-                    style={{
-                      padding: '16px 0',
-                      textAlign: 'center',
-                      color: 'var(--muted)',
-                      fontSize: 'var(--mantine-font-size-xs)'
-                    }}
-                  >
-                    No remarks found.
-                  </Table.Td>
-                </Table.Tr>
-              ) : (
-                remarksRows.map((row, idx) => (
-                  <Table.Tr key={idx} style={{ borderBottom: '1px solid var(--line)' }}>
-                    {/* Column 1: Labels Stack */}
-                    <Table.Td style={{ padding: '6px 8px', width: '130px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <Text size="xs" fw={700} c="var(--muted)">
-                          DATE
-                        </Text>
-                        <Text size="xs" fw={700} c="var(--muted)">
-                          FROM
-                        </Text>
-                        <Text size="xs" fw={700} c="var(--muted)">
-                          USER
-                        </Text>
-                        <Text size="xs" fw={700} c="var(--muted)">
-                          ENCOUNTER
-                        </Text>
-                      </Stack>
-                    </Table.Td>
-                    {/* Column 2: Values Stack */}
-                    <Table.Td style={{ padding: '6px 8px', width: '220px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                          {renderDateWithTimeInline(row.remarks_date || '')}
-                        </Text>
-                        <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                          {row.remarks_from || '—'}
-                        </Text>
-                        <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                          {row.user_name || '—'}
-                        </Text>
-                        <Text size="xs" fw={600} style={{ color: 'var(--ink)' }}>
-                          {row._encounter || '—'}
-                        </Text>
-                      </Stack>
-                    </Table.Td>
-                    {/* Column 3: Full, Wrap-around Remark Text */}
-                    <Table.Td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                      <Text
-                        size="xs"
-                        fw={500}
-                        style={{ color: 'var(--ink)', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}
-                      >
-                        {remarkText(row)}
-                      </Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              )}
-            </Table.Tbody>
-          </Table>
-        </div>
-      </Card>
+            ))
+          ) : remarksRows.length === 0 ? (
+            <Table.Tr>
+              <Table.Td colSpan={3} p="16px 0" ta="center" c="var(--muted)" fs="xs">
+                No remarks found.
+              </Table.Td>
+            </Table.Tr>
+          ) : (
+            remarksRows.map((row, idx) => (
+              <Table.Tr key={idx} bd="0 0 1px solid var(--line)">
+                {/* Column 1: Labels Stack */}
+                <Table.Td p="6px 8px" w={130} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={2}>
+                    <Text size="xs" fw={700} c="var(--muted)">
+                      DATE
+                    </Text>
+                    <Text size="xs" fw={700} c="var(--muted)">
+                      FROM
+                    </Text>
+                    <Text size="xs" fw={700} c="var(--muted)">
+                      USER
+                    </Text>
+                    <Text size="xs" fw={700} c="var(--muted)">
+                      ENCOUNTER
+                    </Text>
+                  </Stack>
+                </Table.Td>
+                {/* Column 2: Values Stack */}
+                <Table.Td p="6px 8px" w={220} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={2}>
+                    <Text size="xs" fw={500}>
+                      {renderDateWithTimeInline(row.remarks_date || '')}
+                    </Text>
+                    <Text size="xs" fw={500}>
+                      {row.remarks_from || '—'}
+                    </Text>
+                    <Text size="xs" fw={500}>
+                      {row.user_name || '—'}
+                    </Text>
+                    <Text size="xs" fw={600}>
+                      {row._encounter || '—'}
+                    </Text>
+                  </Stack>
+                </Table.Td>
+                {/* Column 3: Full, Wrap-around Remark Text */}
+                <Table.Td p="6px 8px" style={{ verticalAlign: 'top' }}>
+                  <Text size="xs" fw={500} lh="1.4" style={{ whiteSpace: 'pre-wrap' }}>
+                    {remarkText(row)}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            ))
+          )}
+        </Table.Tbody>
+      </LtTableCard>
 
       {/* 2. Resubmissions Card */}
-      <Card
-        withBorder
-        radius="sm"
-        padding="xs"
-        style={{
-          backgroundColor: adaptiveStyles.bg,
-          border: adaptiveStyles.border,
-          color: 'var(--ink)',
-          transition: 'all 0.2s ease'
-        }}
+      <LtTableCard
+        title="Resubmissions"
+        badge={resubmissionsCount}
+        variant={adaptiveCardColors && submissionStateColor !== 'gray' ? 'light' : 'default'}
+        color={cardColor}
       >
-        <Group justify="space-between" align="center" pb="xs" mb="xs" style={{ borderBottom: '1px solid var(--line)' }}>
-          <Text size="sm" fw={800} tt="uppercase" style={{ letterSpacing: '0.5px' }} c="var(--mantine-color-text)">
-            Resubmissions
-          </Text>
-          <Badge size="xs" variant="light" color="gray">
-            {resubmissionsCount}
-          </Badge>
-        </Group>
-
-        <div style={{ overflowX: 'auto', width: '100%' }}>
-          <Table
-            highlightOnHover
-            verticalSpacing="xs"
-            horizontalSpacing="md"
-            style={{ fontSize: 'var(--mantine-font-size-xs)', width: '100%', tableLayout: 'auto' }}
-          >
-            <Table.Thead>
-              <Table.Tr style={{ borderBottom: '1px solid var(--line)' }}>
-                <Table.Th
-                  colSpan={2}
-                  style={{
-                    padding: '6px 8px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    color: 'var(--muted)',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  Metadata
-                </Table.Th>
-                <Table.Th
-                  style={{
-                    padding: '6px 8px',
-                    fontSize: 'var(--mantine-font-size-xs)',
-                    fontWeight: 700,
-                    color: 'var(--muted)',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  Comments
-                </Table.Th>
+        <Table.Thead>
+          <Table.Tr bd="0 0 1px solid var(--line)">
+            <Table.Th colSpan={2} p="6px 8px" fs="xs" fw={700} c="var(--muted)" tt="uppercase">
+              Metadata
+            </Table.Th>
+            <Table.Th p="6px 8px" fs="xs" fw={700} c="var(--muted)" tt="uppercase">
+              Comments
+            </Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {loading ? (
+            Array.from({ length: 2 }).map((_, idx) => (
+              <Table.Tr key={`shimmer-resub-${idx}`}>
+                <Table.Td p="6px 8px" w={130} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={4}>
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                    <Skeleton height={10} width={40} radius="xs" />
+                  </Stack>
+                </Table.Td>
+                <Table.Td p="6px 8px" w={220} style={{ verticalAlign: 'top' }}>
+                  <Stack gap={4}>
+                    <Skeleton height={10} width={120} radius="xs" />
+                    <Skeleton height={10} width={100} radius="xs" />
+                    <Skeleton height={10} width={80} radius="xs" />
+                    <Skeleton height={10} width={90} radius="xs" />
+                    <Skeleton height={10} width={130} radius="xs" />
+                    <Skeleton height={10} width={60} radius="xs" />
+                  </Stack>
+                </Table.Td>
+                <Table.Td p="6px 8px" style={{ verticalAlign: 'top' }}>
+                  <Stack gap="xs">
+                    <Skeleton height={10} width="95%" radius="xs" />
+                    <Skeleton height={10} width="80%" radius="xs" />
+                    <Skeleton height={10} width="60%" radius="xs" />
+                  </Stack>
+                </Table.Td>
               </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {loading ? (
-                Array.from({ length: 2 }).map((_, idx) => (
-                  <Table.Tr key={`shimmer-resub-${idx}`}>
-                    <Table.Td style={{ padding: '6px 8px', width: '130px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '40px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td style={{ padding: '6px 8px', width: '220px', verticalAlign: 'top' }}>
-                      <Stack gap={2}>
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '120px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '100px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '80px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '90px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '130px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '60px',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                      <Stack gap="xs">
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '95%',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '80%',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                        <div
-                          className="shimmer-text"
-                          style={{
-                            width: '60%',
-                            height: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '1px'
-                          }}
-                        />
-                      </Stack>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              ) : resubmissionsRows.length === 0 ? (
-                <Table.Tr>
-                  <Table.Td
-                    colSpan={3}
-                    style={{
-                      padding: '16px 0',
-                      textAlign: 'center',
-                      color: 'var(--muted)',
-                      fontSize: 'var(--mantine-font-size-xs)'
-                    }}
-                  >
-                    No resubmissions found.
+            ))
+          ) : resubmissionsRows.length === 0 ? (
+            <Table.Tr>
+              <Table.Td colSpan={3} p="16px 0" ta="center" c="var(--muted)" fs="xs">
+                No resubmissions found.
+              </Table.Td>
+            </Table.Tr>
+          ) : (
+            resubmissionsRows.map((row, idx) => {
+              const reason = row.reason || ''
+              const fileIdStr = rcmStrVal(row.file_id) || rcmStrVal(row.resubmit_reason_id) || rcmStrVal(row.id) || ''
+              const siteIdStr = rcmStrVal(row.site_id) || ''
+              const fileNameStr = row.ra_file_name || ''
+              const isSavedComment = row.source === 'Saved Comment' || !!row.resubmit_reason_id || !!row.resubmitReasonId
+              const rawAttachment = String(row.attachment || row.resubmit_reason_attachment || '').trim()
+              const hasAttachment = isSavedComment
+                ? rawAttachment.length > 5 && rawAttachment !== 'null' && rawAttachment !== 'undefined'
+                : !!(fileIdStr || fileNameStr)
+
+              const pdfFileName = fileNameStr
+                ? fileNameStr.toLowerCase().endsWith('.pdf')
+                  ? fileNameStr
+                  : fileNameStr.replace(/\.[a-zA-Z0-9]+$/i, '') + '.pdf'
+                : 'resubmission_attachment.pdf'
+
+              return (
+                <Table.Tr key={idx} bd="0 0 1px solid var(--line)">
+                  {/* Column 1: Labels Stack */}
+                  <Table.Td p="6px 8px" w={130} style={{ verticalAlign: 'top' }}>
+                    <Stack gap={2}>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        DATE
+                      </Text>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        TYPE
+                      </Text>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        USER
+                      </Text>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        SOURCE
+                      </Text>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        ENCOUNTER
+                      </Text>
+                      <Text size="xs" fw={700} c="var(--muted)">
+                        ACTIONS
+                      </Text>
+                    </Stack>
+                  </Table.Td>
+                  {/* Column 2: Values Stack */}
+                  <Table.Td p="6px 8px" w={220} style={{ verticalAlign: 'top' }}>
+                    <Stack gap={2}>
+                      <Text size="xs" fw={500}>
+                        {renderDateWithTimeInline(row.captured_on || '')}
+                      </Text>
+                      <Text size="xs" fw={500}>
+                        {row.type || '—'}
+                      </Text>
+                      <Text size="xs" fw={500}>
+                        {row.user_name || '—'}
+                      </Text>
+                      <Text size="xs" fw={500}>
+                        {row.source || '—'}
+                      </Text>
+                      <Text size="xs" fw={600}>
+                        {row._encounter || '—'}
+                      </Text>
+                      <Group gap="xs" h={18} align="center" wrap="nowrap">
+                        {hasAttachment ? (
+                          <LtCompactButton
+                            variant="light"
+                            color="blue"
+                            leftIcon={<Paperclip size={11} />}
+                            onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, pdfFileName, false, rawAttachment)}
+                            height={18}
+                            tooltip="Open Attached PDF Document"
+                          >
+                            PDF
+                          </LtCompactButton>
+                        ) : (
+                          <Text size="xs" c="var(--muted)">
+                            —
+                          </Text>
+                        )}
+                        {typeof onEditResubmissionReason === 'function' &&
+                          (row.resubmit_reason_id || row.source === 'Saved Comment') && (
+                            <LtIconButton
+                              icon={Pencil}
+                              iconSize={12}
+                              color="blue"
+                              variant="subtle"
+                              onClick={() => onEditResubmissionReason(row)}
+                              tooltip="Edit this resubmission comment"
+                            />
+                          )}
+                        {typeof onDeleteResubmissionReason === 'function' &&
+                          (row.resubmit_reason_id || row.source === 'Saved Comment') && (
+                            <LtIconButton
+                              icon={Trash2}
+                              iconSize={13}
+                              color="red"
+                              variant="subtle"
+                              onClick={() => {
+                                const reasonId = Number(
+                                  row.resubmit_reason_id ||
+                                    row.resubmitReasonId ||
+                                    (row.source === 'Saved Comment' ? row.id : 0) ||
+                                    0
+                                )
+                                const enc = row._encounter || ''
+                                const raFileId = Number(row.ra_file_id || row.file_id || 0)
+                                if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
+                                  onDeleteResubmissionReason(reasonId, enc, raFileId)
+                                }
+                              }}
+                              tooltip="Delete this resubmission comment from EMR & local cache"
+                            />
+                          )}
+                      </Group>
+                    </Stack>
+                  </Table.Td>
+                  {/* Column 3: Full, Wrap-around Comments Text */}
+                  <Table.Td p="6px 8px" style={{ verticalAlign: 'top' }}>
+                    <Text size="xs" fw={500} lh="1.4" style={{ whiteSpace: 'pre-wrap' }}>
+                      {reason}
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
-              ) : (
-                resubmissionsRows.map((row, idx) => {
-                  const reason = row.reason || ''
-                  const fileIdStr = rcmStrVal(row.file_id) || rcmStrVal(row.resubmit_reason_id) || rcmStrVal(row.id) || ''
-                  const siteIdStr = rcmStrVal(row.site_id) || ''
-                  const fileNameStr = row.ra_file_name || ''
-                  const isSavedComment = row.source === 'Saved Comment' || !!row.resubmit_reason_id || !!row.resubmitReasonId
-                  const rawAttachment = String(row.attachment || row.resubmit_reason_attachment || '').trim()
-                  const hasAttachment = isSavedComment
-                    ? rawAttachment.length > 5 && rawAttachment !== 'null' && rawAttachment !== 'undefined'
-                    : !!(fileIdStr || fileNameStr)
-
-                  const pdfFileName = fileNameStr ? (fileNameStr.toLowerCase().endsWith('.pdf') ? fileNameStr : fileNameStr.replace(/\.[a-zA-Z0-9]+$/i, '') + '.pdf') : 'resubmission_attachment.pdf'
-
-                  return (
-                    <Table.Tr key={idx} style={{ borderBottom: '1px solid var(--line)' }}>
-                      {/* Column 1: Labels Stack */}
-                      <Table.Td style={{ padding: '6px 8px', width: '130px', verticalAlign: 'top' }}>
-                        <Stack gap={2}>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            DATE
-                          </Text>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            TYPE
-                          </Text>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            USER
-                          </Text>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            SOURCE
-                          </Text>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            ENCOUNTER
-                          </Text>
-                          <Text size="xs" fw={700} c="var(--muted)">
-                            ACTIONS
-                          </Text>
-                        </Stack>
-                      </Table.Td>
-                      {/* Column 2: Values Stack */}
-                      <Table.Td style={{ padding: '6px 8px', width: '220px', verticalAlign: 'top' }}>
-                        <Stack gap={2}>
-                          <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                            {renderDateWithTimeInline(row.captured_on || '')}
-                          </Text>
-                          <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                            {row.type || '—'}
-                          </Text>
-                          <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                            {row.user_name || '—'}
-                          </Text>
-                          <Text size="xs" fw={500} style={{ color: 'var(--ink)' }}>
-                            {row.source || '—'}
-                          </Text>
-                          <Text size="xs" fw={600} style={{ color: 'var(--ink)' }}>
-                            {row._encounter || '—'}
-                          </Text>
-                          <Box style={{ height: '18px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {hasAttachment ? (
-                              <Group gap="xs" wrap="nowrap">
-                                <Tooltip label="Open Attached PDF Document" openDelay={0} closeDelay={0}>
-                                  <Button
-                                    size="xs"
-                                    variant="light"
-                                    color="blue"
-                                    leftSection={<Paperclip size={11} style={{ color: 'var(--mantine-color-blue-6)' }} />}
-                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, pdfFileName, false, rawAttachment)}
-                                    style={{
-                                      padding: '0 8px',
-                                      fontSize: 'var(--mantine-font-size-xs)',
-                                      height: '18px',
-                                      minHeight: '0',
-                                      lineHeight: '16px',
-                                      fontWeight: 600
-                                    }}
-                                  >
-                                    PDF
-                                  </Button>
-                                </Tooltip>
-                              </Group>
-                            ) : (
-                              <Text size="xs" c="var(--muted)">
-                                —
-                              </Text>
-                            )}
-                            {typeof onEditResubmissionReason === 'function' && (row.resubmit_reason_id || row.source === 'Saved Comment') && (
-                              <Tooltip label="Edit this resubmission comment" openDelay={0} closeDelay={0}>
-                                <ActionIcon
-                                  size="xs"
-                                  color="blue"
-                                  variant="subtle"
-                                  onClick={() => onEditResubmissionReason(row)}
-                                  style={{ height: '18px', width: '18px', minHeight: 0 }}
-                                >
-                                  <Pencil size={12} />
-                                </ActionIcon>
-                              </Tooltip>
-                            )}
-                            {typeof onDeleteResubmissionReason === 'function' && (row.resubmit_reason_id || row.source === 'Saved Comment') && (
-                              <Tooltip label="Delete this resubmission comment from EMR & local cache" openDelay={0} closeDelay={0}>
-                                <ActionIcon
-                                  size="xs"
-                                  color="red"
-                                  variant="subtle"
-                                  onClick={() => {
-                                    const reasonId = Number(row.resubmit_reason_id || row.resubmitReasonId || (row.source === 'Saved Comment' ? row.id : 0) || 0)
-                                    const enc = row._encounter || ''
-                                    const raFileId = Number(row.ra_file_id || row.file_id || 0)
-                                    if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
-                                      onDeleteResubmissionReason(reasonId, enc, raFileId)
-                                    }
-                                  }}
-                                  style={{ height: '18px', width: '18px', minHeight: 0 }}
-                                >
-                                  <Trash2 size={13} />
-                                </ActionIcon>
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </Stack>
-                      </Table.Td>
-                      {/* Column 3: Full, Wrap-around Comments Text */}
-                      <Table.Td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                        <Text
-                          size="xs"
-                          fw={500}
-                          style={{ color: 'var(--ink)', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}
-                        >
-                          {reason}
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
-                  )
-                })
-              )}
-            </Table.Tbody>
-          </Table>
-        </div>
-      </Card>
+              )
+            })
+          )}
+        </Table.Tbody>
+      </LtTableCard>
     </Stack>
   )
 }
