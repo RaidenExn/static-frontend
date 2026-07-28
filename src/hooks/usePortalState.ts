@@ -494,27 +494,8 @@ export function usePortalState() {
       }
       deleteEncounterFromIndexedDb(activeEnc.toUpperCase()).catch(() => {})
 
-      // Instant optimistic update in React memory
-      setRcmResult((prev: any) => {
-        if (!prev || !prev.Ok || !prev.Ok.rcm?.flattened?.resubmissions) return prev
-        const updatedList = (prev.Ok.rcm.flattened.resubmissions || []).filter((r: any) => {
-          const rId = Number(r.resubmit_reason_id || r.id || r.resubmitReasonId || r.file_id || 0)
-          return rId !== Number(resubmitReasonId)
-        })
-        return {
-          ...prev,
-          Ok: {
-            ...prev.Ok,
-            rcm: {
-              ...prev.Ok.rcm,
-              flattened: {
-                ...prev.Ok.rcm.flattened,
-                resubmissions: updatedList
-              }
-            }
-          }
-        }
-      })
+      // Fetch fresh revalidated resubmission data from server and update UI authoritatively
+      await reloadResubmissionsOnly(activeEnc)
 
       showToast({
         id: toastId,
@@ -523,7 +504,6 @@ export function usePortalState() {
         tone: 'ok',
         duration: 4000
       })
-      reloadResubmissionsOnly(activeEnc)
     } catch (err: any) {
       showToast({
         id: toastId,
@@ -710,8 +690,8 @@ export function usePortalState() {
     shortcodesLoaded,
     isSavingInPlaceRef,
     syncSourceRef,
-    activeEncounterNo,
-    encounterDate,
+    reloadRcmOnly,
+    reloadResubmissionsOnly,
     doubleAccumulationMode,
     setDoubleAccumulationMode
   }

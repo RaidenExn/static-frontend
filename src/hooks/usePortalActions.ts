@@ -18,6 +18,8 @@ export function usePortalActions() {
     summaryResult,
     rcmResult,
     setRcmResult,
+    reloadRcmOnly,
+    reloadResubmissionsOnly,
     resubmitType,
     setResubmitType,
     selectedRaFileId,
@@ -86,93 +88,19 @@ export function usePortalActions() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
 
+      if (typeof setEditingResubmitReasonId === 'function') {
+        setEditingResubmitReasonId(null)
+      }
+
+      // Re-fetch fresh revalidated resubmission data from server and update UI authoritatively
+      await reloadResubmissionsOnly(encounterInput.trim())
+
       showToast({
         id: toastId,
         title: 'Claim Resubmitted',
         message: 'Resubmission comments saved and updated successfully.',
         tone: 'ok',
-        duration: 5000
-      })
-
-      if (typeof setEditingResubmitReasonId === 'function') {
-        setEditingResubmitReasonId(null)
-      }
-
-      const newReasonId =
-        data.resubmit_reason_id ||
-        data.resubmitReasonId ||
-        data.Data?.[0]?.resubmit_reason_id ||
-        writeContext.resubmitReasonId ||
-        0
-      const newReasonObj = {
-        type: Number(resubmitType),
-        fileId: Number(selectedRaFileId),
-        fileName: attachedFileName || raFilesList.find((f) => f.id === selectedRaFileId)?.name || '',
-        comments: resubComments.trim()
-      }
-
-      isSavingInPlaceRef.current = true
-      setRcmResult((prev: any) => {
-        if (!prev || !prev.Ok) return prev
-        const currentResubmissions = prev.Ok.rcm?.flattened?.resubmissions || []
-        const hasSavedComment = currentResubmissions.some((r: any) => r.source === 'Saved Comment')
-
-        let nextResubmissions = [...currentResubmissions]
-        const typeLabel =
-          resubmitType === '1' ? 'Correction' : resubmitType === '3' ? 'Reconciliation' : 'Internal Complaints'
-        const raFileName = attachedFileName || raFilesList.find((f) => f.id === selectedRaFileId)?.name || ''
-
-        if (hasSavedComment) {
-          nextResubmissions = nextResubmissions.map((r: any) => {
-            if (r.source === 'Saved Comment') {
-              return {
-                ...r,
-                type: typeLabel,
-                ra_file_name: raFileName,
-                file_id: selectedRaFileId,
-                reason: resubComments.trim(),
-                captured_on: new Date().toISOString()
-              }
-            }
-            return r
-          })
-        } else {
-          const newResubRow = {
-            _encounter: encounterInput.trim(),
-            source: 'Saved Comment',
-            type: typeLabel,
-            ra_file_name: raFileName,
-            file_id: selectedRaFileId,
-            site_id: prev.Ok.rcm?.selected?.site_id || '',
-            file_type_id: 1,
-            reason: resubComments.trim(),
-            user_name: 'Local Portal',
-            captured_on: new Date().toISOString(),
-            payment_ref: prev.Ok.rcm?.selected?.payment_reference_no || ''
-          }
-          nextResubmissions = [newResubRow, ...nextResubmissions]
-        }
-
-        return {
-          ...prev,
-          Ok: {
-            ...prev.Ok,
-            rcm: {
-              ...prev.Ok.rcm,
-              writeContext: {
-                ...prev.Ok.rcm.writeContext,
-                resubmitReasonId: newReasonId,
-                existingReason: newReasonObj,
-                canSaveRaRemarks: true,
-                canSaveResubmission: true
-              },
-              flattened: {
-                ...prev.Ok.rcm.flattened,
-                resubmissions: nextResubmissions
-              }
-            }
-          }
-        }
+        duration: 4000
       })
     } catch (err: any) {
       showToast({
@@ -296,71 +224,15 @@ export function usePortalActions() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
 
-      if (!autoCopyRaRemarks) {
-        showToast({
-          id: toastId,
-          title: 'RA Remarks Saved',
-          message: 'RA remarks saved and synced successfully.',
-          tone: 'ok',
-          duration: 5000
-        })
-      }
+      // Re-fetch fresh revalidated RCM data from server and update UI authoritatively
+      await reloadRcmOnly(encounterInput.trim())
 
-      isSavingInPlaceRef.current = true
-      setRcmResult((prev: any) => {
-        if (!prev || !prev.Ok) return prev
-
-        const currentRemarks = prev.Ok.rcm?.flattened?.remarks || []
-        const hasRaRemark = currentRemarks.some((r: any) => Number(r.status_id) === 1)
-
-        let nextRemarks = [...currentRemarks]
-        if (hasRaRemark) {
-          nextRemarks = nextRemarks.map((r: any) => {
-            if (Number(r.status_id) === 1) {
-              return {
-                ...r,
-                remarks_ra: raRemarks.trim(),
-                remarks: raRemarks.trim(),
-                created_on: new Date().toISOString()
-              }
-            }
-            return r
-          })
-        } else {
-          const newRemark = {
-            _encounter: encounterInput.trim(),
-            status_id: 1,
-            remarks_from: 'RA Remarks',
-            remarks_ra: raRemarks.trim(),
-            remarks: raRemarks.trim(),
-            created_by_name: 'Local Portal',
-            created_on: new Date().toISOString()
-          }
-          nextRemarks = [newRemark, ...nextRemarks]
-        }
-
-        const currentActivities = prev.Ok.rcm?.flattened?.activity || []
-        const nextActivities = currentActivities.map((row: any) => {
-          const authId = Number(row.order_authorization_id)
-          if (!authId) return row
-          const action = rowActions[authId]
-          return action ? applyRowAction(row, action) : row
-        })
-
-        return {
-          ...prev,
-          Ok: {
-            ...prev.Ok,
-            rcm: {
-              ...prev.Ok.rcm,
-              flattened: {
-                ...prev.Ok.rcm.flattened,
-                remarks: nextRemarks,
-                activity: nextActivities
-              }
-            }
-          }
-        }
+      showToast({
+        id: toastId,
+        title: 'RA Remarks Saved',
+        message: 'RA remarks saved and synced successfully.',
+        tone: 'ok',
+        duration: 4000
       })
     } catch (err: any) {
       if (err?.name === 'AbortError') {
@@ -485,92 +357,17 @@ export function usePortalActions() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
 
+      setWriteOffRemarks('')
+
+      // Re-fetch fresh revalidated RCM data from server and update UI authoritatively
+      await reloadRcmOnly(encounterInput.trim())
+
       showToast({
         id: toastId,
         title: 'Write-off Processed',
         message: 'Write-off processed and posted successfully.',
         tone: 'ok',
-        duration: 5000
-      })
-      setWriteOffRemarks('')
-
-      isSavingInPlaceRef.current = true
-      setRcmResult((prev: any) => {
-        if (!prev || !prev.Ok) return prev
-
-        const currentRemarks = prev.Ok.rcm?.flattened?.remarks || []
-        const hasWriteOffRemark = currentRemarks.some((r: any) => Number(r.status_id) === 2)
-
-        let nextRemarks = [...currentRemarks]
-        if (hasWriteOffRemark) {
-          nextRemarks = nextRemarks.map((r: any) => {
-            if (Number(r.status_id) === 2) {
-              return {
-                ...r,
-                remarks_ra: writeOffRemarks.trim(),
-                remarks: writeOffRemarks.trim(),
-                created_on: new Date().toISOString()
-              }
-            }
-            return r
-          })
-        } else {
-          const newRemark = {
-            _encounter: encounterInput.trim(),
-            status_id: 2,
-            remarks_from: 'Write-Off Remarks',
-            remarks_ra: writeOffRemarks.trim(),
-            remarks: writeOffRemarks.trim(),
-            created_by_name: 'Local Portal',
-            created_on: new Date().toISOString()
-          }
-          nextRemarks = [newRemark, ...nextRemarks]
-        }
-
-        const currentActivities = prev.Ok.rcm?.flattened?.activity || []
-        const nextActivities = currentActivities.map((row: any) => {
-          const authId = Number(row.order_authorization_id)
-          if (!authId || !eligibleIds.has(authId)) return row
-          const action = rowActions[authId]
-          if (
-            action === 'w-off' ||
-            Number(row.pending_for_write_off || 0) === 1 ||
-            Number(row.maked_for_write_off || 0) === 1
-          ) {
-            return {
-              ...row,
-              maked_for_write_off: 2,
-              pending_for_write_off: 2,
-              isClosed: 1,
-              marked_closed: 1
-            }
-          }
-          return row
-        })
-
-        const nextRowActions = { ...rowActions }
-        for (const key of Object.keys(nextRowActions)) {
-          const authId = Number(key)
-          if (nextRowActions[authId] === 'w-off') {
-            nextRowActions[authId] = 'written-off' as any
-          }
-        }
-        setTimeout(() => setRowActions(nextRowActions), 0)
-
-        return {
-          ...prev,
-          Ok: {
-            ...prev.Ok,
-            rcm: {
-              ...prev.Ok.rcm,
-              flattened: {
-                ...prev.Ok.rcm.flattened,
-                remarks: nextRemarks,
-                activity: nextActivities
-              }
-            }
-          }
-        }
+        duration: 4000
       })
     } catch (err: any) {
       showToast({
