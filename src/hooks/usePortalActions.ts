@@ -489,7 +489,7 @@ export function usePortalActions() {
     }
   }
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     const toastId = 'resubmission'
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       showToast({
@@ -501,65 +501,59 @@ export function usePortalActions() {
       })
       return
     }
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const result = reader.result as string
-      const rawBase64 = result.split(',')[1]
 
-      if (autoAttachSummary && encounterInput.trim()) {
-        try {
+    try {
+      showToast({
+        id: toastId,
+        title: 'Processing Attachment',
+        message: autoAttachSummary ? `Merging ${file.name} with Clinical Summary PDF...` : `Processing ${file.name}...`,
+        tone: 'loading'
+      })
+
+      const arrayBuf = await file.arrayBuffer()
+      const bytes = new Uint8Array(arrayBuf)
+      let binary = ''
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i])
+      }
+      const rawBase64 = btoa(binary)
+
+      const res = await fetch('/api/pdf/process-pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64: rawBase64,
+          encounterId: encounterInput.trim(),
+          autoAttachSummary,
+          fileName: file.name
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.base64) {
+          setAttachedFileBase64(data.base64)
+          setAttachedFileName(data.fileName)
           showToast({
             id: toastId,
-            title: '⚡ Auto-Merging Summary',
-            message: `Merging ${file.name} with Clinical Summary PDF...`,
-            tone: 'loading'
+            title: 'File Attached',
+            message: autoAttachSummary ? `Merged ${file.name} with Clinical Summary PDF!` : `Attached ${file.name}!`,
+            tone: 'ok',
+            duration: 4000
           })
-          const res = await fetch('/api/encounter/attach-summary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ encounter: encounterInput.trim(), base64: rawBase64, fileName: file.name })
-          })
-          if (res.ok) {
-            const data = await res.json()
-            if (data.base64) {
-              setAttachedFileBase64(data.base64)
-              setAttachedFileName(data.fileName)
-              showToast({
-                id: toastId,
-                title: '⚡ Instantly Merged',
-                message: `Merged ${file.name} with Clinical Summary PDF!`,
-                tone: 'ok',
-                duration: 4000
-              })
-              uploadFileToServer(data.fileName, data.base64)
-              return
-            }
-          }
-        } catch (mergeErr: any) {
-          console.warn('[processFile] Instant auto-merge warning:', mergeErr.message)
+          uploadFileToServer(data.fileName, data.base64)
         }
       }
-
-      setAttachedFileBase64(rawBase64)
-      setAttachedFileName(file.name)
+    } catch (err: any) {
+      console.error('[processFile] Pipeline error:', err.message)
       showToast({
         id: toastId,
-        title: 'File Attached',
-        message: `Successfully attached local file: ${file.name}`,
-        tone: 'ok',
-        duration: 4000
-      })
-      uploadFileToServer(file.name, rawBase64)
-    }
-    reader.onerror = () =>
-      showToast({
-        id: toastId,
-        title: 'Read Failed',
-        message: 'Failed to read local attachment file.',
+        title: 'Attachment Failed',
+        message: `Failed to process attachment: ${err.message}`,
         tone: 'error',
         duration: 5000
       })
-    reader.readAsDataURL(file)
+    }
   }
 
   return {

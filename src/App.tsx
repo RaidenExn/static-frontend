@@ -395,75 +395,55 @@ function AppInner() {
 
   const handleCompressPdf = async (downloadUrl: string, fileName: string, compressionLevel?: string) => {
     const startTime = Date.now()
-    const result = await compressPdfOnBackend(downloadUrl, fileName, showToast, true, compressionLevel)
-    if (result && result.base64) {
-      let finalBase64 = result.base64
-      let finalFileName = result.fileName
+    const activeEncounter = patientHeader?.resolvedEncounter || ''
 
-      if (autoAttachSummary && patientHeader?.resolvedEncounter) {
-        try {
-          const res = await fetch('/api/encounter/attach-summary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              encounter: patientHeader.resolvedEncounter,
-              base64: result.base64,
-              fileName: result.fileName
-            })
+    try {
+      showToast({
+        id: 'pdf-compress',
+        title: 'Processing Compression Pipeline',
+        message: autoAttachSummary ? `Compressing ${fileName} & Merging Summary...` : `Compressing ${fileName}...`,
+        tone: 'loading'
+      })
+
+      const res = await fetch('/api/pdf/process-pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          downloadUrl,
+          encounterId: activeEncounter,
+          autoAttachSummary,
+          compressLevel: compressionLevel || 'extreme',
+          fileName
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.base64) {
+          setAttachedFileBase64(data.base64)
+          setAttachedFileName(data.fileName)
+          await uploadFileToServer(data.fileName, data.base64, 'pdf-compression')
+
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+          showToast({
+            id: 'pdf-compress',
+            title: '⚡ Pipeline Complete',
+            message: `Processed & attached ${data.fileName} in ${elapsed}s (${data.pageCount} pages, ${(data.bytes / 1024).toFixed(1)} KB)!`,
+            tone: 'ok',
+            duration: 6000
           })
-          if (res.ok) {
-            const data = await res.json()
-            if (data.base64) {
-              finalBase64 = data.base64
-              finalFileName = data.fileName
-            }
-          }
-        } catch (mergeErr: any) {
-          console.warn('[handleCompressPdf] Instant auto-merge warning:', mergeErr.message)
+          return
         }
       }
+    } catch (err: any) {
+      console.warn('[handleCompressPdf] Pipeline warning, falling back to legacy compressor:', err.message)
+    }
 
-      setAttachedFileBase64(finalBase64)
-      setAttachedFileName(finalFileName)
-
-      await uploadFileToServer(finalFileName, finalBase64, 'pdf-compression')
-
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
-      const formatBytes = (bytes: number): string => {
-        if (bytes < 1024) return `${bytes} B`
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-      }
-      const shortenFileName = (name: string, maxLen = 22): string => {
-        const clean = name.trim()
-        if (clean.length <= maxLen) return clean
-        const extIdx = clean.lastIndexOf('.')
-        const ext = extIdx !== -1 ? clean.substring(extIdx) : '.pdf'
-        const base = extIdx !== -1 ? clean.substring(0, extIdx) : clean
-        const charsToShow = maxLen - ext.length - 3
-        if (charsToShow <= 0) return clean.substring(0, maxLen)
-        return `${base.substring(0, charsToShow)}...${ext}`
-      }
-
-      let statsString = ''
-      if (result.beforeBytes && result.afterBytes) {
-        const beforeStr = formatBytes(result.beforeBytes)
-        const afterStr = formatBytes(result.afterBytes)
-        const savings = Math.round(((result.beforeBytes - result.afterBytes) / result.beforeBytes) * 100)
-        statsString = `\nSaved ${savings}% (${beforeStr} → ${afterStr}) in ${elapsed}s`
-      } else {
-        statsString = `\nCompleted in ${elapsed}s`
-      }
-
-      const sourcePrefix = result.source === 'cache' ? ' [Cache Hit]' : ' [EHR Streamed]'
-
-      showToast({
-        id: 'pdf-compression',
-        title: `PDF Compressed${sourcePrefix}`,
-        message: `File: ${shortenFileName(result.fileName)}${statsString}\nAttached to server portfolio successfully.`,
-        tone: 'ok',
-        duration: 6000
-      })
+    const result = await compressPdfOnBackend(downloadUrl, fileName, showToast, true, compressionLevel)
+    if (result && result.base64) {
+      setAttachedFileBase64(result.base64)
+      setAttachedFileName(result.fileName)
+      await uploadFileToServer(result.fileName, result.base64, 'pdf-compression')
     }
   }
 
