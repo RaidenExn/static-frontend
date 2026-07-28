@@ -12,7 +12,7 @@ interface RemarksAndResubmissionsPanelProps {
   resubmissionsCount: number
   resubmissionsRows: RcmResubmission[]
   onLoadSubmissionFile: (_fileId: string, siteId: string, fileName: string, isViewXml: boolean) => void
-  onDeleteResubmissionReason?: (resubmitReasonId: number) => void
+  onDeleteResubmissionReason?: (resubmitReasonId: number, encounter?: string) => void
   onEditResubmissionReason?: (row: RcmResubmission) => void
   adaptiveCardColors?: boolean
   submissionStateColor?: string
@@ -653,8 +653,9 @@ export default function RemarksAndResubmissionsPanel({
                                   variant="subtle"
                                   onClick={() => {
                                     const reasonId = Number(row.resubmit_reason_id || row.id || row.resubmitReasonId || 0)
+                                    const enc = row._encounter || ''
                                     if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
-                                      onDeleteResubmissionReason(reasonId)
+                                      onDeleteResubmissionReason(reasonId, enc)
                                     }
                                   }}
                                   style={{ height: '18px', width: '18px', minHeight: 0 }}

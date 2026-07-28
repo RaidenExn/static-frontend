@@ -463,7 +463,7 @@ export function usePortalState() {
     }
   }
 
-  const handleDeleteResubmissionReason = async (resubmitReasonId: number) => {
+  const handleDeleteResubmissionReason = async (resubmitReasonId: number, encounterFromRow?: string) => {
     if (!resubmitReasonId) return
     const toastId = 'delete-resubmission-comment'
     showToast({
@@ -474,6 +474,7 @@ export function usePortalState() {
     })
     try {
       const activeEnc = String(
+        encounterFromRow ||
         rcmResult?.Ok?.rcm?.selected?.display_encounter_configno ||
         rcmResult?.Ok?.rcm?.query?.encounter ||
         rcmResult?.Ok?.selected?.display_encounter_configno ||
