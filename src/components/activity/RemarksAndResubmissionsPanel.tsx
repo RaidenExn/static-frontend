@@ -558,8 +558,12 @@ export default function RemarksAndResubmissionsPanel({
                   const reason = row.reason || ''
                   const fileIdStr = rcmStrVal(row.file_id) || rcmStrVal(row.resubmit_reason_id) || rcmStrVal(row.id) || ''
                   const siteIdStr = rcmStrVal(row.site_id) || ''
-                  const fileNameStr = row.ra_file_name || row.attachment || ''
-                  const hasAttachment = !!(fileIdStr || fileNameStr || row.source === 'Saved Comment' || row.attachment)
+                  const fileNameStr = row.ra_file_name || ''
+                  const isSavedComment = row.source === 'Saved Comment' || !!row.resubmit_reason_id || !!row.resubmitReasonId
+                  const rawAttachment = String(row.attachment || row.resubmit_reason_attachment || '').trim()
+                  const hasAttachment = isSavedComment
+                    ? rawAttachment.length > 5 && rawAttachment !== 'null' && rawAttachment !== 'undefined'
+                    : !!(fileIdStr || fileNameStr)
 
                   return (
                     <Table.Tr key={idx} style={{ borderBottom: '1px solid var(--line)' }}>

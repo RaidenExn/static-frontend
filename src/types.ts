@@ -167,6 +167,7 @@ export interface RcmResubmission {
   ra_file_id?: any
   site_id?: any
   resubmit_reason_id?: any
+  resubmit_reason_attachment?: any
   resubmitReasonId?: any
   id?: any
   attachment?: any
