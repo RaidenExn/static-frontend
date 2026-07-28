@@ -565,6 +565,8 @@ export default function RemarksAndResubmissionsPanel({
                     ? rawAttachment.length > 5 && rawAttachment !== 'null' && rawAttachment !== 'undefined'
                     : !!(fileIdStr || fileNameStr)
 
+                  const pdfFileName = fileNameStr ? (fileNameStr.toLowerCase().endsWith('.pdf') ? fileNameStr : fileNameStr.replace(/\.[a-zA-Z0-9]+$/i, '') + '.pdf') : 'resubmission_attachment.pdf'
+
                   return (
                     <Table.Tr key={idx} style={{ borderBottom: '1px solid var(--line)' }}>
                       {/* Column 1: Labels Stack */}
@@ -617,7 +619,7 @@ export default function RemarksAndResubmissionsPanel({
                                     variant="light"
                                     color="blue"
                                     leftSection={<Paperclip size={11} style={{ color: 'var(--mantine-color-blue-6)' }} />}
-                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, fileNameStr || 'resubmission_attachment.pdf', false, rawAttachment)}
+                                    onClick={() => onLoadSubmissionFile(fileIdStr, siteIdStr, pdfFileName, false, rawAttachment)}
                                     style={{
                                       padding: '0 8px',
                                       fontSize: 'var(--mantine-font-size-xs)',
