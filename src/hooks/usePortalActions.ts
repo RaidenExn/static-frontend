@@ -92,8 +92,9 @@ export function usePortalActions() {
         setEditingResubmitReasonId(null)
       }
 
-      // Re-fetch fresh revalidated resubmission data from server and update UI authoritatively
-      await reloadResubmissionsOnly(encounterInput.trim())
+      setResubComments('')
+      setAttachedFileName('')
+      setAttachedFileBase64('')
 
       showToast({
         id: toastId,
@@ -102,6 +103,9 @@ export function usePortalActions() {
         tone: 'ok',
         duration: 4000
       })
+
+      // Non-blocking background revalidation
+      void reloadResubmissionsOnly(encounterInput.trim())
     } catch (err: any) {
       showToast({
         id: toastId,
@@ -224,9 +228,6 @@ export function usePortalActions() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`)
 
-      // Re-fetch fresh revalidated RCM data from server and update UI authoritatively
-      await reloadRcmOnly(encounterInput.trim())
-
       showToast({
         id: toastId,
         title: 'RA Remarks Saved',
@@ -234,6 +235,9 @@ export function usePortalActions() {
         tone: 'ok',
         duration: 4000
       })
+
+      // Non-blocking background revalidation
+      void reloadRcmOnly(encounterInput.trim())
     } catch (err: any) {
       if (err?.name === 'AbortError') {
         showToast({
@@ -359,9 +363,6 @@ export function usePortalActions() {
 
       setWriteOffRemarks('')
 
-      // Re-fetch fresh revalidated RCM data from server and update UI authoritatively
-      await reloadRcmOnly(encounterInput.trim())
-
       showToast({
         id: toastId,
         title: 'Write-off Processed',
@@ -369,6 +370,9 @@ export function usePortalActions() {
         tone: 'ok',
         duration: 4000
       })
+
+      // Non-blocking background revalidation
+      void reloadRcmOnly(encounterInput.trim())
     } catch (err: any) {
       showToast({
         id: toastId,
