@@ -463,7 +463,7 @@ export function usePortalState() {
     }
   }
 
-  const handleDeleteResubmissionReason = async (resubmitReasonId: number, encounterFromRow?: string) => {
+  const handleDeleteResubmissionReason = async (resubmitReasonId: number, encounterFromRow?: string, raFileIdFromRow?: number) => {
     if (!resubmitReasonId) return
     const toastId = 'delete-resubmission-comment'
     showToast({
@@ -486,7 +486,7 @@ export function usePortalState() {
       const res = await fetch('/api/rcm/resubmission-reason', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encounter: activeEnc, resubmitReasonId })
+        body: JSON.stringify({ encounter: activeEnc, resubmitReasonId, raFileId: raFileIdFromRow })
       })
       if (!res.ok) {
         const errText = await res.text()
