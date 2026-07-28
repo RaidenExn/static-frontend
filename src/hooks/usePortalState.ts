@@ -493,6 +493,29 @@ export function usePortalState() {
         throw new Error(errText)
       }
       deleteEncounterFromIndexedDb(activeEnc.toUpperCase()).catch(() => {})
+
+      // Instant optimistic update in React memory
+      setRcmResult((prev: any) => {
+        if (!prev || !prev.Ok || !prev.Ok.rcm?.flattened?.resubmissions) return prev
+        const updatedList = (prev.Ok.rcm.flattened.resubmissions || []).filter((r: any) => {
+          const rId = Number(r.resubmit_reason_id || r.id || r.resubmitReasonId || r.file_id || 0)
+          return rId !== Number(resubmitReasonId)
+        })
+        return {
+          ...prev,
+          Ok: {
+            ...prev.Ok,
+            rcm: {
+              ...prev.Ok.rcm,
+              flattened: {
+                ...prev.Ok.rcm.flattened,
+                resubmissions: updatedList
+              }
+            }
+          }
+        }
+      })
+
       showToast({
         id: toastId,
         title: '🗑️ Comment Deleted',

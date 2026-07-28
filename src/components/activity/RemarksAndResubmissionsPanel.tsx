@@ -652,7 +652,7 @@ export default function RemarksAndResubmissionsPanel({
                                   color="red"
                                   variant="subtle"
                                   onClick={() => {
-                                    const reasonId = Number(row.resubmit_reason_id || row.id || row.resubmitReasonId || 0)
+                                    const reasonId = Number(row.resubmit_reason_id || row.id || row.resubmitReasonId || row.file_id || 0)
                                     const enc = row._encounter || ''
                                     if (window.confirm('Are you sure you want to delete this resubmission comment?')) {
                                       onDeleteResubmissionReason(reasonId, enc)
