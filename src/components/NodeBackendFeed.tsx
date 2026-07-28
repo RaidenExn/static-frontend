@@ -133,15 +133,7 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
       }}
     >
       {/* Control Header */}
-      <Box
-        p="xs"
-        style={{
-          borderBottom: '1px solid var(--line)',
-          backgroundColor: 'var(--bg-translucent)',
-          backdropFilter: 'var(--backdrop-filter, blur(16px))',
-          WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
-        }}
-      >
+      <Box p="xs" style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--bg-translucent)' }}>
         <Group justify="space-between" align="center" wrap="nowrap">
           <Group gap="xs">
             <Terminal size={16} style={{ color: 'var(--accent)' }} />
@@ -262,26 +254,24 @@ export const NodeBackendFeed: React.FC<NodeBackendFeedProps> = ({
             }
           }}
           type="button"
-          style={{
-            position: 'absolute',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '8px 16px',
-            background: 'var(--bg-translucent)',
-            backdropFilter: 'var(--backdrop-filter, blur(16px))',
-            WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-            border: '1.5px solid var(--accent)',
-            color: 'var(--accent)',
-            borderRadius: '20px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-            fontSize: '11px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            zIndex: 10,
+            style={{
+              position: 'absolute',
+              bottom: '24px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '8px 16px',
+              background: 'var(--bg-translucent)',
+              border: '1.5px solid var(--accent)',
+              color: 'var(--accent)',
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              zIndex: 10,
             outline: 'none',
             transition: 'all 0.2s ease'
           }}

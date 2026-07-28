@@ -269,7 +269,7 @@ export default function ApiPanel({ showToast, aiModel, setAiModel }: ApiPanelPro
       </Box>
 
       {/* iLovePDF Compactor panel */}
-      <Paper p="xl" bg="var(--panel-soft)" mb="xl" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+      <Paper p="xl" bg="var(--panel-soft)" mb="xl" className="glass-panel">
         <Stack gap="xl">
           <Group justify="space-between">
             <Title order={3} size="h4" fw={600}>

@@ -179,8 +179,6 @@ export default function VisitPanel({
 
   const cardStyle = {
     backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-    backdropFilter: 'var(--backdrop-filter, blur(16px))',
-    WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
     border: '1px solid var(--line, rgba(255, 255, 255, 0.05))'
   }
 

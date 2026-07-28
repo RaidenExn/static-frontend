@@ -152,7 +152,7 @@ export default function AiProviderPipeline({
 
   if (loading) {
     return (
-      <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+      <Paper p="xl" bg="var(--panel-soft)" className="glass-panel">
         <Stack gap="xl">
           <Title order={3} size="h4" fw={600}>{title}</Title>
           <Text size="sm" c="dimmed">Loading runtime parameters...</Text>
@@ -162,7 +162,7 @@ export default function AiProviderPipeline({
   }
 
   return (
-    <Paper p="xl" bg="var(--panel-soft)" style={{ backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}>
+    <Paper p="xl" bg="var(--panel-soft)" className="glass-panel">
       <Stack gap="xl">
         <Title order={3} size="h4" fw={600}>{title}</Title>
         <Stack gap="lg" component="form" onSubmit={handleSave}>

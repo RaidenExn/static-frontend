@@ -154,10 +154,8 @@ export default function EncounterSearch({
       withBorder
       shadow="none"
       radius="sm"
+      className="glass-panel"
       style={{
-        backgroundColor: 'var(--bg-translucent)',
-        backdropFilter: 'var(--backdrop-filter, blur(16px))',
-        WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',

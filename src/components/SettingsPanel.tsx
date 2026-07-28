@@ -92,10 +92,7 @@ function ConnectionSettingsCard({ showToast }: { showToast: any }) {
       radius="sm"
       padding="md"
       bg="var(--panel-soft)"
-      style={{
-        backdropFilter: 'var(--backdrop-filter, blur(16px))',
-        WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
-      }}
+      className="glass-panel"
     >
       <Title
         order={3}
@@ -247,11 +244,8 @@ export default function SettingsPanel({
         withBorder
         mb="md"
         padding="md"
-        style={{
-          background: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-          backdropFilter: 'var(--backdrop-filter, blur(16px))',
-          WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
-        }}
+        bg="var(--panel-soft)"
+        className="glass-panel"
       >
         <Group justify="space-between" align="center" wrap="wrap" gap="md">
           <Box>
@@ -296,10 +290,7 @@ export default function SettingsPanel({
             p="xs"
             radius="sm"
             bg="var(--panel-soft)"
-            style={{
-              backdropFilter: 'var(--backdrop-filter, blur(16px))',
-              WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
-            }}
+            className="glass-panel"
           >
             <Text
               size="10px"
@@ -378,10 +369,7 @@ export default function SettingsPanel({
                 radius="sm"
                 padding="md"
                 bg="var(--panel-soft)"
-                style={{
-                  backdropFilter: 'var(--backdrop-filter, blur(16px))',
-                  WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
-                }}
+                className="glass-panel"
               >
                 <Title
                   order={3}

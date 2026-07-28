@@ -178,13 +178,11 @@ export default function ActivityPanel(props: ActivityPanelProps) {
         <Card
           withBorder
           padding="xs"
-          style={{
-            backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
-            backdropFilter: 'var(--backdrop-filter, blur(16px))',
-            WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
-            border: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
-            borderRadius: 'var(--mantine-radius-sm)'
-          }}
+            style={{
+              backgroundColor: 'var(--panel-soft, rgba(255, 255, 255, 0.02))',
+              border: '1px solid var(--line, rgba(255, 255, 255, 0.05))',
+              borderRadius: 'var(--mantine-radius-sm)'
+            }}
         >
           <Group justify="space-between" align="center" gap="xs">
             <Group gap="xs" align="center">

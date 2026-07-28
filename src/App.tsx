@@ -60,15 +60,17 @@ export default function App() {
   }
 
   return (
-    <PortalProvider>
-      <style>{`
-        /* Prevent nested/overlapping backdrop-filter calculations on children to protect GPU performance */
-        [style*="backdrop-filter"] * {
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-        }
-      `}</style>
-      <AppInner />
+      <PortalProvider>
+        <style>{`
+          /* Unified glass panel utility — dynamic blur via CSS vars */
+          .glass-panel {
+            background-color: var(--glass-bg-alpha, rgba(255, 255, 255, 0.55));
+            backdrop-filter: var(--backdrop-filter, blur(10px));
+            -webkit-backdrop-filter: var(--backdrop-filter, blur(10px));
+            border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+            border-radius: var(--mantine-radius-default, 4px);
+          }`}</style>
+        <AppInner />
     </PortalProvider>
   )
 }
@@ -582,7 +584,12 @@ function AppInner() {
       <Notifications
         position="bottom-left"
         zIndex={99999}
-        style={{ left: '12px', bottom: '12px', pointerEvents: 'none', position: 'fixed' }}
+        style={{
+          left: '12px',
+          bottom: '12px',
+          pointerEvents: 'none',
+          position: 'fixed'
+        }}
       />
       <Tabs value={activeTab} onChange={(val) => selectTab((val || 'summary') as any)}>
         <Box
@@ -597,13 +604,11 @@ function AppInner() {
           }}
         >
           <Box
+            className="glass-panel"
             style={{
               position: 'sticky',
               top: 0,
               zIndex: 1000,
-              backgroundColor: "transparent",
-              backdropFilter: "var(--backdrop-filter, blur(16px))",
-              WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))",
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',

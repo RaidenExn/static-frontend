@@ -186,8 +186,6 @@ export default function ResubmissionTab({
       padding="md"
       style={{
         backgroundColor: adaptiveStyles.bg,
-        backdropFilter: 'var(--backdrop-filter, blur(16px))',
-        WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))',
         border: adaptiveStyles.border,
         opacity: allActivitiesWriteOff ? 0.45 : 1,
         pointerEvents: allActivitiesWriteOff ? 'none' : 'auto',

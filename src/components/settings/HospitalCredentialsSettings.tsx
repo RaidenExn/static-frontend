@@ -44,8 +44,8 @@ export function HospitalCredentialsSettings({
         border: hasErrors
           ? '1.5px solid var(--mantine-color-red-filled)'
           : '1px solid var(--line, rgba(255, 255, 255, 0.05))',
-        backdropFilter: 'var(--backdrop-filter, blur(16px))',
-        WebkitBackdropFilter: 'var(--backdrop-filter, blur(16px))'
+        backgroundColor: 'var(--panel, rgba(255, 255, 255, 0.03))',
+        borderRadius: 'var(--mantine-radius-sm)'
       }}
     >
       <Title

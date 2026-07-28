@@ -169,18 +169,26 @@ export function usePortalTabsAndTheme() {
 
     if (visualStyle === 'flat') {
       document.documentElement.style.setProperty('--backdrop-filter', 'none')
+      document.documentElement.style.setProperty('--glass-bg-alpha', bgPanelVal)
       document.documentElement.style.setProperty('--bg-translucent', bgPanelVal)
     } else {
-      // Restore extremely efficient, GPU-optimized backdrop blur filter
       document.documentElement.style.setProperty('--backdrop-filter', 'blur(10px)')
 
-      // Compute high-fidelity, high-performance alpha transparency based on selected palette
+      let glassBgAlpha = 'rgba(255, 255, 255, 0.55)'
+      if (theme === 'dark') {
+        if (bgPalette === 'slate') glassBgAlpha = 'rgba(37, 38, 43, 0.5)'
+        else if (bgPalette === 'warm') glassBgAlpha = 'rgba(36, 34, 29, 0.5)'
+        else if (bgPalette === 'forest') glassBgAlpha = 'rgba(27, 34, 29, 0.5)'
+        else glassBgAlpha = 'rgba(30, 30, 30, 0.5)'
+      }
+      document.documentElement.style.setProperty('--glass-bg-alpha', glassBgAlpha)
+
       let bgTranslucentVal = 'rgba(255, 255, 255, 0.65)'
       if (theme === 'dark') {
         if (bgPalette === 'slate') bgTranslucentVal = 'rgba(37, 38, 43, 0.6)'
         else if (bgPalette === 'warm') bgTranslucentVal = 'rgba(36, 34, 29, 0.6)'
         else if (bgPalette === 'forest') bgTranslucentVal = 'rgba(27, 34, 29, 0.6)'
-        else bgTranslucentVal = 'rgba(30, 30, 30, 0.6)' // charcoal
+        else bgTranslucentVal = 'rgba(30, 30, 30, 0.6)'
       }
       document.documentElement.style.setProperty('--bg-translucent', bgTranslucentVal)
     }

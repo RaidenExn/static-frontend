@@ -215,7 +215,7 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
         withBorder
         radius="sm"
         padding="xs"
-        style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
+        style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))" }}
       >
         <Group align="end" gap="xs">
           <TextInput
@@ -261,7 +261,7 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
             withBorder
             padding="xs"
             radius="sm"
-            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
+            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))" }}
           >
             <Text size="8px" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Patient
@@ -274,7 +274,7 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
             withBorder
             padding="xs"
             radius="sm"
-            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
+            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))" }}
           >
             <Text size="8px" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Encounter Date
@@ -287,7 +287,7 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
             withBorder
             padding="xs"
             radius="sm"
-            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
+            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))" }}
           >
             <Text size="8px" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Consulting Doctor
@@ -300,7 +300,7 @@ export default function BypassPanel({ active, showToast }: BypassPanelProps) {
             withBorder
             padding="xs"
             radius="sm"
-            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))", backdropFilter: "var(--backdrop-filter, blur(16px))", WebkitBackdropFilter: "var(--backdrop-filter, blur(16px))" }}
+            style={{ backgroundColor: "var(--panel-soft, rgba(255, 255, 255, 0.02))" }}
           >
             <Text size="8px" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Encounter Number

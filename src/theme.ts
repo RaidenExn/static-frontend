@@ -299,7 +299,9 @@ export const theme = createTheme({
 export const resolver: CSSVariablesResolver = () => ({
   variables: {
     '--border-radius': 'var(--mantine-radius-default)',
-    '--shadow': 'none'
+    '--shadow': 'none',
+    '--backdrop-filter': 'blur(10px)',
+    '--glass-bg-alpha': 'rgba(255, 255, 255, 0.55)'
   },
   light: {
     '--bg-app': THEME_CONFIG.light.bg,
