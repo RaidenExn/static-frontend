@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Tabs, Box, Group, Paper, Text, Divider } from '@mantine/core'
-import { LtChip } from '../shared_elements'
+import { Box, Group, Text, Divider } from '@mantine/core'
+import { LtTabs } from '../shared_elements'
 import {
   FileText,
   Clipboard,
@@ -224,44 +224,25 @@ export default function EncounterSearch({
 
       {/* ROW 3: Embedded Compact Tabs & Status / Resubs Group */}
       <Group justify="space-between" align="center" wrap="nowrap" px="xs" w="100%">
-        <Tabs value={activeTab} onChange={(val) => val && onSelectTab(val)} style={{ flex: 1, minWidth: 0 }}>
-          <Tabs.List style={{ border: 'none', backgroundColor: 'transparent', flexWrap: 'nowrap', overflowX: 'auto' }}>
-            {(
-              [
-                { id: 'summary', label: 'Summary', icon: FileText },
-                { id: 'activity', label: 'Activity Wise Status', icon: Clipboard, count: activityCount },
-                { id: 'visit', label: 'Visit History', icon: Clock, count: visitCount },
-                { id: 'prompt', label: 'Prompt', icon: MessageSquare },
-                { id: 'storage', label: 'Storage', icon: Database },
-                { id: 'logs', label: 'System Logs', icon: BookOpen },
-                { id: 'settings', label: 'Settings', icon: Settings },
-                { id: 'bulk', label: 'Bulk Operations', icon: Layers },
-                { id: 'workshop', label: 'Excel Workshop', icon: FileSpreadsheet }
-              ] as const
-            ).map((tab) => {
-              const IconComponent = tab.icon
-              return (
-                <Tabs.Tab
-                  key={tab.id}
-                  value={tab.id}
-                  leftSection={<IconComponent size={12} />}
-                  h={32}
-                  px="xs"
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  <Group gap={4} align="center" wrap="nowrap">
-                    <Text size="xs" fw={600}>{tab.label}</Text>
-                    {'count' in tab && tab.count !== undefined && tab.count > 0 && (
-                      <LtChip color="gray" size="xs" style={{ height: 14, padding: '0 4px', fontSize: 9 }}>
-                        {tab.count}
-                      </LtChip>
-                    )}
-                  </Group>
-                </Tabs.Tab>
-              )
-            })}
-          </Tabs.List>
-        </Tabs>
+        <LtTabs
+          value={activeTab}
+          onChange={(val) => val && onSelectTab(val)}
+          fullWidth
+          grow={false}
+          variant="outline"
+          style={{ flex: 1, minWidth: 0 }}
+          tabs={[
+            { value: 'summary', label: 'Summary', icon: FileText },
+            { value: 'activity', label: 'Activity Wise Status', icon: Clipboard, count: activityCount },
+            { value: 'visit', label: 'Visit History', icon: Clock, count: visitCount },
+            { value: 'prompt', label: 'Prompt', icon: MessageSquare },
+            { value: 'storage', label: 'Storage', icon: Database },
+            { value: 'logs', label: 'System Logs', icon: BookOpen },
+            { value: 'settings', label: 'Settings', icon: Settings },
+            { value: 'bulk', label: 'Bulk Operations', icon: Layers },
+            { value: 'workshop', label: 'Excel Workshop', icon: FileSpreadsheet },
+          ]}
+        />
 
         {/* Status Card, Resubs indicator, CEED, Theme Switcher */}
         <Box style={{ flexShrink: 0 }} pl="xs">
