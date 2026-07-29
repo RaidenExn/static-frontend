@@ -1,3 +1,4 @@
+export * from './LtTabs'
 export * from './LtAppCard'
 export * from './LtInfoCard'
 export * from './LtDataTableCard'
