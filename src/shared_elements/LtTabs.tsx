@@ -15,6 +15,7 @@ export interface LtTabsProps {
   value: string
   onChange: (value: string | null) => void
   variant?: TabsProps['variant']
+  color?: TabsProps['color']
   fullWidth?: boolean
   grow?: boolean
   className?: string
@@ -40,6 +41,7 @@ export function LtTabs({
   value,
   onChange,
   variant = 'outline',
+  color = 'grape',
   fullWidth = true,
   grow = false,
   className,
@@ -48,12 +50,13 @@ export function LtTabs({
   return (
     <Tabs
       variant={variant}
+      color={color}
       value={value}
       onChange={onChange}
       className={className}
       style={style}
     >
-      <Tabs.List grow={grow} style={{ flexWrap: 'nowrap', overflowX: 'auto', backgroundColor: 'transparent', border: 'none', padding: 'xs' }}>
+      <Tabs.List grow={grow}>
         {tabs.map((tab) => {
           const IconComponent = tab.icon ?? ICON_MAP[tab.value]
           return (
