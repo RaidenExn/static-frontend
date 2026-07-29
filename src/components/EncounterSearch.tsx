@@ -247,18 +247,9 @@ export default function EncounterSearch({
         {/* Status Card, Resubs indicator, CEED, Theme Switcher */}
         <Box style={{ flexShrink: 0 }} pl="xs">
           <Group gap="xs" align="center" wrap="nowrap">
-            {/* Outlined status card with MPI, Appointment Status, Claim Queue */}
+            {/* Outlined status card with Appointment Status, Claim Queue */}
             <LtInfoCard height={28} style={{ width: 'auto' }}>
               <Group gap="xs" align="center" wrap="nowrap">
-                <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
-                  MPI:{' '}
-                  <Text component="span" fw={600}>
-                    {rawMpi}
-                  </Text>
-                </Text>
-
-                <Divider orientation="vertical" h={14} opacity={0.5} />
-
                 <Text size="xs" fw={400} style={{ whiteSpace: 'nowrap' }}>
                   Appointment Status:{' '}
                   <Text component="span" fw={600}>
