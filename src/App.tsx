@@ -604,7 +604,6 @@ function AppInner() {
           }}
         >
           <Box
-            className="glass-panel"
             style={{
               position: 'sticky',
               top: 0,
