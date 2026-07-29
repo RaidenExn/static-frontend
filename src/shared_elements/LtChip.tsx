@@ -56,7 +56,7 @@ export function LtChip({
         color: PALETTE_TEXT[palette],
         height: '22px',
         padding: '0 8px',
-        borderRadius: '4px',
+        borderRadius: 'var(--mantine-radius-md)',
         textTransform: 'none',
         ...style
       }}

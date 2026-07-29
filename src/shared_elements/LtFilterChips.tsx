@@ -35,7 +35,7 @@ export function LtFilterChips({
           wrap="nowrap"
           style={{
             backgroundColor: 'var(--panel-soft)',
-            borderRadius: 'var(--mantine-radius-sm)',
+            borderRadius: 'var(--mantine-radius-md)',
             padding: '2px 4px 2px 8px',
             fontSize: 'var(--mantine-font-size-xs)',
             fontWeight: 600,

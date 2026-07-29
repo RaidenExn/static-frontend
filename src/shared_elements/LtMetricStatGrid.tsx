@@ -18,7 +18,7 @@ export function LtMetricStatGrid({ stats, cols = { base: 2, sm: 4 }, spacing = '
   return (
     <SimpleGrid cols={cols} spacing={spacing}>
       {stats.map((stat, idx) => (
-        <Card key={idx} withBorder padding="xs" radius="sm" ta="center" bg="var(--mantine-color-body)">
+        <Card key={idx} withBorder padding="xs" radius="md" ta="center" bg="var(--mantine-color-body)">
           <Text size="md" fw={800} c={stat.color}>
             {stat.value}
           </Text>

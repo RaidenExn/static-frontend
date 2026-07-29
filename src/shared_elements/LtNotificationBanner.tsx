@@ -53,7 +53,7 @@ export function LtNotificationBanner({
   return (
     <Paper
       withBorder
-      radius="sm"
+      radius="md"
       p="xs"
       bg={config.bg}
       style={{

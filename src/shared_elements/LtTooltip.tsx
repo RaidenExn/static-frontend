@@ -18,7 +18,7 @@ export interface LtTooltipProps extends Omit<TooltipProps, 'children'> {
   openDelay?: number
   /** Delay before closing tooltip in ms (default: 0) */
   closeDelay?: number
-  /** Border radius token (default: 'sm' following theme config) */
+  /** Border radius token (default: 'md' following theme config) */
   radius?: MantineRadius
   /** Disable tooltip (default: false) */
   disabled?: boolean
@@ -49,7 +49,7 @@ export function LtTooltip({
   arrowSize = 4,
   openDelay = 0,
   closeDelay = 0,
-  radius = 'sm',
+  radius = 'md',
   disabled = false,
   multiline,
   w,
@@ -81,7 +81,7 @@ export function LtTooltip({
     fontWeight: 600,
     letterSpacing: '0.02em',
     padding: '4px 8px',
-    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-sm, 4px))` : undefined,
+    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-md, 6px))` : undefined,
     willChange: 'transform, opacity',
     ...(style as React.CSSProperties)
   }

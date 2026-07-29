@@ -39,7 +39,7 @@ export function LtInfoCard({
   return (
     <Paper
       withBorder
-      radius="sm"
+      radius="md"
       px={padding}
       h={height}
       bg="transparent"

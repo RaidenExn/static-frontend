@@ -33,7 +33,7 @@ export function LtButton({
   tooltip,
   tooltipPosition = 'top',
   size = 'xs',
-  radius = 'sm',
+  radius = 'md',
   variant = 'filled',
   color,
   loading = false,
@@ -46,7 +46,7 @@ export function LtButton({
   ...rest
 }: LtButtonProps) {
   const computedStyle: React.CSSProperties = {
-    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-sm, 4px))` : 'var(--mantine-radius-sm, 4px)',
+    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-md, 6px))` : 'var(--mantine-radius-md, 6px)',
     fontSize: size === 'xs' ? 'var(--mantine-font-size-xs, 11px)' : undefined,
     fontWeight: 600,
     letterSpacing: '0.01em',
@@ -111,7 +111,7 @@ export function LtIconButton({
   tooltip,
   tooltipPosition = 'top',
   size = 'xs',
-  radius = 'sm',
+  radius = 'md',
   variant = 'subtle',
   color = 'gray',
   loading = false,
@@ -128,7 +128,7 @@ export function LtIconButton({
       : null
 
   const computedStyle: React.CSSProperties = {
-    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-sm, 4px))` : 'var(--mantine-radius-sm, 4px)',
+    borderRadius: radius ? `var(--mantine-radius-${radius}, var(--mantine-radius-md, 6px))` : 'var(--mantine-radius-md, 6px)',
     transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
     willChange: 'transform, opacity',
     ...(style as React.CSSProperties)

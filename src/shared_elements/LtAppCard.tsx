@@ -74,7 +74,7 @@ export function LtAppCard({
   return (
     <Card
       withBorder
-      radius="sm"
+      radius="md"
       padding={padding}
       bg="var(--mantine-color-body)"
       variant={variant}

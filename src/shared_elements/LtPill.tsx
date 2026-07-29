@@ -74,7 +74,7 @@ export function LtPill({
         fontSize: '8px',
         fontWeight: 600,
         lineHeight: '10px',
-        borderRadius: '4px',
+        borderRadius: 'var(--mantine-radius-md)',
         textTransform: 'none',
         whiteSpace: 'nowrap',
         verticalAlign: 'middle',

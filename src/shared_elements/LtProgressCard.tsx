@@ -36,7 +36,7 @@ export function LtProgressCard({
   return (
     <Paper
       withBorder
-      radius="sm"
+      radius="md"
       p={padding}
       bg="var(--mantine-color-body)"
       style={{
